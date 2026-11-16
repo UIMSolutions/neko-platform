@@ -1,0 +1,14 @@
+{
+  "Domain": "open",
+  "Environment": "mock",
+  "CanExport": true,
+  "CanImport": false,
+  "ExportTargets": ["restricted", "confidential", "secret"],
+  "ServiceCount": 3,
+  "ActiveServices": 1,
+  "ServicesDown": 0,
+  "TransferCount": 2,
+  "OutboundTransfers": 2,
+  "InboundTransfers": 0,
+  "RejectedTransfers": 0
+}

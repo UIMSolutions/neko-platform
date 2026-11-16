@@ -1,0 +1,28 @@
+[
+  {
+    "ID": "c0ffee00-0000-4000-8000-000000000001",
+    "Name": "daily-feed",
+    "Direction": "outbound",
+    "SourceDomain": "open",
+    "TargetDomain": "restricted",
+    "Status": "exported",
+    "Checksum": "0a331a76bb6dc9f11ef0ccdc52ac287c7af38d62392eaa7ad12e855ec890c4ab",
+    "Size": 2048,
+    "Reason": "",
+    "CreatedBy": "jane",
+    "CreatedAt": "2026-11-16T08:15:00.000Z"
+  },
+  {
+    "ID": "c0ffee00-0000-4000-8000-000000000002",
+    "Name": "threat-indicators",
+    "Direction": "outbound",
+    "SourceDomain": "open",
+    "TargetDomain": "secret",
+    "Status": "exported",
+    "Checksum": "9f2b5c1e8a7d6e4f3c2b1a0918273645f1e2d3c4b5a69788796a5b4c3d2e1f00",
+    "Size": 734003,
+    "Reason": "",
+    "CreatedBy": "ops",
+    "CreatedAt": "2026-11-15T17:40:00.000Z"
+  }
+]

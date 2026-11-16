@@ -1,0 +1,16 @@
+{
+  "name": "neko-platform-approuter",
+  "version": "1.0.0",
+  "description": "Approuter (XSUAA login, routing, CSRF, sessions) for the Neko Service Platform",
+  "private": true,
+  "license": "Apache-2.0",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node node_modules/@sap/approuter/approuter.js",
+    "build:ui": "cd ../frontend && npm ci && npm run build && rm -rf ../approuter/resources && cp -r dist ../approuter/resources",
+    "start:local": "npm run build:ui && node node_modules/@sap/approuter/approuter.js"
+  },
+  "dependencies": {
+    "@sap/approuter": "^16.8.0"
+  }
+}

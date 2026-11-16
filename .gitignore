@@ -26,3 +26,22 @@ docs/
 # Build output
 backend/build/
 services/*/backend/build/
+backend/dist/
+
+# Runtime data (JSON documents per security domain)
+data/
+backend/data/
+
+# Approuter: local XSUAA secrets — never commit
+approuter/default-env.json
+approuter/resources/
+approuter/node_modules/
+
+# Frontend tooling
+frontend/node_modules/
+frontend/dist/
+
+# MTA build
+mta_archives/
+*.mtar
+.mta/

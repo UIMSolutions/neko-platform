@@ -1,0 +1,93 @@
+_schema-version: "3.3"
+ID: neko-service-platform
+version: 1.0.0
+description: Neko Service Platform — D/vibe.d backend (REST, OData v4), SAP Fiori 3 cockpit and approuter
+
+# One platform instance per security domain, typically one CF space each:
+#   NEKO_DOMAIN=restricted mbt build && cf deploy mta_archives/neko-service-platform_1.0.0.mtar
+# The domain is compiled into the binary (dub --config=<domain>); default: open.
+
+parameters:
+  enable-parallel-deployments: true
+
+modules:
+  # ── D / vibe.d backend ────────────────────────────────────────────────────
+  - name: neko-platform-srv
+    type: custom
+    path: .
+    build-parameters:
+      builder: custom
+      commands:
+        - bash -c 'dub build --build=release --config=${NEKO_DOMAIN:-open}'
+        - bash -c 'rm -rf backend/dist && mkdir -p backend/dist/config && cp backend/build/platform-${NEKO_DOMAIN:-open} backend/dist/platform && cp backend/config/default.json backend/dist/config/'
+      build-result: backend/dist
+    parameters:
+      buildpack: binary_buildpack
+      command: ./platform
+      memory: 256M
+      disk-quota: 512M
+      health-check-type: http
+      health-check-http-endpoint: /health
+    properties:
+      NEKO_HOST: 0.0.0.0
+      NEKO_ENVIRONMENT: production
+      NEKO_LOG_LEVEL: info
+      # Behind the approuter: modifying calls need the XSUAA Admin scope.
+      NEKO_ENFORCE_SCOPES: "true"
+      # The Fiori app is served by the approuter.
+      NEKO_FRONTEND_DIR: none
+      # JSON documents on the (ephemeral) container disk — bind a persistent
+      # volume or replace the storage adapter before holding real data.
+      NEKO_STORAGE: file
+      NEKO_DATA_DIR: data
+      NEKO_HEALTH_INTERVAL: "60"
+    provides:
+      - name: neko-platform-srv-api
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: neko-platform-xsuaa
+      - name: neko-platform-config
+
+  # ── Approuter (serves the self-contained Fiori build from resources/) ─────
+  - name: neko-platform-approuter
+    type: approuter.nodejs
+    path: approuter
+    build-parameters:
+      builder: custom
+      commands:
+        - npm run build:ui
+        - npm install --omit=dev
+    parameters:
+      memory: 256M
+      disk-quota: 512M
+      keep-existing-routes: true
+    requires:
+      - name: neko-platform-xsuaa
+      - name: neko-platform-srv-api
+        group: destinations
+        properties:
+          name: neko-platform-srv
+          url: ~{srv-url}
+          forwardAuthToken: true
+          timeout: 60000
+
+resources:
+  - name: neko-platform-xsuaa
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: approuter/xs-security.json
+      config:
+        xsappname: neko-platform-${space}
+
+  # Runtime overrides read from VCAP_SERVICES (credentials of the service
+  # named / tagged "neko-platform-config"), same keys as backend/config/default.json.
+  - name: neko-platform-config
+    type: org.cloudfoundry.user-provided-service
+    parameters:
+      service-name: neko-platform-config
+      config:
+        healthCheckIntervalSeconds: "60"
+        maxPayloadBytes: "10485760"

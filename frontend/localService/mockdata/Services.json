@@ -1,0 +1,41 @@
+[
+  {
+    "ID": "6b1c0d2e-0000-4000-8000-000000000001",
+    "Name": "management",
+    "Description": "Cloud management service (accounts, entitlements)",
+    "Classification": "open",
+    "BaseUrl": "http://localhost:8098",
+    "HealthPath": "/api/v1/health",
+    "Status": "active",
+    "Health": "up",
+    "LastCheckedAt": "2026-11-16T09:00:00.000Z",
+    "CreatedAt": "2026-11-01T08:00:00.000Z",
+    "ModifiedAt": "2026-11-16T09:00:00.000Z"
+  },
+  {
+    "ID": "6b1c0d2e-0000-4000-8000-000000000002",
+    "Name": "document-archive",
+    "Description": "Long-term archive",
+    "Classification": "open",
+    "BaseUrl": "http://localhost:9100",
+    "HealthPath": "/health",
+    "Status": "suspended",
+    "Health": "unknown",
+    "LastCheckedAt": null,
+    "CreatedAt": "2026-11-05T10:30:00.000Z",
+    "ModifiedAt": "2026-11-10T12:00:00.000Z"
+  },
+  {
+    "ID": "6b1c0d2e-0000-4000-8000-000000000003",
+    "Name": "legacy-reporting",
+    "Description": "Replaced by the analytics service",
+    "Classification": "open",
+    "BaseUrl": "",
+    "HealthPath": "/health",
+    "Status": "retired",
+    "Health": "unknown",
+    "LastCheckedAt": null,
+    "CreatedAt": "2026-10-01T08:00:00.000Z",
+    "ModifiedAt": "2026-11-02T16:45:00.000Z"
+  }
+]

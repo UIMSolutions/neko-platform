@@ -98,6 +98,9 @@ class PlatformODataController {
   void registerRoutes(URLRouter router) {
     router.get(basePath, &serviceDocument);
     router.get(basePath ~ "/", &serviceDocument);
+    // UI5 fetches the CSRF token with "HEAD <service root>" before modifying requests.
+    router.match(HTTPMethod.HEAD, basePath, &tokenProbe);
+    router.match(HTTPMethod.HEAD, basePath ~ "/", &tokenProbe);
     router.get(basePath ~ "/$metadata", &serveMetadata);
     router.any(basePath ~ "/*", &handle);
   }
@@ -110,6 +113,14 @@ class PlatformODataController {
     body["@odata.context"] = "$metadata";
     body["value"] = Json(sets);
     writeOData(res, 200, body);
+  }
+
+  /// Answers the token probe without issuing a token: CSRF protection is the
+  /// approuter's job (xs-app.json "csrfProtection"), UI5 then sends no token.
+  void tokenProbe(HTTPServerRequest req, HTTPServerResponse res) {
+    res.headers["OData-Version"] = "4.0";
+    res.statusCode = 200;
+    res.writeVoidBody();
   }
 
   void serveMetadata(HTTPServerRequest req, HTTPServerResponse res) {

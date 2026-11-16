@@ -1,0 +1,28 @@
+{
+  "xsappname": "neko-platform",
+  "tenant-mode": "dedicated",
+  "description": "Neko Service Platform (one instance per security domain)",
+  "scopes": [
+    { "name": "$XSAPPNAME.Viewer", "description": "Display the service catalogue and the transfer log" },
+    { "name": "$XSAPPNAME.Admin", "description": "Register and operate services, export and import transfer packages" }
+  ],
+  "role-templates": [
+    {
+      "name": "PlatformViewer",
+      "description": "Read-only access to the platform",
+      "scope-references": ["$XSAPPNAME.Viewer"]
+    },
+    {
+      "name": "PlatformAdmin",
+      "description": "Operates services and transfers",
+      "scope-references": ["$XSAPPNAME.Admin", "$XSAPPNAME.Viewer"]
+    }
+  ],
+  "role-collections": [
+    { "name": "Neko Platform Viewer", "role-template-references": ["$XSAPPNAME.PlatformViewer"] },
+    { "name": "Neko Platform Administrator", "role-template-references": ["$XSAPPNAME.PlatformAdmin"] }
+  ],
+  "oauth2-configuration": {
+    "redirect-uris": ["https://*.hana.ondemand.com/**", "http://localhost:5000/**"]
+  }
+}

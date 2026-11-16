@@ -1,0 +1,54 @@
+{
+  "welcomeFile": "/index.html",
+  "authenticationMethod": "route",
+  "logout": {
+    "logoutEndpoint": "/do/logout",
+    "logoutPage": "/index.html"
+  },
+  "routes": [
+    {
+      "source": "^/health$",
+      "target": "/health",
+      "destination": "neko-platform-srv",
+      "authenticationType": "none",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/odata/v4/platform/(.*)$",
+      "target": "/odata/v4/platform/$1",
+      "destination": "neko-platform-srv",
+      "authenticationType": "xsuaa",
+      "csrfProtection": true,
+      "scope": {
+        "GET": ["$XSAPPNAME.Viewer", "$XSAPPNAME.Admin"],
+        "HEAD": ["$XSAPPNAME.Viewer", "$XSAPPNAME.Admin"],
+        "default": "$XSAPPNAME.Admin"
+      }
+    },
+    {
+      "source": "^/(rest|api)/v1/(.*)$",
+      "target": "/$1/v1/$2",
+      "destination": "neko-platform-srv",
+      "authenticationType": "xsuaa",
+      "csrfProtection": true,
+      "scope": {
+        "GET": ["$XSAPPNAME.Viewer", "$XSAPPNAME.Admin"],
+        "default": "$XSAPPNAME.Admin"
+      }
+    },
+    {
+      "source": "^/status$",
+      "target": "/status",
+      "destination": "neko-platform-srv",
+      "authenticationType": "xsuaa",
+      "scope": ["$XSAPPNAME.Viewer", "$XSAPPNAME.Admin"]
+    },
+    {
+      "source": "^/(.*)$",
+      "target": "$1",
+      "localDir": "resources",
+      "authenticationType": "xsuaa",
+      "scope": ["$XSAPPNAME.Viewer", "$XSAPPNAME.Admin"]
+    }
+  ]
+}

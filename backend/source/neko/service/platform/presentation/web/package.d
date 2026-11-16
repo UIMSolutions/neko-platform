@@ -55,8 +55,12 @@ class FrontendController {
 
   /// `configured` = "" → first of frontend/dist (self-contained build incl. UI5),
   /// frontend/, ../frontend/dist, ../frontend, <exe>/../../frontend[/dist] that has an index.html
+  /// "none" switches serving off (e.g. on Cloud Foundry, where the approuter serves the app).
   this(string configured) {
-    directory = configured.length > 0 ? configured : detect();
+    if (configured == "none")
+      directory = "";
+    else
+      directory = configured.length > 0 ? configured : detect();
   }
 
   string location() const {

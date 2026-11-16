@@ -1,0 +1,23 @@
+<core:FragmentDefinition
+  xmlns="sap.m"
+  xmlns:core="sap.ui.core"
+  xmlns:u="sap.ui.unified">
+  <Dialog id="importDialog" title="{i18n>transfers.import}" contentWidth="36rem" class="sapUiContentPadding">
+    <MessageStrip text="{i18n>import.hint}" type="Information" showIcon="true" class="sapUiSmallMarginBottom"/>
+    <VBox>
+      <Label text="{i18n>import.file}" labelFor="importFile"/>
+      <u:FileUploader id="importFile" width="100%" fileType="json" mimeType="application/json"
+        placeholder="{i18n>import.choose}" sendXHR="false" change=".onImportFileChange"/>
+      <Label text="{i18n>import.document}" labelFor="importDocument" class="sapUiSmallMarginTop"/>
+      <TextArea id="importDocument" value="{ui>/importForm/Document}" rows="10" width="100%"
+        valueLiveUpdate="true" placeholder='{"format": "neko-transfer/1", …}'/>
+    </VBox>
+    <beginButton>
+      <Button text="{i18n>import.confirm}" type="Emphasized" press=".onConfirmImport"
+        enabled="{= !!${ui>/importForm/Document} }"/>
+    </beginButton>
+    <endButton>
+      <Button text="{i18n>cancel}" press=".onCloseDialog"/>
+    </endButton>
+  </Dialog>
+</core:FragmentDefinition>

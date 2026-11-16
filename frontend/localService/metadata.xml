@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">
+<edmx:Reference Uri="https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Capabilities.V1.xml"><edmx:Include Alias="Capabilities" Namespace="Org.OData.Capabilities.V1"/></edmx:Reference>
+<edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/Common.xml"><edmx:Include Alias="Common" Namespace="com.sap.vocabularies.Common.v1"/></edmx:Reference>
+<edmx:DataServices><Schema Namespace="neko.platform" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+<EntityType Name="Service"><Key><PropertyRef Name="ID"/></Key>
+  <Property Name="ID" Type="Edm.String" Nullable="false"/>
+  <Property Name="Name" Type="Edm.String" Nullable="false"/>
+  <Property Name="Description" Type="Edm.String"/>
+  <Property Name="Classification" Type="Edm.String" Nullable="false"/>
+  <Property Name="BaseUrl" Type="Edm.String"/>
+  <Property Name="HealthPath" Type="Edm.String"/>
+  <Property Name="Status" Type="Edm.String" Nullable="false"/>
+  <Property Name="Health" Type="Edm.String" Nullable="false"/>
+  <Property Name="LastCheckedAt" Type="Edm.DateTimeOffset"/>
+  <Property Name="CreatedAt" Type="Edm.DateTimeOffset"/>
+  <Property Name="ModifiedAt" Type="Edm.DateTimeOffset"/>
+</EntityType>
+<EntityType Name="Transfer"><Key><PropertyRef Name="ID"/></Key>
+  <Property Name="ID" Type="Edm.String" Nullable="false"/>
+  <Property Name="Name" Type="Edm.String" Nullable="false"/>
+  <Property Name="Direction" Type="Edm.String" Nullable="false"/>
+  <Property Name="SourceDomain" Type="Edm.String" Nullable="false"/>
+  <Property Name="TargetDomain" Type="Edm.String" Nullable="false"/>
+  <Property Name="Status" Type="Edm.String" Nullable="false"/>
+  <Property Name="Checksum" Type="Edm.String"/>
+  <Property Name="Size" Type="Edm.Int32" Nullable="false"/>
+  <Property Name="Reason" Type="Edm.String"/>
+  <Property Name="CreatedBy" Type="Edm.String"/>
+  <Property Name="CreatedAt" Type="Edm.DateTimeOffset"/>
+</EntityType>
+<EntityType Name="Overview"><Key><PropertyRef Name="Domain"/></Key>
+  <Property Name="Domain" Type="Edm.String" Nullable="false"/>
+  <Property Name="Environment" Type="Edm.String"/>
+  <Property Name="CanExport" Type="Edm.Boolean" Nullable="false"/>
+  <Property Name="CanImport" Type="Edm.Boolean" Nullable="false"/>
+  <Property Name="ExportTargets" Type="Collection(Edm.String)" Nullable="false"/>
+  <Property Name="ServiceCount" Type="Edm.Int32" Nullable="false"/>
+  <Property Name="ActiveServices" Type="Edm.Int32" Nullable="false"/>
+  <Property Name="ServicesDown" Type="Edm.Int32" Nullable="false"/>
+  <Property Name="TransferCount" Type="Edm.Int32" Nullable="false"/>
+  <Property Name="OutboundTransfers" Type="Edm.Int32" Nullable="false"/>
+  <Property Name="InboundTransfers" Type="Edm.Int32" Nullable="false"/>
+  <Property Name="RejectedTransfers" Type="Edm.Int32" Nullable="false"/>
+</EntityType>
+<Action Name="ActivateService" IsBound="false"><Parameter Name="ID" Type="Edm.String" Nullable="false"/><ReturnType Type="neko.platform.Service"/></Action>
+<Action Name="SuspendService" IsBound="false"><Parameter Name="ID" Type="Edm.String" Nullable="false"/><ReturnType Type="neko.platform.Service"/></Action>
+<Action Name="RetireService" IsBound="false"><Parameter Name="ID" Type="Edm.String" Nullable="false"/><ReturnType Type="neko.platform.Service"/></Action>
+<Action Name="CheckServiceHealth" IsBound="false"><Parameter Name="ID" Type="Edm.String" Nullable="false"/><ReturnType Type="neko.platform.Service"/></Action>
+<Action Name="ExportPackage" IsBound="false"><Parameter Name="Name" Type="Edm.String" Nullable="false"/><Parameter Name="TargetDomain" Type="Edm.String" Nullable="false"/><Parameter Name="Payload" Type="Edm.String" Nullable="false"/><ReturnType Type="neko.platform.Transfer"/></Action>
+<Action Name="ImportPackage" IsBound="false"><Parameter Name="Document" Type="Edm.String" Nullable="false"/><ReturnType Type="neko.platform.Transfer"/></Action>
+<EntityContainer Name="PlatformService">
+  <EntitySet Name="Services" EntityType="neko.platform.Service"/>
+  <EntitySet Name="Transfers" EntityType="neko.platform.Transfer"/>
+  <Singleton Name="Overview" Type="neko.platform.Overview"/>
+  <ActionImport Name="ActivateService" Action="neko.platform.ActivateService" EntitySet="Services"/>
+  <ActionImport Name="SuspendService" Action="neko.platform.SuspendService" EntitySet="Services"/>
+  <ActionImport Name="RetireService" Action="neko.platform.RetireService" EntitySet="Services"/>
+  <ActionImport Name="CheckServiceHealth" Action="neko.platform.CheckServiceHealth" EntitySet="Services"/>
+  <ActionImport Name="ExportPackage" Action="neko.platform.ExportPackage" EntitySet="Transfers"/>
+  <ActionImport Name="ImportPackage" Action="neko.platform.ImportPackage" EntitySet="Transfers"/>
+</EntityContainer>
+<Annotations Target="neko.platform.Service/ID"><Annotation Term="Common.Label" String="ID"/></Annotations>
+<Annotations Target="neko.platform.Service/Name"><Annotation Term="Common.Label" String="Name"/></Annotations>
+<Annotations Target="neko.platform.Service/Description"><Annotation Term="Common.Label" String="Description"/></Annotations>
+<Annotations Target="neko.platform.Service/Classification"><Annotation Term="Common.Label" String="Classification"/></Annotations>
+<Annotations Target="neko.platform.Service/BaseUrl"><Annotation Term="Common.Label" String="Base URL"/></Annotations>
+<Annotations Target="neko.platform.Service/HealthPath"><Annotation Term="Common.Label" String="Health Path"/></Annotations>
+<Annotations Target="neko.platform.Service/Status"><Annotation Term="Common.Label" String="Status"/></Annotations>
+<Annotations Target="neko.platform.Service/Health"><Annotation Term="Common.Label" String="Health"/></Annotations>
+<Annotations Target="neko.platform.Service/LastCheckedAt"><Annotation Term="Common.Label" String="Last Checked"/></Annotations>
+<Annotations Target="neko.platform.Service/CreatedAt"><Annotation Term="Common.Label" String="Created"/></Annotations>
+<Annotations Target="neko.platform.Service/ModifiedAt"><Annotation Term="Common.Label" String="Modified"/></Annotations>
+<Annotations Target="neko.platform.Transfer/ID"><Annotation Term="Common.Label" String="ID"/></Annotations>
+<Annotations Target="neko.platform.Transfer/Name"><Annotation Term="Common.Label" String="Name"/></Annotations>
+<Annotations Target="neko.platform.Transfer/Direction"><Annotation Term="Common.Label" String="Direction"/></Annotations>
+<Annotations Target="neko.platform.Transfer/SourceDomain"><Annotation Term="Common.Label" String="Source Domain"/></Annotations>
+<Annotations Target="neko.platform.Transfer/TargetDomain"><Annotation Term="Common.Label" String="Target Domain"/></Annotations>
+<Annotations Target="neko.platform.Transfer/Status"><Annotation Term="Common.Label" String="Status"/></Annotations>
+<Annotations Target="neko.platform.Transfer/Checksum"><Annotation Term="Common.Label" String="SHA-256"/></Annotations>
+<Annotations Target="neko.platform.Transfer/Size"><Annotation Term="Common.Label" String="Size (bytes)"/></Annotations>
+<Annotations Target="neko.platform.Transfer/Reason"><Annotation Term="Common.Label" String="Reason"/></Annotations>
+<Annotations Target="neko.platform.Transfer/CreatedBy"><Annotation Term="Common.Label" String="Created By"/></Annotations>
+<Annotations Target="neko.platform.Transfer/CreatedAt"><Annotation Term="Common.Label" String="Created"/></Annotations>
+<Annotations Target="neko.platform.Overview/Domain"><Annotation Term="Common.Label" String="Security Domain"/></Annotations>
+<Annotations Target="neko.platform.Overview/Environment"><Annotation Term="Common.Label" String="Environment"/></Annotations>
+<Annotations Target="neko.platform.Overview/CanExport"><Annotation Term="Common.Label" String="Export"/></Annotations>
+<Annotations Target="neko.platform.Overview/CanImport"><Annotation Term="Common.Label" String="Import"/></Annotations>
+<Annotations Target="neko.platform.Overview/ExportTargets"><Annotation Term="Common.Label" String="Export Targets"/></Annotations>
+<Annotations Target="neko.platform.Overview/ServiceCount"><Annotation Term="Common.Label" String="Services"/></Annotations>
+<Annotations Target="neko.platform.Overview/ActiveServices"><Annotation Term="Common.Label" String="Active"/></Annotations>
+<Annotations Target="neko.platform.Overview/ServicesDown"><Annotation Term="Common.Label" String="Down"/></Annotations>
+<Annotations Target="neko.platform.Overview/TransferCount"><Annotation Term="Common.Label" String="Transfers"/></Annotations>
+<Annotations Target="neko.platform.Overview/OutboundTransfers"><Annotation Term="Common.Label" String="Outbound"/></Annotations>
+<Annotations Target="neko.platform.Overview/InboundTransfers"><Annotation Term="Common.Label" String="Inbound"/></Annotations>
+<Annotations Target="neko.platform.Overview/RejectedTransfers"><Annotation Term="Common.Label" String="Rejected"/></Annotations>
+<Annotations Target="neko.platform.PlatformService/Services"><Annotation Term="Capabilities.InsertRestrictions"><Record><PropertyValue Property="Insertable" Bool="true"/></Record></Annotation><Annotation Term="Capabilities.UpdateRestrictions"><Record><PropertyValue Property="Updatable" Bool="true"/></Record></Annotation><Annotation Term="Capabilities.DeleteRestrictions"><Record><PropertyValue Property="Deletable" Bool="true"/></Record></Annotation></Annotations>
+<Annotations Target="neko.platform.PlatformService/Transfers"><Annotation Term="Capabilities.InsertRestrictions"><Record><PropertyValue Property="Insertable" Bool="false"/></Record></Annotation><Annotation Term="Capabilities.UpdateRestrictions"><Record><PropertyValue Property="Updatable" Bool="false"/></Record></Annotation><Annotation Term="Capabilities.DeleteRestrictions"><Record><PropertyValue Property="Deletable" Bool="false"/></Record></Annotation></Annotations>
+</Schema></edmx:DataServices></edmx:Edmx>

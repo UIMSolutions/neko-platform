@@ -1,0 +1,179 @@
+<mvc:View
+  controllerName="neko.platform.controller.Main"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns:core="sap.ui.core"
+  xmlns:f="sap.f"
+  xmlns:l="sap.ui.layout"
+  xmlns="sap.m">
+  <f:DynamicPage id="mainPage" headerExpanded="true" showFooter="false">
+    <f:title>
+      <f:DynamicPageTitle>
+        <f:heading>
+          <Title text="{i18n>appTitle}" wrapping="true"/>
+        </f:heading>
+        <f:expandedContent>
+          <Text text="{i18n>appDescription}"/>
+        </f:expandedContent>
+        <f:actions>
+          <ObjectStatus
+            text="{parts: ['Domain'], formatter: '.formatter.domainText'}"
+            state="{path: 'Domain', formatter: '.formatter.domainState'}"
+            icon="sap-icon://shield"
+            inverted="true"/>
+          <Button icon="sap-icon://refresh" tooltip="{i18n>refresh}" press=".onRefresh"/>
+        </f:actions>
+      </f:DynamicPageTitle>
+    </f:title>
+
+    <f:header>
+      <f:DynamicPageHeader pinnable="true">
+        <l:HorizontalLayout allowWrapping="true">
+          <l:VerticalLayout class="sapUiMediumMarginEnd">
+            <Label text="{i18n>overview.services}"/>
+            <ObjectNumber number="{ServiceCount}" unit="{i18n>overview.total}"/>
+          </l:VerticalLayout>
+          <l:VerticalLayout class="sapUiMediumMarginEnd">
+            <Label text="{i18n>overview.active}"/>
+            <ObjectNumber number="{ActiveServices}" state="Success"/>
+          </l:VerticalLayout>
+          <l:VerticalLayout class="sapUiMediumMarginEnd">
+            <Label text="{i18n>overview.down}"/>
+            <ObjectNumber number="{ServicesDown}" state="{= ${ServicesDown} > 0 ? 'Error' : 'None' }"/>
+          </l:VerticalLayout>
+          <l:VerticalLayout class="sapUiMediumMarginEnd">
+            <Label text="{i18n>overview.transfers}"/>
+            <ObjectNumber number="{TransferCount}"
+              unit="{i18n>overview.rejected}: {RejectedTransfers}"/>
+          </l:VerticalLayout>
+          <l:VerticalLayout class="sapUiMediumMarginEnd">
+            <Label text="{i18n>overview.capabilities}"/>
+            <HBox>
+              <ObjectStatus class="sapUiTinyMarginEnd" text="{i18n>overview.export}"
+                icon="{= ${CanExport} ? 'sap-icon://accept' : 'sap-icon://decline' }"
+                state="{= ${CanExport} ? 'Success' : 'None' }"/>
+              <ObjectStatus text="{i18n>overview.import}"
+                icon="{= ${CanImport} ? 'sap-icon://accept' : 'sap-icon://decline' }"
+                state="{= ${CanImport} ? 'Success' : 'None' }"/>
+            </HBox>
+          </l:VerticalLayout>
+        </l:HorizontalLayout>
+      </f:DynamicPageHeader>
+    </f:header>
+
+    <f:content>
+      <IconTabBar id="tabs" select=".onTabSelect" expandable="false" stretchContentHeight="false"
+        applyContentPadding="false">
+        <items>
+          <IconTabFilter id="servicesTab" key="services" icon="sap-icon://cloud" text="{i18n>servicesTitle}"
+            count="{ServiceCount}">
+            <Table
+              id="servicesTable"
+              items="{path: '/Services', parameters: {$count: true, $orderby: 'Name'}}"
+              growing="true"
+              growingThreshold="20"
+              noDataText="{i18n>services.noData}"
+              sticky="ColumnHeaders,HeaderToolbar">
+              <headerToolbar>
+                <OverflowToolbar>
+                  <Title id="servicesTableTitle" text="{i18n>servicesTitle}" level="H2"/>
+                  <ToolbarSpacer/>
+                  <SearchField id="serviceSearch" width="14rem" search=".onFilterServices"
+                    placeholder="{i18n>services.search}"/>
+                  <Select id="statusFilter" change=".onFilterServices" width="10rem">
+                    <core:Item key="" text="{i18n>status.all}"/>
+                    <core:Item key="registered" text="{i18n>status.registered}"/>
+                    <core:Item key="active" text="{i18n>status.active}"/>
+                    <core:Item key="suspended" text="{i18n>status.suspended}"/>
+                    <core:Item key="retired" text="{i18n>status.retired}"/>
+                  </Select>
+                  <Button id="registerButton" text="{i18n>services.register}" type="Emphasized"
+                    icon="sap-icon://add" press=".onOpenRegister"/>
+                </OverflowToolbar>
+              </headerToolbar>
+              <columns>
+                <Column width="16rem"><Text text="{i18n>services.name}"/></Column>
+                <Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>services.classification}"/></Column>
+                <Column><Text text="{i18n>services.status}"/></Column>
+                <Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>services.health}"/></Column>
+                <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>services.baseUrl}"/></Column>
+              </columns>
+              <items>
+                <ColumnListItem type="Navigation" press=".onServicePress">
+                  <cells>
+                    <ObjectIdentifier title="{Name}" text="{Description}"/>
+                    <ObjectStatus text="{path: 'Classification', formatter: '.formatter.domainText'}"
+                      state="{path: 'Classification', formatter: '.formatter.domainState'}"/>
+                    <ObjectStatus text="{path: 'Status', formatter: '.formatter.serviceStatusText'}"
+                      state="{path: 'Status', formatter: '.formatter.serviceStatusState'}"/>
+                    <ObjectStatus text="{path: 'Health', formatter: '.formatter.healthText'}"
+                      icon="{path: 'Health', formatter: '.formatter.healthIcon'}"
+                      state="{path: 'Health', formatter: '.formatter.healthState'}"/>
+                    <Text text="{BaseUrl}" wrapping="false"/>
+                  </cells>
+                </ColumnListItem>
+              </items>
+            </Table>
+          </IconTabFilter>
+
+          <IconTabFilter id="transfersTab" key="transfers" icon="sap-icon://journey-arrive"
+            text="{i18n>transfersTitle}" count="{TransferCount}">
+            <Table
+              id="transfersTable"
+              items="{path: '/Transfers', parameters: {$count: true, $orderby: 'CreatedAt desc'}}"
+              growing="true"
+              growingThreshold="20"
+              noDataText="{i18n>transfers.noData}"
+              sticky="ColumnHeaders,HeaderToolbar">
+              <headerToolbar>
+                <OverflowToolbar>
+                  <Title text="{i18n>transfersTitle}" level="H2"/>
+                  <ToolbarSpacer/>
+                  <Button id="exportButton" text="{i18n>transfers.export}" icon="sap-icon://outbox"
+                    type="Emphasized" visible="{= ${CanExport} === true }" press=".onOpenExport"/>
+                  <Button id="importButton" text="{i18n>transfers.import}" icon="sap-icon://inbox"
+                    visible="{= ${CanImport} === true }" press=".onOpenImport"/>
+                </OverflowToolbar>
+              </headerToolbar>
+              <infoToolbar>
+                <OverflowToolbar design="Info">
+                  <Text text="{i18n>transfers.rule}"/>
+                </OverflowToolbar>
+              </infoToolbar>
+              <columns>
+                <Column width="14rem"><Text text="{i18n>transfers.name}"/></Column>
+                <Column><Text text="{i18n>transfers.direction}"/></Column>
+                <Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>transfers.route}"/></Column>
+                <Column><Text text="{i18n>transfers.status}"/></Column>
+                <Column minScreenWidth="Desktop" demandPopin="true" hAlign="End"><Text text="{i18n>transfers.size}"/></Column>
+                <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>transfers.created}"/></Column>
+                <Column hAlign="End" width="4rem"/>
+              </columns>
+              <items>
+                <ColumnListItem>
+                  <cells>
+                    <ObjectIdentifier title="{Name}" text="{path: 'Checksum', formatter: '.formatter.checksumShort'}"/>
+                    <ObjectStatus text="{path: 'Direction', formatter: '.formatter.directionText'}"
+                      icon="{path: 'Direction', formatter: '.formatter.directionIcon'}"/>
+                    <Text text="{SourceDomain} → {TargetDomain}"/>
+                    <VBox>
+                      <ObjectStatus text="{path: 'Status', formatter: '.formatter.transferStatusText'}"
+                        state="{path: 'Status', formatter: '.formatter.transferStatusState'}"/>
+                      <Text text="{Reason}" visible="{= !!${Reason} }" wrapping="true" class="sapUiTinyMarginTop"/>
+                    </VBox>
+                    <Text text="{path: 'Size', formatter: '.formatter.bytes'}"/>
+                    <VBox>
+                      <Text text="{CreatedAt}"/>
+                      <Text text="{CreatedBy}" class="sapUiTinyMarginTop"/>
+                    </VBox>
+                    <Button icon="sap-icon://download" tooltip="{i18n>transfers.download}" type="Transparent"
+                      visible="{path: 'Direction', formatter: '.formatter.isOutbound'}" press=".onDownload"/>
+                  </cells>
+                </ColumnListItem>
+              </items>
+            </Table>
+          </IconTabFilter>
+        </items>
+      </IconTabBar>
+    </f:content>
+  </f:DynamicPage>
+</mvc:View>

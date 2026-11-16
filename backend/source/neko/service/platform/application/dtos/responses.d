@@ -6,6 +6,7 @@
 module neko.service.platform.application.dtos.responses;
 
 import std.conv : to;
+import std.datetime.date : DateTime;
 import std.datetime.systime : SysTime;
 import neko.service.platform.domain;
 
@@ -54,9 +55,27 @@ struct OverviewDto {
   string environment;
 }
 
-/// ISO 8601 (UTC) or "" for unset timestamps.
+/// ISO 8601 in UTC with fixed millisecond precision ("2026-11-16T21:25:30.885Z"),
+/// so timestamps also sort correctly as text; "" for unset timestamps.
 string isoTime(SysTime time) {
-  return time == SysTime.init ? "" : time.toUTC.toISOExtString;
+  import std.datetime.date : DateTime;
+  import std.format : format;
+
+  if (time == SysTime.init)
+    return "";
+  auto utc = time.toUTC;
+  return (cast(DateTime) utc).toISOExtString ~ format(".%03dZ", utc.fracSecs.total!"msecs");
+}
+
+///
+unittest {
+  import std.datetime.timezone : UTC;
+  import core.time : usecs;
+
+  auto t = SysTime(DateTime(2026, 11, 16, 21, 25, 30), 885_407.usecs, UTC());
+  assert(isoTime(t) == "2026-11-16T21:25:30.885Z");
+  assert(isoTime(SysTime(DateTime(2026, 1, 2, 3, 4, 5), UTC())) == "2026-01-02T03:04:05.000Z");
+  assert(isoTime(SysTime.init) == "");
 }
 
 ServiceDto toDto(const PlatformService s) {

@@ -53,7 +53,8 @@ class StatusPageController {
 class FrontendController {
   private string directory;
 
-  /// `configured` = "" → first existing of frontend/, ../frontend/, <exe>/../../frontend/
+  /// `configured` = "" → first of frontend/dist (self-contained build incl. UI5),
+  /// frontend/, ../frontend/dist, ../frontend, <exe>/../../frontend[/dist] that has an index.html
   this(string configured) {
     directory = configured.length > 0 ? configured : detect();
   }
@@ -73,13 +74,16 @@ class FrontendController {
   }
 
   private static string detect() {
-    string[] candidates = ["frontend", buildPath("..", "frontend")];
+    string[] roots = [".", ".."];
     try {
       import std.file : thisExePath;
 
-      candidates ~= buildPath((() @trusted => thisExePath.dirName)(), "..", "..", "frontend");
+      roots ~= buildPath((() @trusted => thisExePath.dirName)(), "..", "..");
     } catch (Exception) {
     }
+    string[] candidates;
+    foreach (root; roots)
+      candidates ~= [buildPath(root, "frontend", "dist"), buildPath(root, "frontend")];
     foreach (c; candidates)
       if ((() @trusted => buildPath(c, "index.html").exists)())
         return c;

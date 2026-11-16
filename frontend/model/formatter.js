@@ -5,6 +5,16 @@ sap.ui.define([
 
   var ValueState = coreLibrary.ValueState;
 
+  function enumText(oController, sPrefix, sValue) {
+    if (!sValue) {
+      return "";
+    }
+    var oComponent = oController && oController.getOwnerComponent && oController.getOwnerComponent();
+    var oBundle = oComponent && oComponent.getModel("i18n").getResourceBundle();
+    var sKey = sPrefix + "." + sValue;
+    return oBundle && oBundle.hasText(sKey) ? oBundle.getText(sKey) : sValue;
+  }
+
   return {
     /** Semantic colour of a service life-cycle status. */
     serviceStatusState: function (sStatus) {
@@ -71,14 +81,25 @@ sap.ui.define([
       return (i === 0 ? fValue : fValue.toFixed(1)) + " " + aUnits[i];
     },
 
-    /** Translate an enum value via i18n ("status.active"), falling back to the raw value. */
-    enumText: function (sPrefix, sValue) {
-      if (!sValue) {
-        return "";
-      }
-      var oBundle = this.getOwnerComponent().getModel("i18n").getResourceBundle();
-      var sKey = sPrefix + "." + sValue;
-      return oBundle.hasText(sKey) ? oBundle.getText(sKey) : sValue;
+    /* Translated enum texts ("status.active" → "Active"); called with the controller as `this`. */
+    serviceStatusText: function (sValue) {
+      return enumText(this, "status", sValue);
+    },
+
+    healthText: function (sValue) {
+      return enumText(this, "health", sValue);
+    },
+
+    transferStatusText: function (sValue) {
+      return enumText(this, "transferStatus", sValue);
+    },
+
+    directionText: function (sValue) {
+      return enumText(this, "direction", sValue);
+    },
+
+    domainText: function (sValue) {
+      return enumText(this, "domain", sValue);
     },
 
     isOutbound: function (sDirection) {

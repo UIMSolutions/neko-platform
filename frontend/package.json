@@ -1,0 +1,20 @@
+{
+  "name": "neko-platform-ui",
+  "version": "1.0.0",
+  "description": "SAP Fiori 3 (OpenUI5) cockpit of the Neko Service Platform",
+  "private": true,
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "ui5 serve --config ui5.yaml --open index.html",
+    "start:mock": "ui5 serve --config ui5-mock.yaml --open index.html",
+    "build": "ui5 build self-contained --config ui5.yaml --clean-dest --dest dist",
+    "test": "ui5 serve --config ui5.yaml --open test/testsuite.qunit.html",
+    "lint": "ui5lint"
+  },
+  "devDependencies": {
+    "@sap-ux/ui5-middleware-fe-mockserver": "^2.2.0",
+    "@ui5/cli": "^4.0.0",
+    "@ui5/linter": "^1.0.0",
+    "ui5-middleware-simpleproxy": "^3.2.0"
+  }
+}

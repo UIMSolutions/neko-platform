@@ -1,0 +1,35 @@
+# Standalone development without backend: OData v4 mock server serving
+# localService/metadata.xml and localService/mockdata/*.json.
+#   npm run start:mock
+specVersion: "4.0"
+metadata:
+  name: neko.platform
+type: application
+resources:
+  configuration:
+    paths:
+      webapp: .
+framework:
+  name: OpenUI5
+  version: "1.120.21"
+  libraries:
+    - name: sap.m
+    - name: sap.f
+    - name: sap.ui.core
+    - name: sap.ui.layout
+    - name: sap.ui.unified
+    - name: themelib_sap_fiori_3
+server:
+  settings:
+    httpPort: 8091
+  customMiddleware:
+    - name: sap-fe-mockserver
+      beforeMiddleware: csp
+      configuration:
+        mountPath: /
+        services:
+          - urlPath: /odata/v4/platform
+            metadataPath: ./localService/metadata.xml
+            mockdataPath: ./localService/mockdata
+            generateMockData: false
+        annotations: []

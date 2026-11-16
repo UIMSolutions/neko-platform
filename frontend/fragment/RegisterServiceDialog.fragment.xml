@@ -1,0 +1,38 @@
+<core:FragmentDefinition
+  xmlns="sap.m"
+  xmlns:core="sap.ui.core"
+  xmlns:form="sap.ui.layout.form">
+  <Dialog id="registerDialog" title="{i18n>services.register}" contentWidth="32rem" class="sapUiContentPadding">
+    <form:SimpleForm editable="true" layout="ResponsiveGridLayout" labelSpanL="4" labelSpanM="4">
+      <form:content>
+        <Label text="{i18n>services.name}" required="true"/>
+        <Input id="registerName" value="{ui>/register/Name}" placeholder="billing-service"
+          valueLiveUpdate="true" maxLength="63"/>
+        <Label text="{i18n>services.description}"/>
+        <Input value="{ui>/register/Description}"/>
+        <Label text="{i18n>services.classification}"/>
+        <Select selectedKey="{ui>/register/Classification}" forceSelection="false">
+          <core:Item key="" text="{i18n>register.platformDomain}"/>
+          <core:Item key="open" text="{i18n>domain.open}"/>
+          <core:Item key="restricted" text="{i18n>domain.restricted}"/>
+          <core:Item key="confidential" text="{i18n>domain.confidential}"/>
+          <core:Item key="secret" text="{i18n>domain.secret}"/>
+        </Select>
+        <Label text="{i18n>services.baseUrl}"/>
+        <Input value="{ui>/register/BaseUrl}" placeholder="https://service.example" type="Url"/>
+        <Label text="{i18n>services.healthPath}"/>
+        <Input value="{ui>/register/HealthPath}" placeholder="/health"/>
+        <Label text=""/>
+        <CheckBox text="{i18n>register.activate}" selected="{ui>/register/Activate}"/>
+      </form:content>
+    </form:SimpleForm>
+    <Text text="{i18n>register.hint}" class="sapUiSmallMarginTop"/>
+    <beginButton>
+      <Button text="{i18n>register.confirm}" type="Emphasized" press=".onConfirmRegister"
+        enabled="{= ${ui>/register/Name}.length >= 3 }"/>
+    </beginButton>
+    <endButton>
+      <Button text="{i18n>cancel}" press=".onCloseDialog"/>
+    </endButton>
+  </Dialog>
+</core:FragmentDefinition>

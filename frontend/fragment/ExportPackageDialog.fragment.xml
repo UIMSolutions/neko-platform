@@ -1,0 +1,28 @@
+<core:FragmentDefinition
+  xmlns="sap.m"
+  xmlns:core="sap.ui.core"
+  xmlns:form="sap.ui.layout.form">
+  <Dialog id="exportDialog" title="{i18n>transfers.export}" contentWidth="36rem" class="sapUiContentPadding">
+    <MessageStrip text="{i18n>export.hint}" type="Information" showIcon="true" class="sapUiSmallMarginBottom"/>
+    <form:SimpleForm editable="true" layout="ResponsiveGridLayout" labelSpanL="3" labelSpanM="3">
+      <form:content>
+        <Label text="{i18n>transfers.name}" required="true"/>
+        <Input value="{ui>/exportForm/Name}" valueLiveUpdate="true"/>
+        <Label text="{i18n>export.target}" required="true"/>
+        <Select id="exportTarget" selectedKey="{ui>/exportForm/TargetDomain}" items="{path: 'ui>/exportTargets', templateShareable: false}">
+          <core:Item key="{ui>key}" text="{path: 'ui>key', formatter: '.formatter.domainText'}"/>
+        </Select>
+        <Label text="{i18n>export.payload}" required="true"/>
+        <TextArea value="{ui>/exportForm/Payload}" rows="10" growing="true" growingMaxLines="20"
+          valueLiveUpdate="true" placeholder='{"example": true}'/>
+      </form:content>
+    </form:SimpleForm>
+    <beginButton>
+      <Button text="{i18n>export.confirm}" type="Emphasized" press=".onConfirmExport"
+        enabled="{= !!${ui>/exportForm/Name} &amp;&amp; !!${ui>/exportForm/Payload} &amp;&amp; !!${ui>/exportForm/TargetDomain} }"/>
+    </beginButton>
+    <endButton>
+      <Button text="{i18n>cancel}" press=".onCloseDialog"/>
+    </endButton>
+  </Dialog>
+</core:FragmentDefinition>

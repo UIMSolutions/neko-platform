@@ -1,4 +1,4 @@
-name "neko-service-plattform"
+name "neko-service-platform"
 description "Multi-client service platform with security domains (open, restricted, confidential, secret)"
 license "Apache-2.0"
 dependency "vibe-d" version="~>0.10.4"

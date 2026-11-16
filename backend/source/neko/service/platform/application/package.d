@@ -3,5 +3,10 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
+/// Application layer: use cases orchestrating the domain through ports.
 module neko.service.platform.application;
 
+public:
+  import neko.service.platform.application.dtos;
+  import neko.service.platform.application.services;
+  import neko.service.platform.application.usecases;

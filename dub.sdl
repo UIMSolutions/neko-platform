@@ -14,21 +14,21 @@ importPaths "backend/source"
 
 configuration "open" {
 	targetType "executable"
-	targetName "plattform-open"
+	targetName "platform-open"
 	versions "DomainOpen"
 }
 configuration "restricted" {
 	targetType "executable"
-	targetName "plattform-restricted"
+	targetName "platform-restricted"
 	versions "DomainRestricted"
 }
 configuration "confidential" {
 	targetType "executable"
-	targetName "plattform-confidential"
+	targetName "platform-confidential"
 	versions "DomainConfidential"
 }
 configuration "secret" {
 	targetType "executable"
-	targetName "plattform-secret"
+	targetName "platform-secret"
 	versions "DomainSecret"
 }

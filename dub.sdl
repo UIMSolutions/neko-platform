@@ -15,6 +15,9 @@ copyrightYear 2024
 sourcePaths "backend/source"
 importPaths "backend/source"
 
+dependency ":management" version="*"
+subPackage "management"
+
 configuration "open" {
 	targetType "executable"
 	targetName "platform-open"

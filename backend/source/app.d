@@ -32,10 +32,23 @@ static if (canExport)
 static if (canImport)
     import neko.service.platform.application.services.importing;
 
-/// Konfigurationsstruktur für Server-Parameter
-struct AppConfig {
+/// Configuration for the server
+struct ServerConfig {
     string bindAddress = "127.0.0.1";
     ushort port = 8080;
+    string transport = "tcp";          // "tcp" oder "unix"
+    string unixSocketPath = "/var/run/myfiori.sock";
+}
+
+/// Communication protocol configuration
+struct ProtocolConfig {
+    string protocol = "rest";          // "rest" oder "odata"
+    bool enableBatchProcessing = false;
+}
+
+struct AppConfig {
+    ServerConfig server;
+    ProtocolConfig communication = ProtocolConfig.init;
     string environment = "development";
 }
 
@@ -58,10 +71,26 @@ AppConfig loadConfiguration() {
             // Load the YAML configuration file
             Node root = Loader.fromFile(filename).load();
 
-            if (root.containsKey("bindAddress"))
-                config.bindAddress = root["bindAddress"].as!string;
-            if (root.containsKey("port"))
-                config.port = root["port"].as!ushort;
+            if (root.containsKey("server")) {
+                auto serverNode = root["server"];
+                if (serverNode.containsKey("bindAddress"))
+                    config.server.bindAddress = serverNode["bindAddress"].as!string;
+                if (serverNode.containsKey("port"))
+                    config.server.port = serverNode["port"].as!ushort;
+                if (serverNode.containsKey("transport"))
+                    config.server.transport = serverNode["transport"].as!string;
+                if (serverNode.containsKey("unixSocketPath"))
+                    config.server.unixSocketPath = serverNode["unixSocketPath"].as!string;
+            }
+
+            if (root.containsKey("communication")) {
+                auto commNode = root["communication"];
+                if (commNode.containsKey("protocol"))
+                    config.communication.protocol = commNode["protocol"].as!string;
+                if (commNode.containsKey("enableBatchProcessing"))
+                    config.communication.enableBatchProcessing = commNode["enableBatchProcessing"].as!bool;
+            }
+
             if (root.containsKey("environment"))
                 config.environment = root["environment"].as!string;
 
@@ -99,8 +128,8 @@ int main() {
     router.get("/health", &health);
 
     auto settings = new HTTPServerSettings;
-    settings.port = config.port;
-    settings.bindAddresses = [config.bindAddress];
+    settings.port = config.server.port;
+    settings.bindAddresses = [config.server.bindAddress];
     listenHTTP(settings, router);
     return runApplication();
 }

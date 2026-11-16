@@ -10,7 +10,7 @@ sourcePaths "source"
 importPaths "source"
 
 // Core framework (brings uim-framework, vibe-d 0.10.x and gtk-d)
-dependency "uim-platform:service" path="../.."
+dependency "uim-platform:service" path="../../../../../../CLOUD/uim-platform"
 
 buildRequirements "allowWarnings" "silenceDeprecations"
 

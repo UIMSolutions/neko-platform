@@ -22,7 +22,7 @@ import gtk.Notebook;
 import gtk.Box;
 import gtk.Button;
 import gtk.Entry;
-import gtk.Label;
+import gtk.Label : GtkLabel = Label; // aliased: clashes with domain entity `Label`
 import gtk.ComboBoxText;
 import gtk.ScrolledWindow;
 import gtk.TreeView;
@@ -53,7 +53,7 @@ class TablePage : Box {
   protected ListStore store;
   protected Table delegate() loader;
   protected Box toolbar;
-  protected Label countLabel;
+  protected GtkLabel countLabel;
   protected size_t columnCount;
 
   this(Table delegate() loader) {
@@ -62,7 +62,7 @@ class TablePage : Box {
     setBorderWidth(6);
 
     toolbar = new Box(GtkOrientation.HORIZONTAL, 6);
-    countLabel = new Label("");
+    countLabel = new GtkLabel("");
     toolbar.packEnd(countLabel, false, false, 0);
     packStart(toolbar, false, false, 0);
 
@@ -206,7 +206,7 @@ class ManagementWindow : MainWindow {
       tenant = TenantId(e.getText().strip);
       refreshAll();
     });
-    header.packStart(new Label("Tenant"));
+    header.packStart(new GtkLabel("Tenant"));
     header.packStart(tenantEntry);
   }
 
@@ -357,7 +357,7 @@ class ManagementWindow : MainWindow {
       auto data = load(id);
       auto d = new Dialog(title, this, GtkDialogFlags.MODAL, ["Close"], [ResponseType.CLOSE]);
       d.setDefaultSize(640, 520);
-      auto text = new Label(data.toPrettyString);
+      auto text = new GtkLabel(data.toPrettyString);
       text.setSelectable(true);
       text.setXalign(0);
       text.setYalign(0);
@@ -382,7 +382,7 @@ class ManagementWindow : MainWindow {
     CheckButton[string] checks;
     int row;
     foreach (f; fields) {
-      auto label = new Label(f[0]);
+      auto label = new GtkLabel(f[0]);
       label.setXalign(1);
       auto e = new Entry(f[1]);
       e.setWidthChars(36);

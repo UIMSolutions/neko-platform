@@ -46,7 +46,7 @@ unittest {
             auto client = new RestInterfaceClient!ILabelApi(basisUrl);
 
             // Test action: Call the service over HTTP
-            auto ergebnis = client.getLabels("test-tenant");
+            auto ergebnis = client.listLabels("test-tenant");
 
             // Your assertions
             assert(ergebnis.length >= 0, "The list should be initializable");

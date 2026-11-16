@@ -53,7 +53,7 @@ UserId actor(UserId user) {
 unittest {
   mixin(ShowTest!("results"));
 
-  auto r = guarded(() { throw new LimitExceeded("full"); });
+  auto r = guarded(delegate UsecaseResult() @safe { throw new LimitExceeded("full"); });
   assert(!r.isSuccess && r.code == ResultCode.ruleViolation && r.message == "full");
   assert(notFound("Subaccount").code == 404);
   assert(actor(UserId("")).value == "system");

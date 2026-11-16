@@ -1,0 +1,34 @@
+/****************************************************************************************************************
+* Copyright: © 2018-2026 Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
+* License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
+* Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
+*****************************************************************************************************************/
+/// A data package moved between two security domains (one-way, upwards).
+module neko.service.platform.domain.entities.transfer;
+
+import std.datetime.systime : SysTime;
+import neko.service.platform.domain.enumerations;
+import neko.service.platform.domain.types;
+
+@safe:
+
+struct TransferPackage {
+  TransferId id;
+  string name;
+  TransferDirection direction;
+  SecurityDomain sourceDomain;
+  SecurityDomain targetDomain;
+  TransferStatus status;
+  /// Payload as text (JSON, CSV, …); binary data is expected base64-encoded.
+  string payload;
+  /// Hex SHA-256 over the sealed fields (see TransferPolicy.seal).
+  string checksum;
+  /// Why an inbound package was rejected.
+  string reason;
+  string createdBy;
+  SysTime createdAt;
+
+  size_t size() const pure nothrow {
+    return payload.length;
+  }
+}

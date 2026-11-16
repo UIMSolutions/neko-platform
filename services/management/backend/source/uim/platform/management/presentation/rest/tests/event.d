@@ -19,7 +19,7 @@ unittest {
     settings.bindAddresses = ["127.0.0.1"];
 
     auto router = new URLRouter;
-    router.registerRestInterface(new EnvironmentEventApi(container.queryEvents), "/rest/v1/");
+    router.registerRestInterface(new EventApi(container.queryEvents), "/rest/v1/");
 
     // 3. Start Server
     auto listener = listenHTTP(settings, router);
@@ -44,7 +44,7 @@ unittest {
             clientSettings.baseURL = vibe.inet.url.URL(basisUrl);
 
             // Client connects to the dynamic port
-            auto client = new RestInterfaceClient!IEnvironmentEventApi(basisUrl);
+            auto client = new RestInterfaceClient!IEventApi(basisUrl);
 
             testSuccessful = true;
         } catch (Throwable t) {

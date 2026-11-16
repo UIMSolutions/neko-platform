@@ -1,0 +1,34 @@
+name "neko-service-plattform"
+description "Multi-client service platform with security domains (open, restricted, confidential, secret)"
+license "Apache-2.0"
+dependency "vibe-d" version="~>0.10.4"
+dependency "dyaml" version="~>0.10.0"
+dependency "uim-framework" version="~>26.11.1"
+targetType "executable"
+targetPath "backend/build"
+targetName "neko_service_platform"
+mainSourceFile "backend/source/app.d"
+
+sourcePaths "backend/source"
+importPaths "backend/source"
+
+configuration "open" {
+	targetType "executable"
+	targetName "plattform-open"
+	versions "DomainOpen"
+}
+configuration "restricted" {
+	targetType "executable"
+	targetName "plattform-restricted"
+	versions "DomainRestricted"
+}
+configuration "confidential" {
+	targetType "executable"
+	targetName "plattform-confidential"
+	versions "DomainConfidential"
+}
+configuration "secret" {
+	targetType "executable"
+	targetName "plattform-secret"
+	versions "DomainSecret"
+}

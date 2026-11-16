@@ -37,13 +37,13 @@
         title="{i18n>services.details}">
         <form:content>
           <Label text="{i18n>services.description}"/>
-          <Input id="descriptionInput" value="{Description}" editable="{= ${ui>/editMode} &amp;&amp; ${Status} !== 'retired' }"/>
+          <Input id="descriptionInput" value="{Description}" editable="{= ${ui>/editMode} &amp;&amp; %{Status} !== 'retired' }"/>
           <Label text="{i18n>services.baseUrl}"/>
           <Input id="baseUrlInput" value="{BaseUrl}" placeholder="https://service.example"
-            editable="{= ${ui>/editMode} &amp;&amp; ${Status} !== 'retired' }"/>
+            editable="{= ${ui>/editMode} &amp;&amp; %{Status} !== 'retired' }"/>
           <Label text="{i18n>services.healthPath}"/>
           <Input id="healthPathInput" value="{HealthPath}" placeholder="/health"
-            editable="{= ${ui>/editMode} &amp;&amp; ${Status} !== 'retired' }"/>
+            editable="{= ${ui>/editMode} &amp;&amp; %{Status} !== 'retired' }"/>
           <Label text="{i18n>services.created}"/>
           <Text text="{CreatedAt}"/>
           <Label text="{i18n>services.modified}"/>
@@ -54,18 +54,18 @@
     <footer>
       <OverflowToolbar>
         <ToggleButton id="editButton" text="{= ${ui>/editMode} ? ${i18n>done} : ${i18n>edit} }"
-          icon="sap-icon://edit" pressed="{ui>/editMode}" enabled="{= ${Status} !== 'retired' }"/>
+          icon="sap-icon://edit" pressed="{ui>/editMode}" enabled="{= %{Status} !== 'retired' }"/>
         <ToolbarSpacer/>
         <Button id="activateButton" text="{i18n>action.activate}" type="Accept"
-          enabled="{= ${Status} === 'registered' || ${Status} === 'suspended' }" press=".onActivate"/>
+          enabled="{= %{Status} === 'registered' || %{Status} === 'suspended' }" press=".onActivate"/>
         <Button id="suspendButton" text="{i18n>action.suspend}"
-          enabled="{= ${Status} === 'active' }" press=".onSuspend"/>
+          enabled="{= %{Status} === 'active' }" press=".onSuspend"/>
         <Button id="checkButton" text="{i18n>action.check}" icon="sap-icon://stethoscope"
-          enabled="{= ${Status} === 'active' &amp;&amp; !!${BaseUrl} }" press=".onCheckHealth"/>
+          enabled="{= %{Status} === 'active' &amp;&amp; !!%{BaseUrl} }" press=".onCheckHealth"/>
         <Button id="retireButton" text="{i18n>action.retire}" type="Reject"
-          enabled="{= ${Status} !== 'retired' }" press=".onRetire"/>
+          enabled="{= %{Status} !== 'retired' }" press=".onRetire"/>
         <Button id="deleteButton" text="{i18n>action.delete}" icon="sap-icon://delete" type="Reject"
-          visible="{= ${Status} === 'retired' }" press=".onDelete"/>
+          visible="{= %{Status} === 'retired' }" press=".onDelete"/>
       </OverflowToolbar>
     </footer>
   </Page>

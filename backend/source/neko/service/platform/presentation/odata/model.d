@@ -132,7 +132,9 @@ string buildMetadata() {
   foreach (e; entityTypes) {
     x ~= `<EntityType Name="` ~ e.name ~ `"><Key><PropertyRef Name="` ~ e.key ~ `"/></Key>` ~ "\n";
     foreach (p; e.properties)
-      x ~= `  <Property Name="` ~ p.name ~ `" Type="` ~ p.type ~ `"` ~ (p.nullable ? "" : ` Nullable="false"`) ~ "/>\n";
+      x ~= `  <Property Name="` ~ p.name ~ `" Type="` ~ p.type ~ `"` ~ (p.nullable ? "" : ` Nullable="false"`)
+        // timestamps are sent with milliseconds (isoTime); without the facet UI5 rejects them
+        ~ (p.type == "Edm.DateTimeOffset" ? ` Precision="3"` : "") ~ "/>\n";
     x ~= "</EntityType>\n";
   }
   foreach (a; actions) {

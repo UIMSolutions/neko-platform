@@ -12,9 +12,9 @@
   <Property Name="HealthPath" Type="Edm.String"/>
   <Property Name="Status" Type="Edm.String" Nullable="false"/>
   <Property Name="Health" Type="Edm.String" Nullable="false"/>
-  <Property Name="LastCheckedAt" Type="Edm.DateTimeOffset"/>
-  <Property Name="CreatedAt" Type="Edm.DateTimeOffset"/>
-  <Property Name="ModifiedAt" Type="Edm.DateTimeOffset"/>
+  <Property Name="LastCheckedAt" Type="Edm.DateTimeOffset" Precision="3"/>
+  <Property Name="CreatedAt" Type="Edm.DateTimeOffset" Precision="3"/>
+  <Property Name="ModifiedAt" Type="Edm.DateTimeOffset" Precision="3"/>
 </EntityType>
 <EntityType Name="Transfer"><Key><PropertyRef Name="ID"/></Key>
   <Property Name="ID" Type="Edm.String" Nullable="false"/>
@@ -27,7 +27,7 @@
   <Property Name="Size" Type="Edm.Int32" Nullable="false"/>
   <Property Name="Reason" Type="Edm.String"/>
   <Property Name="CreatedBy" Type="Edm.String"/>
-  <Property Name="CreatedAt" Type="Edm.DateTimeOffset"/>
+  <Property Name="CreatedAt" Type="Edm.DateTimeOffset" Precision="3"/>
 </EntityType>
 <EntityType Name="Overview"><Key><PropertyRef Name="Domain"/></Key>
   <Property Name="Domain" Type="Edm.String" Nullable="false"/>

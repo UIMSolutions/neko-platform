@@ -13,7 +13,8 @@ sap.ui.define([
   return BaseController.extend("neko.platform.controller.Main", {
     onInit: function () {
       // Overview singleton = binding context of the whole view (header, tab counts, buttons).
-      this.getView().bindElement("/Overview");
+      // ExportTargets is only needed by the export dialog, so select it explicitly.
+      this.getView().bindElement({ path: "/Overview", parameters: { $select: "ExportTargets" } });
       this.getRouter().getRoute("main").attachPatternMatched(this._onRouteMatched, this);
     },
 
@@ -58,7 +59,7 @@ sap.ui.define([
 
     onOpenRegister: function () {
       this.getModel("ui").setProperty("/register", models.emptyRegisterForm());
-      this._openDialog("RegisterServiceDialog");
+      this._openDialog("RegisterServiceDialog").catch(this.showError.bind(this));
     },
 
     onConfirmRegister: function () {
@@ -93,12 +94,13 @@ sap.ui.define([
 
     onOpenExport: function () {
       var oUi = this.getModel("ui");
-      this.getView().getBindingContext().requestProperty("ExportTargets").then(function (aTargets) {
+      // A collection is not primitive: getProperty/requestProperty refuse it, requestObject works.
+      this.getView().getBindingContext().requestObject("ExportTargets").then(function (aTargets) {
         aTargets = aTargets || [];
         oUi.setProperty("/exportTargets", aTargets.map(function (s) { return { key: s }; }));
         oUi.setProperty("/exportForm", models.emptyExportForm(aTargets[0]));
-        this._openDialog("ExportPackageDialog");
-      }.bind(this));
+        return this._openDialog("ExportPackageDialog");
+      }.bind(this)).catch(this.showError.bind(this));
     },
 
     onConfirmExport: function () {
@@ -131,7 +133,7 @@ sap.ui.define([
       this.getModel("ui").setProperty("/importForm", models.emptyImportForm());
       this._openDialog("ImportPackageDialog").then(function () {
         this.byId("importFile").clear();
-      }.bind(this));
+      }.bind(this)).catch(this.showError.bind(this));
     },
 
     onImportFileChange: function (oEvent) {

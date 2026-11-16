@@ -14,7 +14,7 @@
         </Select>
         <Label text="{i18n>export.payload}" required="true"/>
         <TextArea value="{ui>/exportForm/Payload}" rows="10" growing="true" growingMaxLines="20"
-          valueLiveUpdate="true" placeholder='{"example": true}'/>
+          valueLiveUpdate="true" placeholder="{i18n>export.placeholder}"/>
       </form:content>
     </form:SimpleForm>
     <beginButton>

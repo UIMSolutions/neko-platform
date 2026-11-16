@@ -38,7 +38,7 @@
           </l:VerticalLayout>
           <l:VerticalLayout class="sapUiMediumMarginEnd">
             <Label text="{i18n>overview.down}"/>
-            <ObjectNumber number="{ServicesDown}" state="{= ${ServicesDown} > 0 ? 'Error' : 'None' }"/>
+            <ObjectNumber number="{ServicesDown}" state="{= %{ServicesDown} > 0 ? 'Error' : 'None' }"/>
           </l:VerticalLayout>
           <l:VerticalLayout class="sapUiMediumMarginEnd">
             <Label text="{i18n>overview.transfers}"/>
@@ -49,11 +49,11 @@
             <Label text="{i18n>overview.capabilities}"/>
             <HBox>
               <ObjectStatus class="sapUiTinyMarginEnd" text="{i18n>overview.export}"
-                icon="{= ${CanExport} ? 'sap-icon://accept' : 'sap-icon://decline' }"
-                state="{= ${CanExport} ? 'Success' : 'None' }"/>
+                icon="{= %{CanExport} ? 'sap-icon://accept' : 'sap-icon://decline' }"
+                state="{= %{CanExport} ? 'Success' : 'None' }"/>
               <ObjectStatus text="{i18n>overview.import}"
-                icon="{= ${CanImport} ? 'sap-icon://accept' : 'sap-icon://decline' }"
-                state="{= ${CanImport} ? 'Success' : 'None' }"/>
+                icon="{= %{CanImport} ? 'sap-icon://accept' : 'sap-icon://decline' }"
+                state="{= %{CanImport} ? 'Success' : 'None' }"/>
             </HBox>
           </l:VerticalLayout>
         </l:HorizontalLayout>
@@ -129,9 +129,9 @@
                   <Title text="{i18n>transfersTitle}" level="H2"/>
                   <ToolbarSpacer/>
                   <Button id="exportButton" text="{i18n>transfers.export}" icon="sap-icon://outbox"
-                    type="Emphasized" visible="{= ${CanExport} === true }" press=".onOpenExport"/>
+                    type="Emphasized" visible="{= %{CanExport} === true }" press=".onOpenExport"/>
                   <Button id="importButton" text="{i18n>transfers.import}" icon="sap-icon://inbox"
-                    visible="{= ${CanImport} === true }" press=".onOpenImport"/>
+                    visible="{= %{CanImport} === true }" press=".onOpenImport"/>
                 </OverflowToolbar>
               </headerToolbar>
               <infoToolbar>
@@ -158,15 +158,15 @@
                     <VBox>
                       <ObjectStatus text="{path: 'Status', formatter: '.formatter.transferStatusText'}"
                         state="{path: 'Status', formatter: '.formatter.transferStatusState'}"/>
-                      <Text text="{Reason}" visible="{= !!${Reason} }" wrapping="true" class="sapUiTinyMarginTop"/>
+                      <Text text="{Reason}" visible="{= !!%{Reason} }" wrapping="true" class="sapUiTinyMarginTop"/>
                     </VBox>
-                    <Text text="{path: 'Size', formatter: '.formatter.bytes'}"/>
+                    <Text text="{path: 'Size', targetType: 'any', formatter: '.formatter.bytes'}"/>
                     <VBox>
                       <Text text="{CreatedAt}"/>
                       <Text text="{CreatedBy}" class="sapUiTinyMarginTop"/>
                     </VBox>
                     <Button icon="sap-icon://download" tooltip="{i18n>transfers.download}" type="Transparent"
-                      visible="{path: 'Direction', formatter: '.formatter.isOutbound'}" press=".onDownload"/>
+                      visible="{path: 'Direction', targetType: 'any', formatter: '.formatter.isOutbound'}" press=".onDownload"/>
                   </cells>
                 </ColumnListItem>
               </items>

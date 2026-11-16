@@ -11,8 +11,10 @@ sap.ui.define([
     }
     var oComponent = oController && oController.getOwnerComponent && oController.getOwnerComponent();
     var oBundle = oComponent && oComponent.getModel("i18n").getResourceBundle();
-    var sKey = sPrefix + "." + sValue;
-    return oBundle && oBundle.hasText(sKey) ? oBundle.getText(sKey) : sValue;
+    // getText(…, true) searches the whole fallback chain (en → base) and returns
+    // undefined instead of the key; hasText would only check the first bundle.
+    var sText = oBundle && oBundle.getText(sPrefix + "." + sValue, undefined, true);
+    return sText === undefined ? sValue : sText;
   }
 
   return {

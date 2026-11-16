@@ -10,7 +10,7 @@
         placeholder="{i18n>import.choose}" sendXHR="false" change=".onImportFileChange"/>
       <Label text="{i18n>import.document}" labelFor="importDocument" class="sapUiSmallMarginTop"/>
       <TextArea id="importDocument" value="{ui>/importForm/Document}" rows="10" width="100%"
-        valueLiveUpdate="true" placeholder='{"format": "neko-transfer/1", …}'/>
+        valueLiveUpdate="true" placeholder="{i18n>import.placeholder}"/>
     </VBox>
     <beginButton>
       <Button text="{i18n>import.confirm}" type="Emphasized" press=".onConfirmImport"

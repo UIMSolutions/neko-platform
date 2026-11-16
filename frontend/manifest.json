@@ -55,8 +55,8 @@
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
           "bundleName": "neko.platform.i18n.i18n",
-          "supportedLocales": ["", "de"],
-          "fallbackLocale": ""
+          "supportedLocales": ["", "en", "de"],
+          "fallbackLocale": "en"
         }
       },
       "": {
@@ -77,8 +77,7 @@
         "viewType": "XML",
         "path": "neko.platform.view",
         "controlId": "app",
-        "controlAggregation": "pages",
-        "async": true
+        "controlAggregation": "pages"
       },
       "routes": [
         { "pattern": ":tab:", "name": "main", "target": "main" },

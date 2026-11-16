@@ -8,6 +8,9 @@ targetType "executable"
 targetPath "backend/build"
 targetName "neko_service_platform"
 mainSourceFile "backend/source/app.d"
+authors "Ozan Nurettin Süel"
+copyright "Ozan Nurettin Süel"
+copyrightYear 2024
 
 sourcePaths "backend/source"
 importPaths "backend/source"

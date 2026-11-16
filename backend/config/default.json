@@ -1,0 +1,23 @@
+{
+  "serviceName": "Neko Service Platform",
+  "environment": "development",
+  "host": "127.0.0.1",
+  "transport": "tcp",
+  "logLevel": "info",
+  "storage": "file",
+  "dataDir": "data",
+  "frontendDir": "",
+  "restPath": "/rest/v1/",
+  "odataPath": "/odata/v4/platform",
+  "enforceScopes": false,
+  "adminScope": "Admin",
+  "healthCheckIntervalSeconds": 60,
+  "healthTimeoutSeconds": 5,
+  "maxPayloadBytes": 10485760,
+  "domains": {
+    "open": { "port": 8080 },
+    "restricted": { "port": 8081 },
+    "confidential": { "port": 8082 },
+    "secret": { "port": 8083, "transport": "tcp", "unixSocketPath": "/tmp/neko-platform-secret.sock" }
+  }
+}

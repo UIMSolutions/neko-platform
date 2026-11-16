@@ -3,133 +3,90 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
+/// Entry point. One executable per security domain (dub --config=open|restricted|confidential|secret);
+/// the domain is fixed at compile time so a binary can never run in the wrong domain.
 module app;
 
+import std.array : join;
+import vibe.core.core : runApplication;
+import vibe.core.log;
+import vibe.http.router : URLRouter;
+import vibe.http.server : HTTPServerSettings, listenHTTP;
+import vibe.web.rest : registerRestInterface;
 import neko.service.platform;
-import std.conv;
-import vibe.d;
-import std.file;
-import std.json;
-import dyaml;
 
 version (DomainOpen)
-    enum selfDomain = SecurityDomain.offen;
+  enum selfDomain = SecurityDomain.open;
 else version (DomainRestricted)
-    enum selfDomain = SecurityDomain.restricted;
+  enum selfDomain = SecurityDomain.restricted;
 else version (DomainConfidential)
-    enum selfDomain = SecurityDomain.confidential;
+  enum selfDomain = SecurityDomain.confidential;
 else version (DomainSecret)
-    enum selfDomain = SecurityDomain.secret;
+  enum selfDomain = SecurityDomain.secret;
 else
-    static assert(0, "Set one of DomainOpen, DomainRestricted, DomainConfidential, or DomainSecret");
+  static assert(0, "Set one of DomainOpen, DomainRestricted, DomainConfidential, or DomainSecret");
 
-// Capabilities based on the security domain
-enum canExport = selfDomain != SecurityDomain.secret;
-enum canImport = selfDomain != SecurityDomain.offen;
+int main(string[] args) {
+  auto config = loadConfig(selfDomain);
+  try
+    config.validate();
+  catch (Exception e) {
+    logError("Invalid configuration: %s", e.msg);
+    return 2;
+  }
+  configureLogging(config.logLevel);
+  auto container = buildContainer(config, selfDomain);
 
-static if (canExport)
-    import neko.service.platform.application.services.exporting;
-static if (canImport)
-    import neko.service.platform.application.services.importing;
-
-/// Configuration for the server
-struct ServerConfig {
-    string bindAddress = "127.0.0.1";
-    ushort port = 8080;
-    string transport = "tcp";          // "tcp" oder "unix"
-    string unixSocketPath = "/var/run/myfiori.sock";
+  if (args.length > 1 && args[1] != "serve") {
+    setLogLevel(LogLevel.warn); // keep CLI output clean
+    return runCli(container, args[1 .. $]);
+  }
+  return serve(container);
 }
 
-/// Communication protocol configuration
-struct ProtocolConfig {
-    string protocol = "rest";          // "rest" oder "odata"
-    bool enableBatchProcessing = false;
-}
+int serve(PlatformContainer c) {
+  auto config = c.config;
+  auto router = new URLRouter;
 
-struct AppConfig {
-    ServerConfig server;
-    ProtocolConfig communication = ProtocolConfig.init;
-    string environment = "development";
-}
+  // Order matters: middleware first, the static catch-all last.
+  new SecurityMiddleware(config).registerRoutes(router);
+  new HealthController(config, selfDomain).registerRoutes(router);
+  router.registerRestInterface(new PlatformApi(c.services, c.health, c.transfers, c.overview), config.restPath);
+  new PlatformODataController(c.services, c.health, c.transfers, c.overview, config.odataPath).registerRoutes(router);
+  new StatusPageController(c.overview, c.services, c.events, config.serviceName).registerRoutes(router);
+  auto frontend = new FrontendController(config.frontendDir);
+  frontend.registerRoutes(router);
 
-/// Lädt die Konfiguration wahlweise aus einer JSON- oder YAML-Datei
-AppConfig loadConfiguration() {
-    AppConfig config;
+  auto worker = new HealthCheckWorker(c.health, config.healthCheckIntervalSeconds);
+  worker.start();
 
-    if (exists("config.json")) {
-        try {
-            auto jsonContent = readFileUTF8("config.json");
-            auto json = parseJson(jsonContent);
-            deserializeJson(config, json);
-            logInfo("Configuration successfully loaded from 'config.json'");
-        } catch (Exception e) {
-            logError("Error reading 'config.json': %s", e.msg);
-        }
-    } else if (exists("config.yaml") || exists("config.yml")) {
-        string filename = exists("config.yaml") ? "config.yaml" : "config.yml";
-        try {
-            // Load the YAML configuration file
-            Node root = Loader.fromFile(filename).load();
+  logInfo("%s — domain %s (export=%s, import=%s), storage %s, config from %s", config.serviceName,
+    selfDomain.label, selfDomain.canExport, selfDomain.canImport, c.store.describe, config.sources.join(" → "));
 
-            if (root.containsKey("server")) {
-                auto serverNode = root["server"];
-                if (serverNode.containsKey("bindAddress"))
-                    config.server.bindAddress = serverNode["bindAddress"].as!string;
-                if (serverNode.containsKey("port"))
-                    config.server.port = serverNode["port"].as!ushort;
-                if (serverNode.containsKey("transport"))
-                    config.server.transport = serverNode["transport"].as!string;
-                if (serverNode.containsKey("unixSocketPath"))
-                    config.server.unixSocketPath = serverNode["unixSocketPath"].as!string;
-            }
-
-            if (root.containsKey("communication")) {
-                auto commNode = root["communication"];
-                if (commNode.containsKey("protocol"))
-                    config.communication.protocol = commNode["protocol"].as!string;
-                if (commNode.containsKey("enableBatchProcessing"))
-                    config.communication.enableBatchProcessing = commNode["enableBatchProcessing"].as!bool;
-            }
-
-            if (root.containsKey("environment"))
-                config.environment = root["environment"].as!string;
-
-            logInfo("Configuration successfully loaded from '%s'", filename);
-        } catch (Exception e) {
-            logError("Error reading '%s': %s", filename, e.msg);
-        }
-    } else {
-        logInfo("No configuration file found (config.json / config.yaml). Using default values.");
-    }
-
-    return config;
-}
-
-void health(HTTPServerRequest req, HTTPServerResponse res) {
-    res.writeBody("ok " ~ selfDomain.to!string);
-}
-
-/// strict Content Security Policy: The UI loads nothing from external sources (important in isolated domains). 
-void securityHeaders(HTTPServerRequest req, HTTPServerResponse res) {
-    res.headers["Content-Security-Policy"] =
-        "default-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
-    res.headers["X-Content-Type-Options"] = "nosniff";
-    res.headers["Referrer-Policy"] = "no-referrer";
-}
-
-int main() {
-    logInfo("Domain %s (export=%s, import=%s)", selfDomain, canExport, canImport);
-
-    // Load configuration from file or use defaults
-    auto config = loadConfiguration();
-
-    auto router = new URLRouter;
-    router.any("*", &securityHeaders);
-    router.get("/health", &health);
-
-    auto settings = new HTTPServerSettings;
-    settings.port = config.server.port;
-    settings.bindAddresses = [config.server.bindAddress];
-    listenHTTP(settings, router);
+  if (config.transport == "unix") {
+    auto listener = listenOnUnixSocket(config.effectiveSocketPath(selfDomain), router);
+    scope (exit)
+      listener.stopListening();
+    logEndpoints(config, frontend);
     return runApplication();
+  }
+
+  auto settings = new HTTPServerSettings;
+  settings.port = config.effectivePort(selfDomain);
+  settings.bindAddresses = [config.host];
+  auto listener = listenHTTP(settings, router);
+  scope (exit)
+    listener.stopListening();
+  logEndpoints(config, frontend);
+  return runApplication();
+}
+
+void logEndpoints(PlatformConfig config, FrontendController frontend) {
+  logInfo("  REST   %s{overview,services,transfers}", config.restPath);
+  logInfo("  OData  %s/$metadata", config.odataPath);
+  logInfo("  Web    /status, /health, /api/v1/info");
+  if (frontend.available)
+    logInfo("  Fiori  /index.html (%s)", frontend.location);
+  else
+    logInfo("  Fiori  not served (no frontend/index.html found; use the approuter or set frontendDir)");
 }

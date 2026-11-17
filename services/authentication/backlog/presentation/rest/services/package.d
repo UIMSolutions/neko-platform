@@ -3,12 +3,12 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Suel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.platform.identity_authentication.presentation.rest.services;
+module neko.service.authentication.presentation.rest.services;
 
 public:
-    import uim.platform.identity_authentication.presentation.rest.services.application;
-    import uim.platform.identity_authentication.presentation.rest.services.authentication;
-    import uim.platform.identity_authentication.presentation.rest.services.group;
-    import uim.platform.identity_authentication.presentation.rest.services.policy;
-    import uim.platform.identity_authentication.presentation.rest.services.tenant;
-    import uim.platform.identity_authentication.presentation.rest.services.user;
+    import neko.service.authentication.presentation.rest.services.application;
+    import neko.service.authentication.presentation.rest.services.authentication;
+    import neko.service.authentication.presentation.rest.services.group;
+    import neko.service.authentication.presentation.rest.services.policy;
+    import neko.service.authentication.presentation.rest.services.tenant;
+    import neko.service.authentication.presentation.rest.services.user;

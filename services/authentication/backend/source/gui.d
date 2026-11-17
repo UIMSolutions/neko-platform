@@ -8,8 +8,8 @@
 ///   dub run --config=gui -- [--tenant=<id>] [--data-dir=<dir>]
 module gui;
 
-import uim.platform.identity_authentication;
-import uim.platform.identity_authentication.presentation.gui;
+import neko.service.authentication;
+import neko.service.authentication.presentation.gui;
 
 version (unittest) {
 } else {

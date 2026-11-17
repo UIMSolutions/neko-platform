@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Desktop GUI integration (GtkD 3). Only available in the "gui" dub configuration.
-module uim.platform.identity_authentication.presentation.gui;
+module neko.service.authentication.presentation.gui;
 
 version (Have_gtk_d) {
-  public import uim.platform.identity_authentication.presentation.gui.window;
+  public import neko.service.authentication.presentation.gui.window;
 }

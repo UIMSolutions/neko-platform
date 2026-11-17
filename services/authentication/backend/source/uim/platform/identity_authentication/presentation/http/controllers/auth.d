@@ -14,10 +14,10 @@
 ///   POST {api}/auth/revoke       {"token"}                     (RFC 7009)
 ///   GET  {api}/auth/userinfo     Authorization: Bearer <access token>
 ///   GET  /.well-known/openid-configuration
-module uim.platform.identity_authentication.presentation.http.controllers.auth;
+module neko.service.authentication.presentation.http.controllers.auth;
 
 import std.base64 : Base64;
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

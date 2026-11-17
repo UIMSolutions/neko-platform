@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Tabular projections of the domain entities, shared by the text based
 /// presentation adapters (CLI tables and GtkD list views).
-module uim.platform.identity_authentication.presentation.tabular;
+module neko.service.authentication.presentation.tabular;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

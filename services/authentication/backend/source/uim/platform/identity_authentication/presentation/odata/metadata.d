@@ -3,11 +3,11 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.platform.identity_authentication.presentation.odata.metadata;
+module neko.service.authentication.presentation.odata.metadata;
 
 import std.array : appender;
-import uim.platform.identity_authentication;
-import uim.platform.identity_authentication.presentation.odata.model;
+import neko.service.authentication;
+import neko.service.authentication.presentation.odata.model;
 
 mixin(ShowModule!());
 

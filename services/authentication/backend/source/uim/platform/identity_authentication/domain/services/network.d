@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// IPv4 address and CIDR range matching used by policies and risk rules.
-module uim.platform.identity_authentication.domain.services.network;
+module neko.service.authentication.domain.services.network;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

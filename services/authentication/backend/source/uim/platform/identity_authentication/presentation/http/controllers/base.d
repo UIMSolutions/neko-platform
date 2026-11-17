@@ -6,9 +6,9 @@
 /// Shared plumbing of the REST controllers: caller identity, JSON bodies,
 /// uniform responses ({"status", "message", "code", "data"}) and generic
 /// list / get / create / merge-update handlers.
-module uim.platform.identity_authentication.presentation.http.controllers.base;
+module neko.service.authentication.presentation.http.controllers.base;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

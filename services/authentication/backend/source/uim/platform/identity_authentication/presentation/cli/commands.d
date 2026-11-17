@@ -5,11 +5,11 @@
 *****************************************************************************************************************/
 /// Command line driving adapter. Talks to the application exclusively via the
 /// driving ports (IdentityPorts) — exactly like the HTTP / OData / GUI adapters.
-module uim.platform.identity_authentication.presentation.cli.commands;
+module neko.service.authentication.presentation.cli.commands;
 
-import uim.platform.identity_authentication;
-import uim.platform.identity_authentication.presentation.cli.args;
-import uim.platform.identity_authentication.presentation.tabular;
+import neko.service.authentication;
+import neko.service.authentication.presentation.cli.args;
+import neko.service.authentication.presentation.tabular;
 
 mixin(ShowModule!());
 

@@ -6,14 +6,14 @@
 /// Presentation layer — driving adapters: REST (http), vibe.d REST interfaces
 /// (rest), OData v4 (odata), Fiori static files (web) and the CLI. The GtkD GUI
 /// is imported explicitly by source/gui.d (only built with --config=gui).
-module uim.platform.identity_authentication.presentation;
+module neko.service.authentication.presentation;
 
 public {
-  import uim.platform.identity_authentication.presentation.payloads;
-  import uim.platform.identity_authentication.presentation.tabular;
-  import uim.platform.identity_authentication.presentation.http;
-  import uim.platform.identity_authentication.presentation.rest;
-  import uim.platform.identity_authentication.presentation.odata;
-  import uim.platform.identity_authentication.presentation.web;
-  import uim.platform.identity_authentication.presentation.cli;
+  import neko.service.authentication.presentation.payloads;
+  import neko.service.authentication.presentation.tabular;
+  import neko.service.authentication.presentation.http;
+  import neko.service.authentication.presentation.rest;
+  import neko.service.authentication.presentation.odata;
+  import neko.service.authentication.presentation.web;
+  import neko.service.authentication.presentation.cli;
 }

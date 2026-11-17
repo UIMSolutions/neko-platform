@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Defensive accessors for record fields (missing or mistyped fields fall back to defaults).
-module uim.platform.identity_authentication.persistence.mappers.json_fields;
+module neko.service.authentication.persistence.mappers.json_fields;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

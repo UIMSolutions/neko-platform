@@ -6,9 +6,9 @@
 /// REST adapter for authorization policies:
 ///   GET/POST {api}/policies[?application=]   GET/PUT/PATCH/DELETE {api}/policies/:id
 ///   POST {api}/policies/evaluate {"applicationId","userId","ipAddress"?,"authMethod"?,"mfaUsed"?}
-module uim.platform.identity_authentication.presentation.http.controllers.policies;
+module neko.service.authentication.presentation.http.controllers.policies;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

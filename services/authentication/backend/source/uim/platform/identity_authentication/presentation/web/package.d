@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Server-side web: serves the SAP Fiori app for local development.
-module uim.platform.identity_authentication.presentation.web;
+module neko.service.authentication.presentation.web;
 
 public {
-  import uim.platform.identity_authentication.presentation.web.frontend;
+  import neko.service.authentication.presentation.web.frontend;
 }

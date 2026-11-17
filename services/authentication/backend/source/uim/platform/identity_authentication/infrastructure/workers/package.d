@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Background tasks & task queues.
-module uim.platform.identity_authentication.infrastructure.workers;
+module neko.service.authentication.infrastructure.workers;
 
 public {
-  import uim.platform.identity_authentication.infrastructure.workers.cleanup;
+  import neko.service.authentication.infrastructure.workers.cleanup;
 }

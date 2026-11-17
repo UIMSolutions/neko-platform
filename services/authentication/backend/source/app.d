@@ -7,7 +7,7 @@
 /// interface /rest/v1/identity-authentication, OData v4 and the Fiori app.
 module app;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 @safe:
 

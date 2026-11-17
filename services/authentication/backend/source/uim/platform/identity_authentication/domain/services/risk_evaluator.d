@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Domain service: risk-based authentication.
-module uim.platform.identity_authentication.domain.services.risk_evaluator;
+module neko.service.authentication.domain.services.risk_evaluator;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

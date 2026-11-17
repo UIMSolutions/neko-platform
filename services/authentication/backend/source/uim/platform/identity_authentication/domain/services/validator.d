@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Domain validation rules. Each validate() returns the list of violations.
-module uim.platform.identity_authentication.domain.services.validator;
+module neko.service.authentication.domain.services.validator;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

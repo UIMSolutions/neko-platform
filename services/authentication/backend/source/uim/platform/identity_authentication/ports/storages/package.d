@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driven ports for low-level data stores.
-module uim.platform.identity_authentication.ports.storages;
+module neko.service.authentication.ports.storages;
 
 public {
-  import uim.platform.identity_authentication.ports.storages.snapshot;
+  import neko.service.authentication.ports.storages.snapshot;
 }

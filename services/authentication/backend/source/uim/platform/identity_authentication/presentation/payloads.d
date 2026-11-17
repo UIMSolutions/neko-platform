@@ -7,9 +7,9 @@
 /// REST, vibe.d REST-interface, OData, CLI and GUI adapters. Only keys that are
 /// present are copied, so the same readers serve create (POST) and merge
 /// (PATCH / PUT) requests: for updates the DTO is first filled from the entity.
-module uim.platform.identity_authentication.presentation.payloads;
+module neko.service.authentication.presentation.payloads;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

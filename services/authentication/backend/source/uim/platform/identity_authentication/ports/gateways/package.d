@@ -5,11 +5,11 @@
 *****************************************************************************************************************/
 /// Driven ports for security primitives and external systems
 /// (password hashing, token signing, one-time passwords, OTP delivery).
-module uim.platform.identity_authentication.ports.gateways;
+module neko.service.authentication.ports.gateways;
 
 public {
-  import uim.platform.identity_authentication.ports.gateways.password;
-  import uim.platform.identity_authentication.ports.gateways.secrets;
-  import uim.platform.identity_authentication.ports.gateways.token;
-  import uim.platform.identity_authentication.ports.gateways.mfa;
+  import neko.service.authentication.ports.gateways.password;
+  import neko.service.authentication.ports.gateways.secrets;
+  import neko.service.authentication.ports.gateways.token;
+  import neko.service.authentication.ports.gateways.mfa;
 }

@@ -7,9 +7,9 @@
 ///   GET/POST {api}/groups   GET/PUT/PATCH/DELETE {api}/groups/:id
 ///   GET/POST {api}/groups/:id/members {"userId"}   DELETE {api}/groups/:id/members/:userId
 ///   POST {api}/groups/members {"groupId","userId"}  (compatibility)
-module uim.platform.identity_authentication.presentation.http.controllers.groups;
+module neko.service.authentication.presentation.http.controllers.groups;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

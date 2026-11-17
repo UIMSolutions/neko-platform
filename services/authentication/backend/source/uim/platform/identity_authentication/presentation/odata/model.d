@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// EDM model of the Identity Authentication OData v4 service.
-module uim.platform.identity_authentication.presentation.odata.model;
+module neko.service.authentication.presentation.odata.model;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

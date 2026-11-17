@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Minimal, dependency-free command line parser:
 ///   positional arguments, --key=value, --key value and boolean --flag.
-module uim.platform.identity_authentication.presentation.cli.args;
+module neko.service.authentication.presentation.cli.args;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

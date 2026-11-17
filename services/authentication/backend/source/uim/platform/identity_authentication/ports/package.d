@@ -5,14 +5,14 @@
 *****************************************************************************************************************/
 /// Ports: driving (use cases, services) and driven (repositories, storages,
 /// messaging, gateways) interfaces of the hexagon.
-module uim.platform.identity_authentication.ports;
+module neko.service.authentication.ports;
 
 public {
-  import uim.platform.identity_authentication.ports.driving;
-  import uim.platform.identity_authentication.ports.gateways;
-  import uim.platform.identity_authentication.ports.messaging;
-  import uim.platform.identity_authentication.ports.repositories;
-  import uim.platform.identity_authentication.ports.services;
-  import uim.platform.identity_authentication.ports.storages;
-  import uim.platform.identity_authentication.ports.usecases;
+  import neko.service.authentication.ports.driving;
+  import neko.service.authentication.ports.gateways;
+  import neko.service.authentication.ports.messaging;
+  import neko.service.authentication.ports.repositories;
+  import neko.service.authentication.ports.services;
+  import neko.service.authentication.ports.storages;
+  import neko.service.authentication.ports.usecases;
 }

@@ -5,12 +5,12 @@
 *****************************************************************************************************************/
 /// Domain layer: entities, value objects, enumerations, pure domain services
 /// and business exceptions. Depends on nothing but the platform base types.
-module uim.platform.identity_authentication.domain;
+module neko.service.authentication.domain;
 
 public {
-  import uim.platform.identity_authentication.domain.enumerations;
-  import uim.platform.identity_authentication.domain.types;
-  import uim.platform.identity_authentication.domain.entities;
-  import uim.platform.identity_authentication.domain.exceptions;
-  import uim.platform.identity_authentication.domain.services;
+  import neko.service.authentication.domain.enumerations;
+  import neko.service.authentication.domain.types;
+  import neko.service.authentication.domain.entities;
+  import neko.service.authentication.domain.exceptions;
+  import neko.service.authentication.domain.services;
 }

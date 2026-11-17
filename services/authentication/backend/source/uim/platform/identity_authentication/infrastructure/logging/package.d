@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Technical logging & tracing.
-module uim.platform.identity_authentication.infrastructure.logging;
+module neko.service.authentication.infrastructure.logging;
 
 public {
-  import uim.platform.identity_authentication.infrastructure.logging.logger;
+  import neko.service.authentication.infrastructure.logging.logger;
 }

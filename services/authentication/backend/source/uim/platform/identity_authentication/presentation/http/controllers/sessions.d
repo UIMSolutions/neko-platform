@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// REST adapter for sessions:
 ///   GET {api}/sessions[?active=true&user=]   GET/DELETE {api}/sessions/:id   POST {api}/sessions/purge
-module uim.platform.identity_authentication.presentation.http.controllers.sessions;
+module neko.service.authentication.presentation.http.controllers.sessions;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

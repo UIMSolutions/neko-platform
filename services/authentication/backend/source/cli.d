@@ -10,7 +10,7 @@
 module cli;
 
 import std.stdio : stdout;
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 version (unittest) {
 } else {

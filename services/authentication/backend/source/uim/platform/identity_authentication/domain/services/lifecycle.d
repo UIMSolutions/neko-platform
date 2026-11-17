@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Lifecycle (status transition) rules of the identity directory.
-module uim.platform.identity_authentication.domain.services.lifecycle;
+module neko.service.authentication.domain.services.lifecycle;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Technical database models / table schemas.
-module uim.platform.identity_authentication.persistence.records;
+module neko.service.authentication.persistence.records;
 
 public {
-  import uim.platform.identity_authentication.persistence.records.collections;
+  import neko.service.authentication.persistence.records.collections;
 }

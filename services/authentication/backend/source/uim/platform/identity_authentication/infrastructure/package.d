@@ -5,13 +5,13 @@
 *****************************************************************************************************************/
 /// Infrastructure layer: configuration, logging, security, technical clients,
 /// background workers and the dependency injection container.
-module uim.platform.identity_authentication.infrastructure;
+module neko.service.authentication.infrastructure;
 
 public {
-  import uim.platform.identity_authentication.infrastructure.configuration;
-  import uim.platform.identity_authentication.infrastructure.logging;
-  import uim.platform.identity_authentication.infrastructure.security;
-  import uim.platform.identity_authentication.infrastructure.clients;
-  import uim.platform.identity_authentication.infrastructure.workers;
-  import uim.platform.identity_authentication.infrastructure.container;
+  import neko.service.authentication.infrastructure.configuration;
+  import neko.service.authentication.infrastructure.logging;
+  import neko.service.authentication.infrastructure.security;
+  import neko.service.authentication.infrastructure.clients;
+  import neko.service.authentication.infrastructure.workers;
+  import neko.service.authentication.infrastructure.container;
 }

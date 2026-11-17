@@ -4,15 +4,15 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Concrete repository implementations (driven adapters of the repository ports).
-module uim.platform.identity_authentication.persistence.repositories;
+module neko.service.authentication.persistence.repositories;
 
 public {
-  import uim.platform.identity_authentication.persistence.repositories.users;
-  import uim.platform.identity_authentication.persistence.repositories.groups;
-  import uim.platform.identity_authentication.persistence.repositories.applications;
-  import uim.platform.identity_authentication.persistence.repositories.policies;
-  import uim.platform.identity_authentication.persistence.repositories.risk_rules;
-  import uim.platform.identity_authentication.persistence.repositories.idp_configs;
-  import uim.platform.identity_authentication.persistence.repositories.sessions;
-  import uim.platform.identity_authentication.persistence.repositories.tokens;
+  import neko.service.authentication.persistence.repositories.users;
+  import neko.service.authentication.persistence.repositories.groups;
+  import neko.service.authentication.persistence.repositories.applications;
+  import neko.service.authentication.persistence.repositories.policies;
+  import neko.service.authentication.persistence.repositories.risk_rules;
+  import neko.service.authentication.persistence.repositories.idp_configs;
+  import neko.service.authentication.persistence.repositories.sessions;
+  import neko.service.authentication.persistence.repositories.tokens;
 }

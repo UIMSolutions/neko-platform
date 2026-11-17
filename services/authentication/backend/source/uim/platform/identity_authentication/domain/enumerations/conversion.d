@@ -6,11 +6,11 @@
 /// Generic conversions between enum members and their external (JSON / OData /
 /// CLI) representation. For string based enums the external value is the member
 /// VALUE, otherwise the member NAME.
-module uim.platform.identity_authentication.domain.enumerations.conversion;
+module neko.service.authentication.domain.enumerations.conversion;
 
 import std.traits : EnumMembers, OriginalType, Unqual;
 import std.uni : sicmp;
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

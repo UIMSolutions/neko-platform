@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// REST adapter for issued tokens (metadata only — token values are never stored):
 ///   GET {api}/tokens[?user=]   GET/DELETE {api}/tokens/:id   POST {api}/tokens/purge
-module uim.platform.identity_authentication.presentation.http.controllers.tokens;
+module neko.service.authentication.presentation.http.controllers.tokens;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

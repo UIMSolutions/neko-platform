@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// vibe.d REST interfaces (registerRestInterface).
-module uim.platform.identity_authentication.presentation.rest;
+module neko.service.authentication.presentation.rest;
 
 public {
-  import uim.platform.identity_authentication.presentation.rest.interfaces;
-  import uim.platform.identity_authentication.presentation.rest.services;
+  import neko.service.authentication.presentation.rest.interfaces;
+  import neko.service.authentication.presentation.rest.services;
 }

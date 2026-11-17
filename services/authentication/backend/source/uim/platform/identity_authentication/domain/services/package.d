@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Pure domain services (business-only operations, no I/O).
-module uim.platform.identity_authentication.domain.services;
+module neko.service.authentication.domain.services;
 
 public {
-  import uim.platform.identity_authentication.domain.services.network;
-  import uim.platform.identity_authentication.domain.services.lifecycle;
-  import uim.platform.identity_authentication.domain.services.policy_evaluator;
-  import uim.platform.identity_authentication.domain.services.risk_evaluator;
-  import uim.platform.identity_authentication.domain.services.validator;
+  import neko.service.authentication.domain.services.network;
+  import neko.service.authentication.domain.services.lifecycle;
+  import neko.service.authentication.domain.services.policy_evaluator;
+  import neko.service.authentication.domain.services.risk_evaluator;
+  import neko.service.authentication.domain.services.validator;
 }

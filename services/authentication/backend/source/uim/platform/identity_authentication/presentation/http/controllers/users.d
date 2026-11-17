@@ -10,9 +10,9 @@
 ///   POST {api}/users/:id/mfa {"mfaType"}     DELETE {api}/users/:id/mfa
 ///   GET  {api}/users/:id/sessions
 ///   POST {api}/users/change-password {"userId","oldPassword","newPassword"}  (compatibility)
-module uim.platform.identity_authentication.presentation.http.controllers.users;
+module neko.service.authentication.presentation.http.controllers.users;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

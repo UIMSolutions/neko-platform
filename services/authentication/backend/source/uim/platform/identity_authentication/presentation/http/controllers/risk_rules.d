@@ -6,9 +6,9 @@
 /// REST adapter for risk-based authentication rules:
 ///   GET/POST {api}/risk-rules   GET/PUT/PATCH/DELETE {api}/risk-rules/:id
 ///   POST {api}/risk-rules/assess {"userId","ipAddress"?,"userAgent"?,"authMethod"?}
-module uim.platform.identity_authentication.presentation.http.controllers.risk_rules;
+module neko.service.authentication.presentation.http.controllers.risk_rules;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

@@ -17,17 +17,17 @@
 ///   POST   <base>/<Action>                 unbound actions, JSON parameter object
 ///
 /// $batch is not supported — configure the UI5 model with groupId "$direct".
-module uim.platform.identity_authentication.presentation.odata.controller;
+module neko.service.authentication.presentation.odata.controller;
 
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.http.common : HTTPMethod;
 import vibe.textfilter.urlencode : urlDecode;
-import uim.platform.identity_authentication;
-import uim.platform.identity_authentication.presentation.odata.model;
-import uim.platform.identity_authentication.presentation.odata.metadata;
-import uim.platform.identity_authentication.presentation.odata.query;
-import uim.platform.identity_authentication.presentation.odata.serializers;
+import neko.service.authentication;
+import neko.service.authentication.presentation.odata.model;
+import neko.service.authentication.presentation.odata.metadata;
+import neko.service.authentication.presentation.odata.query;
+import neko.service.authentication.presentation.odata.serializers;
 
 mixin(ShowModule!());
 

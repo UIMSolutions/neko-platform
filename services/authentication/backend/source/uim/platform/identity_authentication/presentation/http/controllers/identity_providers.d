@@ -6,9 +6,9 @@
 /// REST adapter for corporate identity providers (delegated authentication):
 ///   GET/POST {api}/identity-providers   GET/PUT/PATCH/DELETE {api}/identity-providers/:id
 ///   GET {api}/identity-providers/resolve?email=&redirectUri=&state=
-module uim.platform.identity_authentication.presentation.http.controllers.identity_providers;
+module neko.service.authentication.presentation.http.controllers.identity_providers;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

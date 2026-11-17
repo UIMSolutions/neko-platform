@@ -5,12 +5,12 @@
 *****************************************************************************************************************/
 /// HTTP client adapter of the IOtpSender port: posts one-time codes to an SMS /
 /// mail gateway webhook as {"channel", "destination", "message"}.
-module uim.platform.identity_authentication.infrastructure.clients.otp_webhook;
+module neko.service.authentication.infrastructure.clients.otp_webhook;
 
 import core.time : seconds;
 import vibe.http.client : HTTPClientSettings, requestHTTP;
 import vibe.http.common : HTTPMethod;
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

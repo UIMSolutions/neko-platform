@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// OData v4 endpoints & $metadata generation for SAP Fiori.
-module uim.platform.identity_authentication.presentation.odata;
+module neko.service.authentication.presentation.odata;
 
 public {
-  import uim.platform.identity_authentication.presentation.odata.controller;
-  import uim.platform.identity_authentication.presentation.odata.metadata;
-  import uim.platform.identity_authentication.presentation.odata.model;
-  import uim.platform.identity_authentication.presentation.odata.query;
-  import uim.platform.identity_authentication.presentation.odata.serializers;
+  import neko.service.authentication.presentation.odata.controller;
+  import neko.service.authentication.presentation.odata.metadata;
+  import neko.service.authentication.presentation.odata.model;
+  import neko.service.authentication.presentation.odata.query;
+  import neko.service.authentication.presentation.odata.serializers;
 }

@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// GET {api}/statistics — tenant figures.
-module uim.platform.identity_authentication.presentation.http.controllers.statistics;
+module neko.service.authentication.presentation.http.controllers.statistics;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

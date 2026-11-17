@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 module identity_authentication.backlog.infrastructure.persistence.tenants;
-// import uim.platform.identity_authentication.domain.entities.tenant;
-// import uim.platform.identity_authentication.domain.types;
-// import uim.platform.identity_authentication.domain.ports.repositories.tenant;
+// import neko.service.authentication.domain.entities.tenant;
+// import neko.service.authentication.domain.types;
+// import neko.service.authentication.domain.ports.repositories.tenant;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 @safe:

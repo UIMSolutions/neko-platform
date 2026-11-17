@@ -4,15 +4,15 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Business objects with their own identity.
-module uim.platform.identity_authentication.domain.entities;
+module neko.service.authentication.domain.entities;
 
 public {
-  import uim.platform.identity_authentication.domain.entities.user;
-  import uim.platform.identity_authentication.domain.entities.group;
-  import uim.platform.identity_authentication.domain.entities.application;
-  import uim.platform.identity_authentication.domain.entities.policy;
-  import uim.platform.identity_authentication.domain.entities.risk_rule;
-  import uim.platform.identity_authentication.domain.entities.idp_config;
-  import uim.platform.identity_authentication.domain.entities.session;
-  import uim.platform.identity_authentication.domain.entities.token;
+  import neko.service.authentication.domain.entities.user;
+  import neko.service.authentication.domain.entities.group;
+  import neko.service.authentication.domain.entities.application;
+  import neko.service.authentication.domain.entities.policy;
+  import neko.service.authentication.domain.entities.risk_rule;
+  import neko.service.authentication.domain.entities.idp_config;
+  import neko.service.authentication.domain.entities.session;
+  import neko.service.authentication.domain.entities.token;
 }

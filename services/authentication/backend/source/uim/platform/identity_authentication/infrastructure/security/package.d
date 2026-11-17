@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Security utilities: password hashing, secrets, JWT, TOTP, caller identity.
-module uim.platform.identity_authentication.infrastructure.security;
+module neko.service.authentication.infrastructure.security;
 
 public {
-  import uim.platform.identity_authentication.infrastructure.security.crypto;
-  import uim.platform.identity_authentication.infrastructure.security.password;
-  import uim.platform.identity_authentication.infrastructure.security.secrets;
-  import uim.platform.identity_authentication.infrastructure.security.jwt;
-  import uim.platform.identity_authentication.infrastructure.security.totp;
-  import uim.platform.identity_authentication.infrastructure.security.identity;
+  import neko.service.authentication.infrastructure.security.crypto;
+  import neko.service.authentication.infrastructure.security.password;
+  import neko.service.authentication.infrastructure.security.secrets;
+  import neko.service.authentication.infrastructure.security.jwt;
+  import neko.service.authentication.infrastructure.security.totp;
+  import neko.service.authentication.infrastructure.security.identity;
 }

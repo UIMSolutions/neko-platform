@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Business enumerations & status values.
-module uim.platform.identity_authentication.domain.enumerations;
+module neko.service.authentication.domain.enumerations;
 
 public {
-  import uim.platform.identity_authentication.domain.enumerations.conversion;
-  import uim.platform.identity_authentication.domain.enumerations.mfa_type;
-  import uim.platform.identity_authentication.domain.enumerations.user_status;
-  import uim.platform.identity_authentication.domain.enumerations.risk_level;
-  import uim.platform.identity_authentication.domain.enumerations.token_type;
-  import uim.platform.identity_authentication.domain.enumerations.idp_type;
+  import neko.service.authentication.domain.enumerations.conversion;
+  import neko.service.authentication.domain.enumerations.mfa_type;
+  import neko.service.authentication.domain.enumerations.user_status;
+  import neko.service.authentication.domain.enumerations.risk_level;
+  import neko.service.authentication.domain.enumerations.token_type;
+  import neko.service.authentication.domain.enumerations.idp_type;
 }

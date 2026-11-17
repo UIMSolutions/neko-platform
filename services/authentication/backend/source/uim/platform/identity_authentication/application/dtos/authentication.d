@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Request / response models of the authentication and token flows.
-module uim.platform.identity_authentication.application.dtos.authentication;
+module neko.service.authentication.application.dtos.authentication;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

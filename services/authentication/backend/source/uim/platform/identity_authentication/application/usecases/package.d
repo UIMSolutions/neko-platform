@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Concrete use cases / interactors.
-module uim.platform.identity_authentication.application.usecases;
+module neko.service.authentication.application.usecases;
 
 public {
-  import uim.platform.identity_authentication.application.usecases.support;
-  import uim.platform.identity_authentication.application.usecases.settings;
-  import uim.platform.identity_authentication.application.usecases.authenticate_user;
-  import uim.platform.identity_authentication.application.usecases.issue_token;
-  import uim.platform.identity_authentication.application.usecases.delegated_auth;
-  import uim.platform.identity_authentication.application.usecases.manage;
+  import neko.service.authentication.application.usecases.support;
+  import neko.service.authentication.application.usecases.settings;
+  import neko.service.authentication.application.usecases.authenticate_user;
+  import neko.service.authentication.application.usecases.issue_token;
+  import neko.service.authentication.application.usecases.delegated_auth;
+  import neko.service.authentication.application.usecases.manage;
 }

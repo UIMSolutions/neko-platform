@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Strongly-typed identifiers. TenantId, UserId and ApplicationId come from the
 /// platform base types.
-module uim.platform.identity_authentication.domain.types.ids;
+module neko.service.authentication.domain.types.ids;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

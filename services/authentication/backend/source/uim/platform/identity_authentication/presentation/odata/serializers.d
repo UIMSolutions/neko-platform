@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Conversion of domain entities to OData v4 JSON payloads.
 /// Requests are read with presentation.payloads (shared with REST).
-module uim.platform.identity_authentication.presentation.odata.serializers;
+module neko.service.authentication.presentation.odata.serializers;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

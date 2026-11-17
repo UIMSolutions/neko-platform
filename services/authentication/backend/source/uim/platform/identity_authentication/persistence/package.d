@@ -5,11 +5,11 @@
 *****************************************************************************************************************/
 /// Persistence layer: repository implementations (driven adapters of the
 /// repository ports), storage drivers, record mappers and record schemas.
-module uim.platform.identity_authentication.persistence;
+module neko.service.authentication.persistence;
 
 public {
-  import uim.platform.identity_authentication.persistence.records;
-  import uim.platform.identity_authentication.persistence.mappers;
-  import uim.platform.identity_authentication.persistence.storages;
-  import uim.platform.identity_authentication.persistence.repositories;
+  import neko.service.authentication.persistence.records;
+  import neko.service.authentication.persistence.mappers;
+  import neko.service.authentication.persistence.storages;
+  import neko.service.authentication.persistence.repositories;
 }

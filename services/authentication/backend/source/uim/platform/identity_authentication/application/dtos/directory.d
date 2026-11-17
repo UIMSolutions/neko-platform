@@ -6,9 +6,9 @@
 /// Request models of the directory management use cases. Enum values are
 /// carried as their external string representation and parsed (and rejected if
 /// unknown) by the use cases, so every adapter gets the same checks.
-module uim.platform.identity_authentication.application.dtos.directory;
+module neko.service.authentication.application.dtos.directory;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

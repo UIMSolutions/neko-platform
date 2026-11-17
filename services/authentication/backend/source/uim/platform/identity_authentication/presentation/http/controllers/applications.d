@@ -6,9 +6,9 @@
 /// REST adapter for applications (service providers / OAuth clients):
 ///   GET/POST {api}/applications   GET/PUT/PATCH/DELETE {api}/applications/:id
 ///   POST {api}/applications/:id/rotate-secret
-module uim.platform.identity_authentication.presentation.http.controllers.applications;
+module neko.service.authentication.presentation.http.controllers.applications;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

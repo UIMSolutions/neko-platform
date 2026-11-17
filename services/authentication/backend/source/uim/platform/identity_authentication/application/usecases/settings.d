@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Tunable business parameters of the authentication flows (populated from
 /// the service configuration by the container).
-module uim.platform.identity_authentication.application.usecases.settings;
+module neko.service.authentication.application.usecases.settings;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Loading environment variables & config files (VCAP_SERVICES).
-module uim.platform.identity_authentication.infrastructure.configuration;
+module neko.service.authentication.infrastructure.configuration;
 
 public {
-  import uim.platform.identity_authentication.infrastructure.configuration.config;
+  import neko.service.authentication.infrastructure.configuration.config;
 }

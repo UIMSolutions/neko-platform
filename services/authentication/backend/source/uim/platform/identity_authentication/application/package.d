@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Application layer: use cases (interactors), application services and DTOs.
-module uim.platform.identity_authentication.application;
+module neko.service.authentication.application;
 
 public {
-  import uim.platform.identity_authentication.application.dtos;
-  import uim.platform.identity_authentication.application.usecases;
-  import uim.platform.identity_authentication.application.services;
+  import neko.service.authentication.application.dtos;
+  import neko.service.authentication.application.usecases;
+  import neko.service.authentication.application.services;
 }

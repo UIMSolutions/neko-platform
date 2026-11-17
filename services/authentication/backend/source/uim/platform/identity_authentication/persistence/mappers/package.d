@@ -4,16 +4,16 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Converters between snapshot records and domain entities.
-module uim.platform.identity_authentication.persistence.mappers;
+module neko.service.authentication.persistence.mappers;
 
 public {
-  import uim.platform.identity_authentication.persistence.mappers.json_fields;
-  import uim.platform.identity_authentication.persistence.mappers.user;
-  import uim.platform.identity_authentication.persistence.mappers.group;
-  import uim.platform.identity_authentication.persistence.mappers.application;
-  import uim.platform.identity_authentication.persistence.mappers.policy;
-  import uim.platform.identity_authentication.persistence.mappers.risk_rule;
-  import uim.platform.identity_authentication.persistence.mappers.idp_config;
-  import uim.platform.identity_authentication.persistence.mappers.session;
-  import uim.platform.identity_authentication.persistence.mappers.token;
+  import neko.service.authentication.persistence.mappers.json_fields;
+  import neko.service.authentication.persistence.mappers.user;
+  import neko.service.authentication.persistence.mappers.group;
+  import neko.service.authentication.persistence.mappers.application;
+  import neko.service.authentication.persistence.mappers.policy;
+  import neko.service.authentication.persistence.mappers.risk_rule;
+  import neko.service.authentication.persistence.mappers.idp_config;
+  import neko.service.authentication.persistence.mappers.session;
+  import neko.service.authentication.persistence.mappers.token;
 }

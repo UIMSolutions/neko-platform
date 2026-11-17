@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Data transfer objects / request-response models.
-module uim.platform.identity_authentication.application.dtos;
+module neko.service.authentication.application.dtos;
 
 public {
-  import uim.platform.identity_authentication.application.dtos.authentication;
-  import uim.platform.identity_authentication.application.dtos.directory;
-  import uim.platform.identity_authentication.application.dtos.statistics;
+  import neko.service.authentication.application.dtos.authentication;
+  import neko.service.authentication.application.dtos.directory;
+  import neko.service.authentication.application.dtos.statistics;
 }

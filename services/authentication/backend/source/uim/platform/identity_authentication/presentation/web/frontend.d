@@ -6,12 +6,12 @@
 /// Serves the SAP Fiori / UI5 application (frontend/) directly from the backend.
 /// Intended for local development without approuter; on Cloud Foundry the
 /// approuter (or HTML5 repository) serves the static content instead.
-module uim.platform.identity_authentication.presentation.web.frontend;
+module neko.service.authentication.presentation.web.frontend;
 
 import std.file : exists, isDir;
 import vibe.http.router : URLRouter;
 import vibe.http.fileserver : serveStaticFiles;
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

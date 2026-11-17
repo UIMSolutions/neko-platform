@@ -8,9 +8,9 @@
 ///
 /// Result codes: 200/201 success, 400 invalid input, 401 unauthenticated,
 /// 403 forbidden, 404 not found, 409 conflict, 422 business rule violation.
-module uim.platform.identity_authentication.application.usecases.support;
+module neko.service.authentication.application.usecases.support;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

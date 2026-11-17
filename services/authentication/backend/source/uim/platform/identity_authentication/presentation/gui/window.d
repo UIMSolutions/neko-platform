@@ -8,12 +8,12 @@
 /// through the configured snapshot storage.
 ///
 /// Only compiled when gtk-d is a dependency (dub --config=gui).
-module uim.platform.identity_authentication.presentation.gui.window;
+module neko.service.authentication.presentation.gui.window;
 
 version (Have_gtk_d):
 
-import uim.platform.identity_authentication;
-import uim.platform.identity_authentication.presentation.tabular;
+import neko.service.authentication;
+import neko.service.authentication.presentation.tabular;
 
 import gtk.Main;
 import gtk.MainWindow;

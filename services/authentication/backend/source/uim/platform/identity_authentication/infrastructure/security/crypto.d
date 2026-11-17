@@ -5,12 +5,12 @@
 *****************************************************************************************************************/
 /// Cryptographic building blocks: secure random bytes, constant-time
 /// comparison, base32 / base64url, HMAC and PBKDF2.
-module uim.platform.identity_authentication.infrastructure.security.crypto;
+module neko.service.authentication.infrastructure.security.crypto;
 
 import std.base64 : Base64URLNoPadding;
 import std.digest.hmac : HMAC;
 import std.digest.sha : SHA1, SHA256;
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

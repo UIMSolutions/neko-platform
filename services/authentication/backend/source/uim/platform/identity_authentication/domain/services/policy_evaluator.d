@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Domain service: evaluates authorization policies against a user.
-module uim.platform.identity_authentication.domain.services.policy_evaluator;
+module neko.service.authentication.domain.services.policy_evaluator;
 
-import uim.platform.identity_authentication;
+import neko.service.authentication;
 
 mixin(ShowModule!());
 

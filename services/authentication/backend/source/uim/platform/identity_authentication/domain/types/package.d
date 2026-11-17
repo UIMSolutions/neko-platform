@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Value objects and composite types.
-module uim.platform.identity_authentication.domain.types;
+module neko.service.authentication.domain.types;
 
 public {
-  import uim.platform.identity_authentication.domain.types.ids;
+  import neko.service.authentication.domain.types.ids;
 }

@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Application-wide services.
-module uim.platform.identity_authentication.application.services;
+module neko.service.authentication.application.services;
 
 public {
-  import uim.platform.identity_authentication.application.services.statistics;
+  import neko.service.authentication.application.services.statistics;
 }

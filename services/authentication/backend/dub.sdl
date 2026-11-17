@@ -1,5 +1,5 @@
-name "identity-authentication"
-description "Identity Authentication Service (SAP Cloud Identity Services – Authentication style) — D/vibe.d backend with REST, OAuth 2.0 / OIDC, OData v4, CLI and GtkD GUI"
+name "authentication"
+description "Identity Authentication Service"
 homepage "https://github.com/UIMSolutions/uim/platform/identity_authentication"
 authors "Ozan Nurettin Süel" "UI Manufaktur (R.I.P)"
 copyright "Copyright © 2018-2026, Ozan Nurettin Süel"
@@ -10,7 +10,7 @@ sourcePaths "source"
 importPaths "source"
 
 // Core framework (brings uim-framework and vibe-d 0.10.x)
-dependency "uim-platform:service" path="../.."
+dependency "neko-services-platform:service" path="../.."
 
 buildRequirements "allowWarnings" "silenceDeprecations"
 buildOptions "ignoreDeprecations" "debugInfo"

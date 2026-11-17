@@ -15,9 +15,9 @@
   "healthTimeoutSeconds": 5,
   "maxPayloadBytes": 10485760,
   "domains": {
-    "open": { "port": 8080 },
-    "restricted": { "port": 8081 },
-    "confidential": { "port": 8082 },
-    "secret": { "port": 8083, "transport": "tcp", "unixSocketPath": "/tmp/neko-platform-secret.sock" }
+    "open": { "port": 8181 },
+    "restricted": { "port": 8182 },
+    "confidential": { "port": 8183 },
+    "secret": { "port": 8184, "transport": "tcp", "unixSocketPath": "/tmp/neko-platform-secret.sock" }
   }
 }

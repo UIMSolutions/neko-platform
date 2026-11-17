@@ -6,10 +6,8 @@
 module neko.service.management;
 
 public {
-  // import neko.service.service;
-
-  
   import uim.oop;
+  import neko.service;
 
   import neko.service.management.domain;
   import neko.service.management.ports;

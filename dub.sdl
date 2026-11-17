@@ -5,7 +5,7 @@ dependency "vibe-d" version="~>0.10.4"
 dependency "dyaml" version="~>0.10.0"
 dependency "uim-framework" version="~>26.11.1"
 targetType "executable"
-targetPath "backend/build"
+targetPath "build"
 targetName "neko_service_platform"
 mainSourceFile "backend/source/app.d"
 authors "Ozan Nurettin Süel"
@@ -16,7 +16,11 @@ sourcePaths "backend/source"
 importPaths "backend/source"
 stringImportPaths "backend/views"
 
+dependency ":management" version="*"
+dependency ":service" version="*"
+
 subPackage "services/management/backend"
+subPackage "services/service"
 
 configuration "open" {
 	targetType "executable"

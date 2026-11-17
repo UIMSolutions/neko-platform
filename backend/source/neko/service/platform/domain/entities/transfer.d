@@ -32,3 +32,22 @@ struct TransferPackage {
     return payload.length;
   }
 }
+///
+unittest {
+  import std.datetime.systime : Clock;
+
+  auto now = Clock.currTime;
+  TransferPackage p;
+  p.name = "test";
+  p.direction = TransferDirection.outbound;
+  p.sourceDomain = SecurityDomain.open;
+  p.targetDomain = SecurityDomain.restricted;
+  p.status = TransferStatus.exported;
+  p.payload = "{}";
+  p.checksum = "dummy";
+  p.reason = "";
+  p.createdBy = "tester";
+  p.createdAt = now;
+
+  assert(p.size() == p.payload.length);
+}

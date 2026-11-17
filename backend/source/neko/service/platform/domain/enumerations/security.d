@@ -60,9 +60,19 @@ bool canExport(SecurityDomain domain) pure nothrow {
   return domain != SecurityDomain.max;
 }
 
+/// All domains strictly below `domain` (valid import sources).
+bool canExportTo(SecurityDomain domain, SecurityDomain target) pure nothrow {
+  return domain < target;
+}
+
 /// A domain can import if a lower domain exists that may send data.
 bool canImport(SecurityDomain domain) pure nothrow {
   return domain != SecurityDomain.min;
+}
+
+/// All domains strictly below `domain` (valid import sources).
+bool canImportFrom(SecurityDomain domain, SecurityDomain source) pure nothrow {
+  return domain > source;
 }
 
 /// All domains strictly above `domain` (valid export targets).
@@ -72,7 +82,6 @@ SecurityDomain[] higherDomains(SecurityDomain domain) pure nothrow {
     result ~= cast(SecurityDomain) value;
   return result;
 }
-
 ///
 unittest {
   SecurityDomain d;

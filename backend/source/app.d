@@ -51,6 +51,11 @@ int serve(PlatformContainer c) {
   // Order matters: middleware first, the static catch-all last.
   new SecurityMiddleware(config).registerRoutes(router);
   new HealthController(config, selfDomain).registerRoutes(router);
+  UnixSocketController socket;
+  if (config.transport == "unix") {
+    socket = new UnixSocketController(config.effectiveSocketPath(selfDomain));
+    socket.registerRoutes(router);
+  }
   router.registerRestInterface(new PlatformApi(c.services, c.health, c.transfers, c.overview), config.restPath);
   new PlatformODataController(c.services, c.health, c.transfers, c.overview, config.odataPath).registerRoutes(router);
   new StatusPageController(c.overview, c.services, c.events, config.serviceName).registerRoutes(router);
@@ -63,10 +68,10 @@ int serve(PlatformContainer c) {
   logInfo("%s — domain %s (export=%s, import=%s), storage %s, config from %s", config.serviceName,
     selfDomain.label, selfDomain.canExport, selfDomain.canImport, c.store.describe, config.sources.join(" → "));
 
-  if (config.transport == "unix") {
-    auto listener = listenOnUnixSocket(config.effectiveSocketPath(selfDomain), router);
+  if (socket !is null) {
+    socket.start(router);
     scope (exit)
-      listener.stopListening();
+      socket.stop();
     logEndpoints(config, frontend);
     return runApplication();
   }
@@ -84,7 +89,7 @@ int serve(PlatformContainer c) {
 void logEndpoints(PlatformConfig config, FrontendController frontend) {
   logInfo("  REST   %s{overview,services,transfers}", config.restPath);
   logInfo("  OData  %s/$metadata", config.odataPath);
-  logInfo("  Web    /status, /health, /api/v1/info");
+  logInfo("  Web    /status, /health, /api/v1/info%s", config.transport == "unix" ? ", /api/v1/socket" : "");
   if (frontend.available)
     logInfo("  Fiori  /index.html (%s)", frontend.location);
   else

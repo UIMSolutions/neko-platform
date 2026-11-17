@@ -78,7 +78,6 @@ struct PlatformService {
       throw new InvalidStateTransitionException("Cannot " ~ action ~ " retired service '" ~ name.value ~ "'");
   }
 }
-
 ///
 unittest {
   import std.datetime.systime : Clock;

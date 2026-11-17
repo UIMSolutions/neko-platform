@@ -33,8 +33,8 @@ enum HealthState {
 
 /// Direction of a transfer package as seen from this platform instance.
 enum TransferDirection {
-  outbound,
-  inbound
+  outbound, // Outgoing transfer from this platform instance
+  inbound // Incoming transfer to this platform instance
 }
 
 /// Outcome of a transfer.

@@ -64,7 +64,6 @@ struct TransferPolicy {
     return sha256Of(canonical).toHexString!(LetterCase.lower).idup;
   }
 }
-
 ///
 unittest {
   auto hosting = ClassificationPolicy(SecurityDomain.restricted);

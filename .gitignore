@@ -45,3 +45,7 @@ frontend/dist/
 mta_archives/
 *.mtar
 .mta/
+services/service/build/service-test-default
+services/service/build/service-test-modules
+services/service/service-test-default
+services/service/service-test-tests

@@ -12,7 +12,6 @@ mixin(ShowModule!());
 @safe:
 /// Unique identifier type aliases for type safety.
 
-
 struct DirectoryId {
   mixin(IdTemplate);
 }

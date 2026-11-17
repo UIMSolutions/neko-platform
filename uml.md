@@ -9,7 +9,7 @@ concrete classes.
 ```mermaid
 flowchart LR
   subgraph presentation["presentation (driving adapters)"]
-    REST["rest · PlatformApi"]
+    REST["rest · OverviewApi, ServicesApi, TransfersApi"]
     OData["odata · PlatformODataController"]
     Web["web · StatusPage / Frontend"]
     CLI["cli · runCli"]

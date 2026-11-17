@@ -10,12 +10,11 @@ targetName "neko_service_platform"
 mainSourceFile "backend/source/app.d"
 authors "Ozan Nurettin Süel"
 copyright "Ozan Nurettin Süel"
-copyrightYear 2024
+copyrightYear 2026
 
 sourcePaths "backend/source"
 importPaths "backend/source"
 stringImportPaths "backend/views"
-
 
 subPackage "services/management/backend"
 

@@ -12,7 +12,6 @@ import vibe.core.core : runApplication;
 import vibe.core.log;
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerSettings, listenHTTP;
-import vibe.web.rest : registerRestInterface;
 import neko.service.platform;
 
 version (DomainOpen)
@@ -56,7 +55,7 @@ int serve(PlatformContainer c) {
     socket = new UnixSocketController(config.effectiveSocketPath(selfDomain));
     socket.registerRoutes(router);
   }
-  router.registerRestInterface(new PlatformApi(c.services, c.health, c.transfers, c.overview), config.restPath);
+  router.registerPlatformRestApi(c.services, c.health, c.transfers, c.overview, config.restPath);
   new PlatformODataController(c.services, c.health, c.transfers, c.overview, config.odataPath).registerRoutes(router);
   new StatusPageController(c.overview, c.services, c.events, config.serviceName).registerRoutes(router);
   auto frontend = new FrontendController(config.frontendDir);

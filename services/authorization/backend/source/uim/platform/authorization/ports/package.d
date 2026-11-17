@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Ports: driving (use cases, services) and driven (repositories, storages, messaging).
-module uim.platform.authorization.ports;
+module neko.service.authorization.ports;
 
 public {
-  import uim.platform.authorization.ports.driving;
-  import uim.platform.authorization.ports.messaging;
-  import uim.platform.authorization.ports.repositories;
-  import uim.platform.authorization.ports.services;
-  import uim.platform.authorization.ports.storages;
-  import uim.platform.authorization.ports.usecases;
+  import neko.service.authorization.ports.driving;
+  import neko.service.authorization.ports.messaging;
+  import neko.service.authorization.ports.repositories;
+  import neko.service.authorization.ports.services;
+  import neko.service.authorization.ports.storages;
+  import neko.service.authorization.ports.usecases;
 }

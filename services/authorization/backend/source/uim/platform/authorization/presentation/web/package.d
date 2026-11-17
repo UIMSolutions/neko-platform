@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Web: the SAP Fiori app (static, /app) and the server-side rendered
 /// dashboard (Diet template + daisyUI, /web).
-module uim.platform.authorization.presentation.web;
+module neko.service.authorization.presentation.web;
 
 public {
-  import uim.platform.authorization.presentation.web.frontend;
-  import uim.platform.authorization.presentation.web.dashboard;
+  import neko.service.authorization.presentation.web.frontend;
+  import neko.service.authorization.presentation.web.dashboard;
 }

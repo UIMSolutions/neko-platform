@@ -1,26 +1,32 @@
 name "neko-service-platform"
 description "Multi-client service platform with security domains (open, restricted, confidential, secret)"
 license "Apache-2.0"
-dependency "vibe-d" version="~>0.10.4"
+dependency "vibe-d" version="~>0.10.5"
 dependency "dyaml" version="~>0.10.0"
 dependency "uim-framework" version="~>26.11.1"
 targetType "executable"
 targetPath "build"
 targetName "neko_service_platform"
-mainSourceFile "backend/source/app.d"
 authors "Ozan Nurettin Süel"
 copyright "Ozan Nurettin Süel"
 copyrightYear 2026
 
+mainSourceFile "backend/source/app.d"
 sourcePaths "backend/source"
 importPaths "backend/source"
 stringImportPaths "backend/views"
 
-dependency ":management" version="*"
 dependency ":service" version="*"
 
-subPackage "services/management/backend"
+dependency ":management" version="*"
+dependency ":authentication" version="*"
+// dependency ":authorization" version="*"
+
 subPackage "services/service"
+
+subPackage "services/management/backend"
+subPackage "services/authentication/backend"
+// subPackage "services/authorization/backend"
 
 configuration "open" {
 	targetType "executable"

@@ -1,5 +1,5 @@
-module uim.platform.authorization.infrastructure.persistence.mongodb;
+module neko.service.authorization.infrastructure.persistence.mongodb;
 
 public {
-  import uim.platform.authorization.infrastructure.persistence.mongodb.repository;
+  import neko.service.authorization.infrastructure.persistence.mongodb.repository;
 }

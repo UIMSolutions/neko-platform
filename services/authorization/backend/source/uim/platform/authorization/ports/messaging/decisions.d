@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driven port: publish authorization decisions (e.g. to an event broker or a SIEM).
-module uim.platform.authorization.ports.messaging.decisions;
+module neko.service.authorization.ports.messaging.decisions;
 
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

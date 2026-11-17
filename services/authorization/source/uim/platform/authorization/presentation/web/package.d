@@ -1,7 +1,7 @@
-module uim.platform.authorization.presentation.web;
+module neko.service.authorization.presentation.web;
 
 public {
-  import uim.platform.authorization.presentation.web.model;
-  import uim.platform.authorization.presentation.web.view;
-  import uim.platform.authorization.presentation.web.controller;
+  import neko.service.authorization.presentation.web.model;
+  import neko.service.authorization.presentation.web.view;
+  import neko.service.authorization.presentation.web.controller;
 }

@@ -1,5 +1,5 @@
-module uim.platform.authorization.domain.ports;
+module neko.service.authorization.domain.ports;
 
 public {
-  import uim.platform.authorization.domain.ports.repositories;
+  import neko.service.authorization.domain.ports.repositories;
 }

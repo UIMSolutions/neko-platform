@@ -1,6 +1,6 @@
-module uim.platform.authorization.application;
+module neko.service.authorization.application;
 
 public {
-  import uim.platform.authorization.application.dto;
-  import uim.platform.authorization.application.usecases;
+  import neko.service.authorization.application.dto;
+  import neko.service.authorization.application.usecases;
 }

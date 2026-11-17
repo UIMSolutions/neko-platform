@@ -1,6 +1,6 @@
-# Build context: the uim-platform repository root (the backend depends on
-# uim-platform:service via a path dependency):
-#   docker build -f identity-authentication/backend/Dockerfile -t uim-platform/identity-authentication .
+# Build context: the neko-services-platform repository root (the backend depends on
+# neko-services-platform:service via a path dependency):
+#   docker build -f identity-authentication/backend/Dockerfile -t neko-services-platform/identity-authentication .
 FROM dlang2/ldc-ubuntu:1.40.1 AS build
 WORKDIR /build
 COPY . .

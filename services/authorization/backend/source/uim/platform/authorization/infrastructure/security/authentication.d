@@ -11,11 +11,11 @@
 ///
 /// Scopes: Read (all reads), Admin (all changes and admin actions),
 ///         Check (runtime authorization checks by applications).
-module uim.platform.authorization.infrastructure.security.authentication;
+module neko.service.authorization.infrastructure.security.authentication;
 
 import vibe.http.server : HTTPServerRequest;
 import uim.platform.service.infrastructure.security.context;
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

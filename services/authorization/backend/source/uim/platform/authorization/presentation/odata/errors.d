@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Translate business exceptions to the protocol neutral EntitySetException.
-module uim.platform.authorization.presentation.odata.errors;
+module neko.service.authorization.presentation.odata.errors;
 
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

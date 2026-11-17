@@ -1,5 +1,5 @@
-module uim.platform.authorization.infrastructure.persistence.memory;
+module neko.service.authorization.infrastructure.persistence.memory;
 
 public {
-  import uim.platform.authorization.infrastructure.persistence.memory.repository;
+  import neko.service.authorization.infrastructure.persistence.memory.repository;
 }

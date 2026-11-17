@@ -1,6 +1,6 @@
-module uim.platform.authorization.application.dto;
+module neko.service.authorization.application.dto;
 
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

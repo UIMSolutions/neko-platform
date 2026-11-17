@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Application layer: DTOs, use case interactors and application services.
-module uim.platform.authorization.application;
+module neko.service.authorization.application;
 
 public {
-  import uim.platform.authorization.application.dtos;
-  import uim.platform.authorization.application.services;
-  import uim.platform.authorization.application.usecases;
+  import neko.service.authorization.application.dtos;
+  import neko.service.authorization.application.services;
+  import neko.service.authorization.application.usecases;
 }

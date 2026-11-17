@@ -8,11 +8,11 @@
 /// delete, invoke) plus authorization specific commands.
 ///
 /// Exit codes: 0 ok / permitted · 1 error · 2 usage · 3 denied (check)
-module uim.platform.authorization.presentation.cli.commands;
+module neko.service.authorization.presentation.cli.commands;
 
 import uim.platform.service.presentation.cli;
 import uim.platform.service.presentation.odata;
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

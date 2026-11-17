@@ -1,5 +1,5 @@
-module uim.platform.authorization.tests;
+module neko.service.authorization.tests;
 
 public {
-  import uim.platform.authorization.tests.integration;
+  import neko.service.authorization.tests.integration;
 }

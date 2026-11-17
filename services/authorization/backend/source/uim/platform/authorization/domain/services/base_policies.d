@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// The base policies every application gets (AMS "base policies").
-module uim.platform.authorization.domain.services.base_policies;
+module neko.service.authorization.domain.services.base_policies;
 
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

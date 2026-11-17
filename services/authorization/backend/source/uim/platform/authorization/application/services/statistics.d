@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Figures of a tenant, computed from the repositories.
-module uim.platform.authorization.application.services.statistics;
+module neko.service.authorization.application.services.statistics;
 
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

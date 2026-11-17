@@ -5,12 +5,12 @@
 *****************************************************************************************************************/
 /// Serves the SAP Fiori app (../frontend) under /app for local development.
 /// On SAP BTP the approuter serves it instead (frontendDir = "").
-module uim.platform.authorization.presentation.web.frontend;
+module neko.service.authorization.presentation.web.frontend;
 
 import vibe.http.fileserver : serveStaticFiles, HTTPFileServerSettings;
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

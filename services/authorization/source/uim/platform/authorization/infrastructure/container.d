@@ -1,7 +1,7 @@
-module uim.platform.authorization.infrastructure.container;
+module neko.service.authorization.infrastructure.container;
 
 import std.string : toUpper;
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

@@ -3,12 +3,12 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.platform.authorization.domain.entities;
+module neko.service.authorization.domain.entities;
 
 public {
-  import uim.platform.authorization.domain.entities.application;
-  import uim.platform.authorization.domain.entities.application_api;
-  import uim.platform.authorization.domain.entities.policy;
-  import uim.platform.authorization.domain.entities.assignment;
-  import uim.platform.authorization.domain.entities.decision;
+  import neko.service.authorization.domain.entities.application;
+  import neko.service.authorization.domain.entities.application_api;
+  import neko.service.authorization.domain.entities.policy;
+  import neko.service.authorization.domain.entities.assignment;
+  import neko.service.authorization.domain.entities.decision;
 }

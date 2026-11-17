@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Request models of the use cases (protocol neutral).
-module uim.platform.authorization.application.dtos.requests;
+module neko.service.authorization.application.dtos.requests;
 
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

@@ -10,7 +10,8 @@
 module neko.service.authentication;
 
 public {
-  import uim.platform.service;
+  import uim.oop;
+  import neko.service;
 
   import neko.service.authentication.domain;
   import neko.service.authentication.ports;

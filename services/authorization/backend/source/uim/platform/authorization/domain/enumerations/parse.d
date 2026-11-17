@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Parsing of the string valued domain enumerations (case insensitive).
-module uim.platform.authorization.domain.enumerations.parse;
+module neko.service.authorization.domain.enumerations.parse;
 
 import std.traits : EnumMembers;
 import std.uni : icmp;
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

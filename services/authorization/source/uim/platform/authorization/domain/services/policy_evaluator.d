@@ -1,9 +1,9 @@
-module uim.platform.authorization.domain.services.policy_evaluator;
+module neko.service.authorization.domain.services.policy_evaluator;
 
 import std.algorithm.searching : canFind;
 import std.array : split;
 import std.string : strip, toLower;
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

@@ -3,10 +3,10 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.platform.authorization.application.services;
+module neko.service.authorization.application.services;
 
 public {
-  import uim.platform.authorization.application.services.support;
-  import uim.platform.authorization.application.services.statistics;
-  import uim.platform.authorization.application.services.demo_data;
+  import neko.service.authorization.application.services.support;
+  import neko.service.authorization.application.services.statistics;
+  import neko.service.authorization.application.services.demo_data;
 }

@@ -1,5 +1,5 @@
 name "authorization"
-description "SAP Cloud Identity Authorization Management Service (AMS) style service — applications, policies, assignments and runtime authorization decisions. D/vibe.d backend with JSON API, vibe.d REST, OData v4 (SAP Fiori), Diet dashboard, CLI and GtkD GUI"
+description "Identity Authorization Service — applications, policies, assignments and runtime authorization decisions."
 homepage "https://github.com/UIMSolutions/neko-services-platform"
 authors "Ozan Nurettin Süel" "UI Manufaktur (R.I.P)"
 copyright "Copyright © 2018-2026, Ozan Nurettin Süel"
@@ -12,7 +12,7 @@ stringImportPaths "views"
 
 // Shared platform library: uim-framework, vibe-d 0.10.x, generic OData v4 engine,
 // CLI toolkit and GtkD entity browser.
-dependency "neko-services-platform:service" path="../.."
+dependency "neko-services-platform:service" path=".."
 
 buildRequirements "allowWarnings" "silenceDeprecations"
 
@@ -22,7 +22,7 @@ buildRequirements "allowWarnings" "silenceDeprecations"
 // ./build/uim-authorization-platform-service
 configuration "defaultRun" {
 	targetType "executable"
-	targetName "uim-authorization-platform-service"
+	targetName "neko-service-authorization"
 	mainSourceFile "source/app.d"
 	excludedSourceFiles "source/cli.d" "source/gui.d"
 }
@@ -32,7 +32,7 @@ configuration "defaultRun" {
 // ./build/uim-authorization-cli help
 configuration "cli" {
 	targetType "executable"
-	targetName "uim-authorization-cli"
+	targetName "neko-service-authorization-cli"
 	mainSourceFile "source/cli.d"
 	excludedSourceFiles "source/app.d" "source/gui.d"
 }
@@ -42,7 +42,7 @@ configuration "cli" {
 // ./build/uim-authorization-gui [--tenant=<id>] [--data-file=<path>] [--refresh=<seconds>]
 configuration "gui" {
 	targetType "executable"
-	targetName "uim-authorization-gui"
+	targetName "neko-service-authorization-gui"
 	mainSourceFile "source/gui.d"
 	excludedSourceFiles "source/app.d" "source/cli.d"
 	dependency "gtk-d" version="~>3.11.0"
@@ -51,7 +51,7 @@ configuration "gui" {
 // ── Libraries / unit tests (dub test) ───────────────────────────────────────
 configuration "defaultTest" {
 	targetType "library"
-	targetName "uim-authorization-platform-service"
+	targetName "neko-service-authorization"
 	sourcePaths "tests"
 	excludedSourceFiles "source/app.d" "source/cli.d" "source/gui.d"
 }

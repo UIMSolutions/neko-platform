@@ -1,6 +1,6 @@
-module uim.platform.authorization.application.usecases.evaluate_authorizations;
+module neko.service.authorization.application.usecases.evaluate_authorizations;
 
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

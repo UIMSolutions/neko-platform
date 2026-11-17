@@ -118,7 +118,7 @@ Identity Authentication
 ## 6. Physical View (NPV)
 
 ```
-Kubernetes Cluster — Namespace: uim-platform
+Kubernetes Cluster — Namespace: neko-services-platform
 ├── ConfigMap: identity_authentication-config
 │   IDENTITY_AUTHENTICATION_HOST: "0.0.0.0"
 │   IDENTITY_AUTHENTICATION_PORT: "8080"

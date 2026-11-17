@@ -3,11 +3,11 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.platform.authorization.presentation.rest.interfaces;
+module neko.service.authorization.presentation.rest.interfaces;
 
 import vibe.web.rest;
 import vibe.http.common : HTTPMethod;
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

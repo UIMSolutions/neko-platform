@@ -6,12 +6,12 @@
 /// Server-side rendered dashboard (vibe.d Diet template views/dashboard.dt,
 /// styled with daisyUI): tenant figures, applications, policies and the
 /// latest decisions. Read-only; tenant from ?tenant=, X-Tenant-Id or token.
-module uim.platform.authorization.presentation.web.dashboard;
+module neko.service.authorization.presentation.web.dashboard;
 
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse, render;
 import uim.platform.service.presentation.odata;
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

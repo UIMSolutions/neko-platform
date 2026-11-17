@@ -1,5 +1,5 @@
-module uim.platform.authorization.infrastructure.persistence.file;
+module neko.service.authorization.infrastructure.persistence.file;
 
 public {
-  import uim.platform.authorization.infrastructure.persistence.file.repository;
+  import neko.service.authorization.infrastructure.persistence.file.repository;
 }

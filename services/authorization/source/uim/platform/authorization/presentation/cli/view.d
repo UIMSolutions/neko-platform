@@ -1,7 +1,7 @@
-module uim.platform.authorization.presentation.cli.view;
+module neko.service.authorization.presentation.cli.view;
 
 import std.stdio : writeln;
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

@@ -5,12 +5,12 @@
 *****************************************************************************************************************/
 /// Infrastructure layer: configuration, security, logging, workers and the
 /// composition root (container).
-module uim.platform.authorization.infrastructure;
+module neko.service.authorization.infrastructure;
 
 public {
-  import uim.platform.authorization.infrastructure.configuration;
-  import uim.platform.authorization.infrastructure.logging;
-  import uim.platform.authorization.infrastructure.security;
-  import uim.platform.authorization.infrastructure.workers;
-  import uim.platform.authorization.infrastructure.container;
+  import neko.service.authorization.infrastructure.configuration;
+  import neko.service.authorization.infrastructure.logging;
+  import neko.service.authorization.infrastructure.security;
+  import neko.service.authorization.infrastructure.workers;
+  import neko.service.authorization.infrastructure.container;
 }

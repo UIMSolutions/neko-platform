@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Generic tenant scoped repository port.
-module uim.platform.authorization.ports.repositories.entity;
+module neko.service.authorization.ports.repositories.entity;
 
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

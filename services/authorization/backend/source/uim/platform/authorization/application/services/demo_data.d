@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Demo landscape: an incident management application with APIs, the base
 /// policies, two custom policies and assignments to users and a group.
-module uim.platform.authorization.application.services.demo_data;
+module neko.service.authorization.application.services.demo_data;
 
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

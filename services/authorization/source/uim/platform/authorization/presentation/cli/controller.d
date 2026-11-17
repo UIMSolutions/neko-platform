@@ -1,6 +1,6 @@
-module uim.platform.authorization.presentation.cli.controller;
+module neko.service.authorization.presentation.cli.controller;
 
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

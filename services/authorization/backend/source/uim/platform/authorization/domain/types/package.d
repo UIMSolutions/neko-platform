@@ -3,11 +3,11 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.platform.authorization.domain.types;
+module neko.service.authorization.domain.types;
 
 public {
-  import uim.platform.authorization.domain.types.ids;
-  import uim.platform.authorization.domain.types.time;
-  import uim.platform.authorization.domain.types.condition;
-  import uim.platform.authorization.domain.types.attributes;
+  import neko.service.authorization.domain.types.ids;
+  import neko.service.authorization.domain.types.time;
+  import neko.service.authorization.domain.types.condition;
+  import neko.service.authorization.domain.types.attributes;
 }

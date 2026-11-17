@@ -3,8 +3,8 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.platform.authorization.infrastructure.workers;
+module neko.service.authorization.infrastructure.workers;
 
 public {
-  import uim.platform.authorization.infrastructure.workers.decision_retention;
+  import neko.service.authorization.infrastructure.workers.decision_retention;
 }

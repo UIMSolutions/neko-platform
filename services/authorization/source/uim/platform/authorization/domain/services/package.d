@@ -1,5 +1,5 @@
-module uim.platform.authorization.domain.services;
+module neko.service.authorization.domain.services;
 
 public {
-  import uim.platform.authorization.domain.services.policy_evaluator;
+  import neko.service.authorization.domain.services.policy_evaluator;
 }

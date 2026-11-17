@@ -9,11 +9,11 @@
 /// EDM types), the Statistics sheet and a runner for the actions
 /// (EvaluateAuthorization, SeedBasePolicies, Enable/DisablePolicy, ...).
 /// Only compiled with --config=gui (version Have_gtk_d).
-module uim.platform.authorization.presentation.gui;
+module neko.service.authorization.presentation.gui;
 
 version (Have_gtk_d) {
   public import uim.platform.service.presentation.gui;
-  import uim.platform.authorization;
+  import neko.service.authorization;
 
   /// Run the GUI main loop (blocks). autoRefreshSeconds > 0 reloads the
   /// current page periodically (useful with a file store shared with the server).

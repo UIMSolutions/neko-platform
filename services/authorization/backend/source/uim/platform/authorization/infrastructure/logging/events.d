@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Structured (JSON line) logging of service events and decisions.
-module uim.platform.authorization.infrastructure.logging.events;
+module neko.service.authorization.infrastructure.logging.events;
 
 import vibe.core.log : LogLevel, setLogLevel;
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

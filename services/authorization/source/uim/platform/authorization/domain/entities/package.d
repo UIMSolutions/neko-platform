@@ -1,8 +1,8 @@
-module uim.platform.authorization.domain.entities;
+module neko.service.authorization.domain.entities;
 
 public {
-  import uim.platform.authorization.domain.entities.application;
-  import uim.platform.authorization.domain.entities.policy;
-  import uim.platform.authorization.domain.entities.policy_assignment;
-  import uim.platform.authorization.domain.entities.authorization_decision;
+  import neko.service.authorization.domain.entities.application;
+  import neko.service.authorization.domain.entities.policy;
+  import neko.service.authorization.domain.entities.policy_assignment;
+  import neko.service.authorization.domain.entities.authorization_decision;
 }

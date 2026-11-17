@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Typed identifiers (no accidental mix-up of policy and application ids).
-module uim.platform.authorization.domain.types.ids;
+module neko.service.authorization.domain.types.ids;
 
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Value helpers for the attributes of an authorization request.
-module uim.platform.authorization.domain.types.attributes;
+module neko.service.authorization.domain.types.attributes;
 
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

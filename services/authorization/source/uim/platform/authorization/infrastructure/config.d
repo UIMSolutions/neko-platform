@@ -1,9 +1,9 @@
-module uim.platform.authorization.infrastructure.config;
+module neko.service.authorization.infrastructure.config;
 
 import std.conv : ConvException, to;
 import std.process : environment;
 import std.string : toLower;
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

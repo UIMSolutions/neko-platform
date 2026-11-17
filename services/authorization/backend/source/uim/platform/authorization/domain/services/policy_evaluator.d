@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Pure decision logic (no I/O): which policies grant a request.
-module uim.platform.authorization.domain.services.policy_evaluator;
+module neko.service.authorization.domain.services.policy_evaluator;
 
 import std.uni : icmp;
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

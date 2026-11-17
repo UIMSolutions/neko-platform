@@ -1,6 +1,6 @@
-module uim.platform.authorization.domain.ports.repositories;
+module neko.service.authorization.domain.ports.repositories;
 
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

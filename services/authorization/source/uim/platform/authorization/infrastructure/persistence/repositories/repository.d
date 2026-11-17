@@ -1,8 +1,8 @@
-module uim.platform.authorization.infrastructure.persistence.memory.repository;
+module neko.service.authorization.infrastructure.persistence.memory.repository;
 
 import std.algorithm : any, filter;
 import std.array : array;
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

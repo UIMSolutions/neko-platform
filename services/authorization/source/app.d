@@ -1,6 +1,6 @@
 module app;
 
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

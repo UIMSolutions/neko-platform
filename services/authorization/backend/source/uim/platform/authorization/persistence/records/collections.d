@@ -7,9 +7,9 @@
 /// (id, tenantId, createdAt/By, updatedAt/By — timestamps as std time) plus
 /// the entity fields; conditions are stored as an array of
 /// {attribute, operator, value} objects.
-module uim.platform.authorization.persistence.records.collections;
+module neko.service.authorization.persistence.records.collections;
 
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

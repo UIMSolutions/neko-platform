@@ -3,9 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.platform.authorization.persistence.storages;
+module neko.service.authorization.persistence.storages;
 
 public {
-  import uim.platform.authorization.persistence.storages.mongo;
-  import uim.platform.authorization.persistence.storages.factory;
+  import neko.service.authorization.persistence.storages.mongo;
+  import neko.service.authorization.persistence.storages.factory;
 }

@@ -1,8 +1,8 @@
-module uim.platform.authorization.tests.integration;
+module neko.service.authorization.tests.integration;
 
 import std.algorithm : filter;
 import std.array : array;
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

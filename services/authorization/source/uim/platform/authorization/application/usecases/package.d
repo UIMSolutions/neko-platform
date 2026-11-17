@@ -1,8 +1,8 @@
-module uim.platform.authorization.application.usecases;
+module neko.service.authorization.application.usecases;
 
 public {
-  import uim.platform.authorization.application.usecases.manage_applications;
-  import uim.platform.authorization.application.usecases.manage_policies;
-  import uim.platform.authorization.application.usecases.manage_assignments;
-  import uim.platform.authorization.application.usecases.evaluate_authorizations;
+  import neko.service.authorization.application.usecases.manage_applications;
+  import neko.service.authorization.application.usecases.manage_policies;
+  import neko.service.authorization.application.usecases.manage_assignments;
+  import neko.service.authorization.application.usecases.evaluate_authorizations;
 }

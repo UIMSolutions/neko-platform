@@ -1,7 +1,7 @@
-module uim.platform.authorization.infrastructure;
+module neko.service.authorization.infrastructure;
 
 public {
-  import uim.platform.authorization.infrastructure.config;
-  import uim.platform.authorization.infrastructure.container;
-  import uim.platform.authorization.infrastructure.persistence;
+  import neko.service.authorization.infrastructure.config;
+  import neko.service.authorization.infrastructure.container;
+  import neko.service.authorization.infrastructure.persistence;
 }

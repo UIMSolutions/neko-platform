@@ -1,10 +1,10 @@
-module uim.platform.authorization.application.usecases.manage_policies;
+module neko.service.authorization.application.usecases.manage_policies;
 
 import std.algorithm : filter;
 import std.algorithm.searching : canFind;
 import std.array : array;
 import std.uuid : randomUUID;
-import uim.platform.authorization;
+import neko.service.authorization;
 
 mixin(ShowModule!());
 

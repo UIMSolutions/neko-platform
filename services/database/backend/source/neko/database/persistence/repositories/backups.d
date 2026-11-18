@@ -760,14 +760,21 @@ unittest {
     Principal who = Principal("a", HdbRole.admin, true);
     auto backups = new BackupService(new Database, store, () => who, () => clock);
     assert(backups.schedule().retentionDays == 15); // Vorgabe für neue Mandanten
-    store.save("nightly-scheduled", backups.tick() is null ? null : null); // tick legt die erste geplante an
+    size_t count(string kind) {
+        size_t n;
+        foreach (b; store.list())
+            if (b.kind == kind)
+                n++;
+        return n;
+    }
+
+    assert(backups.tick() is null && count("scheduled") == 1);
     backups.create("manual");
-    clock += 20.days;
+    clock += 20.days; // die Uhr des Dienstes: beide geplanten liegen nun mehr als 15 Tage zurück
+    assert(backups.tick() is null && count("scheduled") == 1); // die neueste bleibt, die ältere ist abgelaufen
     assertThrown(backups.updateRetention(216));
-    auto s = backups.updateRetention(10);
-    assert(s.retentionDays == 10);
-    // die einzige geplante ist die neueste und bleibt; die manuelle sowieso
-    assert(store.list().length >= 2);
+    assert(backups.updateRetention(10).retentionDays == 10);
+    assert(count("scheduled") == 1 && count("manual") == 1);
     assert(new FileBackupStore(root).loadSchedule().retentionDays == 10);
 }
 

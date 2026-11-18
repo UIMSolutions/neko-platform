@@ -1,6 +1,6 @@
 # neko.database
 
-In-Memory-Spaltendatenbank mit vibe.d, aufgebaut als Hexagonale Architektur.
+In-memory column database built with vibe.d using hexagonal architecture.
 
     domain/        Value, ColumnTable (Column Store)
     application/   Ports + SqlService (Mini-SQL-Parser/Executor)
@@ -18,16 +18,16 @@ Start: `dub run`
     curl -X POST localhost:8080/sql -H 'Content-Type: application/json' \
       -d '{"statement":"SELECT SUM(amount) FROM orders WHERE id >= 1"}'
 
-## Datentypen
+## Data types
 
-Jeder Spaltentyp entspricht einem primitiven EDM-Typ aus OData v4. In `CREATE TABLE` und in der REST-API gilt der SQL-Name, ein
-Synonym oder der EDM-Name, ohne Rücksicht auf die Schreibweise: `CREATE TABLE t (a Edm.Int16, b SMALLINT)`.
+Each column type corresponds to a primitive EDM type from OData v4. In `CREATE TABLE` and the REST API, the SQL name,
+a synonym or the EDM name may be used, regardless of case: `CREATE TABLE t (a Edm.Int16, b SMALLINT)`.
 
-| SQL | Synonyme | EDM | Literal in SQL |
+| SQL | Synonyms | EDM | SQL literal |
 | --- | --- | --- | --- |
 | `BOOLEAN` | `BOOL` | `Edm.Boolean` | `TRUE`, `FALSE` |
-| `TINYINT` | `BYTE` | `Edm.Byte` | `255` (0 bis 255) |
-| `SBYTE` | | `Edm.SByte` | `-128` (-128 bis 127) |
+| `TINYINT` | `BYTE` | `Edm.Byte` | `255` (0 to 255) |
+| `SBYTE` | | `Edm.SByte` | `-128` (-128 to 127) |
 | `SMALLINT` | `INT16` | `Edm.Int16` | `32767` |
 | `INT32` | | `Edm.Int32` | `2147483647` |
 | `INTEGER` | `INT`, `BIGINT`, `INT64` | `Edm.Int64` | `42` |
@@ -35,180 +35,181 @@ Synonym oder der EDM-Name, ohne Rücksicht auf die Schreibweise: `CREATE TABLE t
 | `DECIMAL` | `DOUBLE` | `Edm.Double` | `1.5` |
 | `NUMERIC` | | `Edm.Decimal` | `12345678901234567890.55` |
 | `VARCHAR` | `NVARCHAR`, `TEXT` | `Edm.String` | `'Text'` |
-| `BLOB` | `BINARY`, `VARBINARY` | `Edm.Binary` | `X'00FF'` oder `'00FF'` |
+| `BLOB` | `BINARY`, `VARBINARY` | `Edm.Binary` | `X'00FF'` or `'00FF'` |
 | `DATE` | | `Edm.Date` | `'2026-11-06'` |
 | `TIMESTAMP` | `DATETIMEOFFSET` | `Edm.DateTimeOffset` | `'2026-11-06T12:30:00+01:00'` |
 | `TIME` | `TIMEOFDAY` | `Edm.TimeOfDay` | `'12:30:00'` |
 | `DURATION` | | `Edm.Duration` | `'P1DT2H'` |
 | `GUID` | `UUID` | `Edm.Guid` | `'01234567-89ab-cdef-0123-456789abcdef'` |
 | `GEO` | `GEOMETRY`, `ST_GEOMETRY` | `Edm.Geometry` | `'POINT(13.4 52.5)'` |
-| `GEOGRAPHY` | | `Edm.Geography` | `'POINT(13.4 52.5)'`, Länge und Breite in Grad |
+| `GEOGRAPHY` | | `Edm.Geography` | `'POINT(13.4 52.5)'`, longitude and latitude in degrees |
 | `LINK` | `URL` | `Edm.String` | `'https://example.org/a'` |
 
-`LINK` ist die einzige Ergänzung: EDM kennt keine URL, nach außen ist der Typ deshalb `Edm.String`. Erlaubt sind `http`,
-`https`, `ftp` und `mailto`, die Admin-Oberfläche zeigt die Werte als klickbaren Verweis.
+`LINK` is the only addition: EDM has no URL type, so it is exposed as `Edm.String`. `http`,
+`https`, `ftp` and `mailto` are allowed; the admin interface displays values as clickable links.
 
-Vorsicht bei `DECIMAL`: Der Name ist aus Kompatibilität mit bestehenden Daten geblieben, der Typ ist ein double. Exakte
-Dezimalzahlen, etwa für Geldbeträge, sind `NUMERIC`.
+Be careful with `DECIMAL`: the name is retained for compatibility with existing data, but the type is a double. Use
+`NUMERIC` for exact decimal values, such as monetary amounts.
 
     CREATE TABLE orte (id GUID, aktiv BOOLEAN, preis NUMERIC, foto BLOB, lage GEOGRAPHY, seit TIMESTAMP, web LINK)
     INSERT INTO orte VALUES ('01234567-89ab-cdef-0123-456789abcdef', TRUE, 19.99, X'89504E47',
       'POINT(13.4 52.5)', '2026-11-06T12:30:00+01:00', 'https://example.org')
     SELECT id FROM orte WHERE aktiv = TRUE AND seit >= '2026-01-01T00:00:00Z' ORDER BY preis
 
-Werte werden beim Schreiben geprüft, auch beim Laden von Dateien und Backups, und in eine einheitliche Form gebracht:
+Values are validated and normalized when written, including when files and backups are loaded:
 
-- `TIMESTAMP` wird nach UTC umgerechnet und mit sieben Nachkommastellen gespeichert; der Versatz selbst geht verloren.
-- `DURATION` kennt nur Tage bis Sekunden, wie EDM; `PT36H` wird `P1DT12H`. Sortiert wird nach der Länge.
-- `NUMERIC` ist exakt und sortiert numerisch, `SUM` und `AVG` rechnen aber mit double und runden dabei.
-- `GEO` und `GEOGRAPHY` nehmen WKT für `POINT`, `LINESTRING` und `POLYGON` an, nur 2D. Es gibt keine räumlichen Funktionen wie
-  Abstand oder Schnitt; `Multi*`-Geometrien und Sammlungen fehlen.
-- `SUM` und `AVG` gehen nur auf Zahlen, `LIKE` nur auf Typen, die als Text gespeichert werden, also nicht auf Zahlen, `BOOLEAN`
-  und `DURATION`.
+- `TIMESTAMP` is converted to UTC and stored with seven fractional digits; the original offset is lost.
+- `DURATION` supports only days through seconds, as in EDM; `PT36H` becomes `P1DT12H`. Values are sorted by duration.
+- `NUMERIC` is exact and sorts numerically, but `SUM` and `AVG` use double arithmetic and round.
+- `GEO` and `GEOGRAPHY` accept WKT for `POINT`, `LINESTRING` and `POLYGON`, in 2D only. Spatial functions such as
+  distance and intersection are unavailable, as are `Multi*` geometries and collections.
+- `SUM` and `AVG` work only on numbers; `LIKE` works only on types stored as text, not on numbers, `BOOLEAN`
+  or `DURATION`.
 
-`Edm.Stream` gibt es nicht: Es ist kein Spaltenwert, sondern Medieninhalt mit eigener Adresse. Für Binärdaten dient `BLOB`.
-Intern und über die REST-API ist `BLOB` Hex-Text; das verdoppelt die Größe, große Dateien gehören also nicht hinein.
+`Edm.Stream` is not supported: it is media content with its own address, not a column value. Use `BLOB` for binary data.
+Internally and through the REST API, `BLOB` is hexadecimal text; this doubles its size, so it is unsuitable for large files.
 
-Die REST-API überträgt `BOOLEAN` als JSON-Wahrheitswert, `NUMERIC` als Text, damit keine Stellen verloren gehen, `GEO` als WKT
-und `BLOB` als Hex-Text. OData nutzt dagegen die Formate der Spezifikation, siehe dort.
+The REST API transmits `BOOLEAN` as a JSON boolean, `NUMERIC` as text to avoid losing digits, `GEO` as WKT
+and `BLOB` as hexadecimal text. OData uses the formats defined by its specification; see below.
 
-## REST-API v1
+## REST API v1
 
-Typisierte vibe.d-Schnittstellen in `presentation/rest` (`interfaces.d`, `models.d`, `services.d`), registriert von
-`registerHdbRestApi`. Aus den Schnittstellen lassen sich Clients erzeugen: `new RestInterfaceClient!ITableRestApi(url)`.
+Typed vibe.d interfaces in `presentation/rest` (`interfaces.d`, `models.d`, `services.d`), registered by
+`registerHdbRestApi`. Clients can be generated from the interfaces: `new RestInterfaceClient!ITableRestApi(url)`.
 
-| Methode und Pfad | Zweck |
+| Method and path | Purpose |
 |---|---|
-| `GET /api/v1/health` | Zustand |
-| `GET /api/v1/stats` | Statistik aller Tabellen |
-| `POST /api/v1/checkpoint` | Checkpoint schreiben |
-| `GET /api/v1/merge` | Zustand des Delta-Merges |
-| `POST /api/v1/merge` | Delta-Merge starten (202) |
-| `POST /api/v1/sql` | `{"statement": "...", "transaction": "<id>"}`, Id auch im Header `X-Transaction-Id` |
-| `GET /api/v1/tables` | Tabellennamen |
+| `GET /api/v1/health` | Health |
+| `GET /api/v1/stats` | Statistics for all tables |
+| `POST /api/v1/checkpoint` | Write a checkpoint |
+| `GET /api/v1/merge` | Delta merge status |
+| `POST /api/v1/merge` | Start a delta merge (202) |
+| `POST /api/v1/sql` | `{"statement": "...", "transaction": "<id>"}`, ID also accepted in the `X-Transaction-Id` header |
+| `GET /api/v1/tables` | Table names |
 | `POST /api/v1/tables` | `{"name": "t", "columns": [{"name": "id", "type": "INTEGER"}]}` |
-| `GET /api/v1/tables/:name` | Spalten und Statistik |
-| `DELETE /api/v1/tables/:name` | Tabelle löschen |
-| `GET /api/v1/tables/:name/rows` | Zeilen; Parameter `where`, `sort`, `desc`, `limit` (1 bis 1000, Standard 100), `offset` |
-| `POST /api/v1/tables/:name/rows` | `{"values": [1, "a", null]}`, ein Wert je Spalte |
+| `GET /api/v1/tables/:name` | Columns and statistics |
+| `DELETE /api/v1/tables/:name` | Delete a table |
+| `GET /api/v1/tables/:name/rows` | Rows; parameters `where`, `sort`, `desc`, `limit` (1 to 1000, default 100), `offset` |
+| `POST /api/v1/tables/:name/rows` | `{"values": [1, "a", null]}`, one value per column |
 
-Fehler: `{"statusMessage": "..."}` mit 400 (ungültiges SQL, gesperrte Datenbank) oder 404 (Tabelle unbekannt).
-Dazu `GET|PUT /api/v1/network`, `PUT /api/v1/tenants/:name/networks` (siehe Erlaubte Netze),
-`GET|PUT|DELETE /api/v1/replication…` (siehe Replikation), `POST /api/v1/auth/login|logout|password`, `GET /api/v1/auth/me` und `GET|POST /api/v1/users`,
+Errors: `{"statusMessage": "..."}` with 400 (invalid SQL, locked database) or 404 (unknown table).
+Also available: `GET|PUT /api/v1/network`, `PUT /api/v1/tenants/:name/networks` (see Allowed networks),
+`GET|PUT|DELETE /api/v1/replication…` (see Replication), `POST /api/v1/auth/login|logout|password`, `GET /api/v1/auth/me` and `GET|POST /api/v1/users`,
 `PUT|DELETE /api/v1/users/:name`, `POST /api/v1/users/:name/password`, `PUT /api/v1/users/:name/grants`,
-`GET /api/v1/roles`, `PUT|DELETE /api/v1/roles/:name` (siehe Benutzer und Rechte), für Systemadministratoren `GET|POST /api/v1/tenants`
-und `PUT|DELETE /api/v1/tenants/:name` (siehe Mandanten). Fehlende Anmeldung ergibt 401, fehlende Rechte 403.
-Die Endpunkte ohne `/api/v1` (`adapters/inbound/rest_api.d`) bestehen weiter und verlangen ebenfalls ein Bearer-Token.
+`GET /api/v1/roles`, `PUT|DELETE /api/v1/roles/:name` (see Users and permissions), and for system administrators
+`GET|POST /api/v1/tenants` and `PUT|DELETE /api/v1/tenants/:name` (see Tenants). Missing authentication returns 401,
+insufficient permissions return 403. The endpoints without `/api/v1` (`adapters/inbound/rest_api.d`) remain available
+and also require a bearer token.
 
 ## OData v4
 
-OData 4.0 unter `/odata/v4` (`presentation/odata`), Tabellen sind Entity Sets. Anmeldung per Bearer-Token und Rollen gelten
-wie bei allen anderen Schnittstellen.
+OData 4.0 is available under `/odata/v4` (`presentation/odata`); tables are entity sets. Bearer-token authentication and
+roles apply as they do to all other interfaces.
 
     curl localhost:8080/odata/v4/\$metadata -H "Authorization: Bearer $TOKEN"
     curl "localhost:8080/odata/v4/orders?\$filter=amount%20gt%2010&\$orderby=id%20desc&\$top=5&\$count=true" -H "Authorization: Bearer $TOKEN"
     curl -X PATCH "localhost:8080/odata/v4/orders(1)" -H "Authorization: Bearer $TOKEN" \
       -H 'Content-Type: application/json' -d '{"amount": 12.5}'
 
-- Lesen: Service-Dokument, `$metadata` (CSDL/XML), `/orders`, `/orders/$count`, `/orders(1)`, `/orders(1)/name`, `/orders(1)/name/$value`.
-- Schreiben: `POST`, `PATCH`, `PUT` (fehlende Eigenschaften werden NULL), `DELETE`; `Prefer: return=minimal|representation`.
-- Optionen: `$filter`, `$select`, `$orderby`, `$top`, `$skip`, `$count`, `$format=json`. Höchstens 1000 Zeilen je Antwort,
-  danach `@odata.nextLink`.
-- `$filter`: `eq ne gt ge lt le`, `and or not`, Klammern, `null`, `contains`, `startswith`, `endswith`. Verglichen wird eine
-  Eigenschaft mit einem Literal. NULL verhält sich wie in OData 4.0: `a ne 1` trifft auch Zeilen, in denen `a` NULL ist.
-- Nicht umgesetzt, Antwort 501: `$expand`, `$search`, `$apply`, `$compute`, `$batch`, weitere Funktionen und Arithmetik in
-  `$filter`. Es gibt keine ETags und keine Beziehungen zwischen Tabellen.
+- Reading: service document, `$metadata` (CSDL/XML), `/orders`, `/orders/$count`, `/orders(1)`, `/orders(1)/name`, `/orders(1)/name/$value`.
+- Writing: `POST`, `PATCH`, `PUT` (missing properties become NULL), `DELETE`; `Prefer: return=minimal|representation`.
+- Options: `$filter`, `$select`, `$orderby`, `$top`, `$skip`, `$count`, `$format=json`. At most 1000 rows per response,
+  followed by `@odata.nextLink`.
+- `$filter`: `eq ne gt ge lt le`, `and or not`, parentheses, `null`, `contains`, `startswith`, `endswith`. A property is
+  compared with a literal. NULL behaves as in OData 4.0: `a ne 1` also matches rows where `a` is NULL.
+- Not implemented; returns 501: `$expand`, `$search`, `$apply`, `$compute`, `$batch`, additional functions and arithmetic in
+  `$filter`. There are no ETags or relationships between tables.
 
-Typen: siehe [Datentypen](#datentypen). `Edm.Binary` ist Base64url, `/$value` liefert die Rohbytes. `Edm.Geometry` und
-`Edm.Geography` sind GeoJSON (`{"type":"Point","coordinates":[13.4,52.5]}`); beim Schreiben geht auch WKT als Text, weil der
-UI5-Client Eigenschaften nur mit einfachen Werten ändern kann. Mit `IEEE754Compatible=true` in `Accept` oder `Content-Type` sind
-`Edm.Int64`, `Edm.Decimal` und `@odata.count` in beide Richtungen Text. Ohne diese Angabe ist `Edm.Decimal` beim Lesen eine
-JSON-Zahl mit allen Stellen, beim Schreiben bleibt nur Text exakt.
+Types: see [Data types](#data-types). `Edm.Binary` is Base64url; `/$value` returns raw bytes. `Edm.Geometry` and
+`Edm.Geography` are GeoJSON (`{"type":"Point","coordinates":[13.4,52.5]}`); WKT text is also accepted when writing because
+the UI5 client can only change properties using simple values. With `IEEE754Compatible=true` in `Accept` or `Content-Type`,
+`Edm.Int64`, `Edm.Decimal` and `@odata.count` are text in both directions. Without it, `Edm.Decimal` is a JSON number
+with all digits when read; when writing, only text remains exact.
 
-Literale in `$filter`: `true`, `2026-11-06`, `2026-11-06T12:30:00Z`, `12:30:00`, GUIDs ohne Anführungszeichen, dazu
-`duration'P1D'`, `binary'AAEC'`, `geometry'SRID=0;Point(1 2)'` und `geography'SRID=4326;Point(1 2)'`. `contains`, `startswith`
-und `endswith` gehen nur auf `Edm.String`.
+Literals in `$filter`: `true`, `2026-11-06`, `2026-11-06T12:30:00Z`, `12:30:00`, unquoted GUIDs, plus
+`duration'P1D'`, `binary'AAEC'`, `geometry'SRID=0;Point(1 2)'` and `geography'SRID=4326;Point(1 2)'`. `contains`, `startswith`
+and `endswith` work only on `Edm.String`.
 
-Schlüssel: Tabellen haben keinen Primärschlüssel, deshalb gilt eine Spalte `id` (ganze Zahl, `VARCHAR` oder `GUID`) als Schlüssel.
-Der Kern erzwingt keine Eindeutigkeit: `POST` lehnt vorhandene Schlüssel ab, kommt ein Schlüssel trotzdem mehrfach vor
-(etwa nach SQL-Änderungen), antworten Zugriffe darauf mit 409 statt mehrere Zeilen zu ändern. Tabellen ohne `id` zeigen die
-berechnete Eigenschaft `__rowid`. Das ist nur die Position im Ergebnis, einzelne Zeilen sind dort nicht adressierbar (501).
-Tabellen oder Spalten, deren Name kein gültiger OData-Bezeichner ist (etwa `1a`), erscheinen nicht im Dienst.
+Keys: tables have no primary key, so an `id` column (integer, `VARCHAR` or `GUID`) serves as the key.
+The core does not enforce uniqueness: `POST` rejects existing keys, but if a key occurs more than once
+(for example after SQL changes), requests targeting it return 409 rather than changing multiple rows. Tables without `id`
+expose the computed property `__rowid`. This is only the position in the result; individual rows cannot be addressed (501).
+Tables or columns whose names are not valid OData identifiers (such as `1a`) do not appear in the service.
 
-## Fiori-Frontend
+## Fiori frontend
 
-OpenUI5-Anwendung im Design Fiori 3 (`sap_fiori_3`) unter `http://localhost:8080/ui5/`, Quellen in `public/ui5/`. Sie spricht
-nur mit `/odata/v4` und der Anmeldung (`/api/v1/auth`) und braucht keinen Build-Schritt.
+OpenUI5 application using the Fiori 3 design (`sap_fiori_3`) at `http://localhost:8080/ui5/`, with sources in `public/ui5/`.
+It communicates only with `/odata/v4` and authentication (`/api/v1/auth`) and requires no build step.
 
-- `FlexibleColumnLayout`: Tabellen, Zeilen, Details. Links wie `#/tables/orders/rows/1` lassen sich teilen und neu laden.
-- Seitennavigation (`sap.tnt.ToolPage`) mit Hamburger-Button in der ShellBar: Tabellen, Statistik, Backups (nur
-  Administratoren), Hilfe und Admin-Konsole. Sie klappt zu einer Symbolleiste ein, auf schmalen Bildschirmen schließt sie nach der Auswahl.
-- Sprache im Profilmenü: Englisch oder Deutsch, gespeichert im `localStorage`. Ohne Wahl gilt die Browsersprache. Die
-  Admin-Oberfläche und Fehlermeldungen des Servers sind davon nicht betroffen.
-- Suche, Sortierung, nachladende Liste, Zeilen anlegen, bearbeiten und löschen. Spalten kommen aus `$metadata`, neue Tabellen
-  brauchen keine Änderung am Client. Tabellen anlegen und Benutzer verwalten bleibt in der Administrationsoberfläche.
-- Das Modell nutzt die Gruppe `$direct`, weil der Dienst kein `$batch` kennt: jede Änderung ist eine eigene Anfrage. Beim
-  Speichern geht jedes geänderte Feld als eigenes `PATCH`, mehrere Felder einer Zeile werden also nicht atomar geändert.
-- Das Token liegt im `sessionStorage` und endet mit dem Browser-Tab. OpenUI5 kommt mit fester Version (1.148.10, Wartung bis
-  Q3/2027) vom CDN `sdk.openui5.org`. Dieses Skript läuft mit Zugriff auf das Token; für den Betrieb ohne fremdes CDN die
-  Bibliothek selbst ausliefern und die URL in `public/ui5/index.html` ändern.
-- `public/ui5/` ist ohne Anmeldung erreichbar und darf deshalb keine Daten oder Geheimnisse enthalten.
+- `FlexibleColumnLayout`: tables, rows, details. Links such as `#/tables/orders/rows/1` can be shared and reloaded.
+- Side navigation (`sap.tnt.ToolPage`) with a hamburger button in the ShellBar: tables, statistics, backups (administrators
+  only), help and admin console. It collapses to a toolbar and closes after selection on narrow screens.
+- Language in the profile menu: English or German, stored in `localStorage`. Without a selection, the browser language
+  is used. This does not affect the admin interface or server error messages.
+- Search, sorting, a progressively loaded list, and row creation, editing and deletion. Columns come from `$metadata`, so
+  new tables require no client changes. Creating tables and managing users remain in the admin interface.
+- The model uses the `$direct` group because the service does not support `$batch`: each change is a separate request.
+  When saving, each changed field is sent as a separate `PATCH`, so changes to multiple fields in a row are not atomic.
+- The token is stored in `sessionStorage` and expires with the browser tab. OpenUI5 is loaded at a fixed version (1.148.10,
+  maintained until Q3/2027) from the `sdk.openui5.org` CDN. This script has access to the token; to operate without an
+  external CDN, serve the library yourself and change the URL in `public/ui5/index.html`.
+- `public/ui5/` is accessible without authentication and must therefore contain no data or secrets.
 
-## Administrationsoberfläche
+## Administration interface
 
 `http://localhost:8080/admin` (Adapter `adapters/inbound/admin_web.d`, Templates in `views/`, Skript in `public/admin.js`).
 
-- Dashboard: Kennzahlen je Tabelle, Delta-Merge und Checkpoint auslösen, Tabellen anlegen.
-- Tabellenansicht: Filtern (WHERE), Sortieren, Blättern, Zeilen anlegen, bearbeiten und löschen, CSV-Export,
-  Tabelle leeren oder löschen, Speicherstatistik je Spalte.
-- SQL-Konsole: mehrere Anweisungen mit `;`, Abbruch beim ersten Fehler, `BEGIN` trägt über mehrere Ausführungen.
-- Statistik (`/admin/stats`): Speicherkennzahlen aller Tabellen je Spalte. Hilfe (`/admin/help`): Bedienung, SQL, Datentypen.
+- Dashboard: metrics per table, trigger delta merges and checkpoints, create tables.
+- Table view: filtering (WHERE), sorting, pagination, creating, editing and deleting rows, CSV export,
+  emptying or deleting a table, storage statistics per column.
+- SQL console: multiple statements separated by `;`, stopping at the first error; `BEGIN` persists across executions.
+- Statistics (`/admin/stats`): storage metrics per column for all tables. Help (`/admin/help`): usage, SQL, data types.
 
-Tabellen haben keinen Primärschlüssel. Bearbeiten und Löschen einer Zeile treffen deshalb alle Zeilen mit
-identischen Werten; die Oberfläche meldet die Anzahl.
+Tables have no primary key. Editing or deleting a row therefore affects all rows with identical values; the interface
+reports the number affected.
 
-Die Oberfläche blendet aus, was die Rolle nicht darf; entschieden wird aber immer auf dem Server.
+The interface hides actions not permitted by the role, but authorization is always decided on the server.
 
-## Admin-Client (GTK)
+## Admin client (GTK)
 
-Ein eigenes Desktop-Programm `hdb-admin` auf Basis von GtkD (GTK 3), Quellen in `source/neko/database/presentation/gui`.
-Es spricht den Server nur über die REST-API an, mit derselben Anmeldung und denselben Rechten wie jeder andere
-Client, und enthält keinen Server-Code (kein vibe.d, kein OpenSSL).
+A standalone desktop program `hdb-admin` based on GtkD (GTK 3), with sources in `source/neko/database/presentation/gui`.
+It communicates with the server only through the REST API, using the same authentication and permissions as any other
+client, and contains no server code (no vibe.d or OpenSSL).
 
-    dub build --config=gui                      # erzeugt ./hdb-admin
-    ./hdb-admin --server=http://localhost:8080  # oder HDB_URL=... ./hdb-admin
-    dub test --config=gui                       # Tests des API-Clients
+    dub build --config=gui                      # produces ./hdb-admin
+    ./hdb-admin --server=http://localhost:8080  # or HDB_URL=... ./hdb-admin
+    dub test --config=gui                       # API client tests
 
-Voraussetzungen zur Laufzeit: GTK 3 und libcurl. Nach der Anmeldung (Server, Mandant, Benutzer, Passwort) zeigt die
-Seitenleiste nur, was die Rechte erlauben:
+Runtime requirements: GTK 3 and libcurl. After login (server, tenant, user, password), the sidebar shows only what
+the user's permissions allow:
 
-| Seite | Recht | Inhalt |
+| Page | Permission | Contents |
 |---|---|---|
-| Tables | Tabellenrechte | Tabellen und Zeilen, WHERE-Filter, Seiten zu 100 Zeilen |
-| SQL Console | wie SQL | Anweisungen mit Strg+Enter; `BEGIN` hält die Transaktion bis `COMMIT`/`ROLLBACK` |
-| Statistics | – | Speicherart und Zeilen je sichtbarer Tabelle |
-| Backups | `manageBackups` | anlegen, wiederherstellen, löschen |
-| Audit log, Event log | `viewLogs` (Einstellungen: `manageLogs`) | Einträge mit Filtern, blättern, Doppelklick zeigt den ganzen Eintrag; Settings… |
-| Application log | wie oben, nur im Bereich des Servers | technische Meldungen des Servers |
-| Users | `manageAccess` | anlegen, Rolle, aktivieren/deaktivieren, Passwort zurücksetzen, löschen |
-| Tenants | `viewTenants`/`manageTenants` | nur im Bereich `system`: Mandanten anlegen, ändern, löschen |
+| Tables | Table permissions | Tables and rows, WHERE filter, pages of 100 rows |
+| SQL Console | Same as SQL | Statements with Ctrl+Enter; `BEGIN` holds the transaction until `COMMIT`/`ROLLBACK` |
+| Statistics | – | Storage type and rows per visible table |
+| Backups | `manageBackups` | Create, restore, delete |
+| Audit log, Event log | `viewLogs` (settings: `manageLogs`) | Filter and page through entries, double-click for the full entry; Settings… |
+| Application log | As above, only in the server scope | Technical server messages |
+| Users | `manageAccess` | Create, assign roles, enable/disable, reset passwords, delete |
+| Tenants | `viewTenants`/`manageTenants` | Only in the `system` scope: create, change and delete tenants |
 
-- Endet die Sitzung (abgelaufen, Passwort geändert, Netz nicht erlaubt), fragt der Client erneut nach der Anmeldung.
-- Anfragen laufen synchron mit 5 Sekunden Verbindungs- und 120 Sekunden Gesamtzeitlimit; währenddessen reagiert das
-  Fenster nicht.
-- Rollen, Tabellenfreigaben, erlaubte Netze, Replikation und Zeitplan der Sicherungen gibt es bisher nur in der
-  Administrationsoberfläche im Browser.
-- Ohne Desktop lässt sich der Client im Browser ansehen: `broadwayd :5 &` und
-  `GDK_BACKEND=broadway BROADWAY_DISPLAY=:5 ./hdb-admin`, dann http://localhost:8085 öffnen.
+- When the session ends (expired, password changed, network not allowed), the client prompts for login again.
+- Requests are synchronous, with a 5-second connection timeout and a 120-second total timeout; the window does not
+  respond while a request is running.
+- Roles, table grants, allowed networks, replication and the backup schedule are currently available only in the
+  browser administration interface.
+- Without a desktop, the client can be viewed in a browser: run `broadwayd :5 &` and
+  `GDK_BACKEND=broadway BROADWAY_DISPLAY=:5 ./hdb-admin`, then open http://localhost:8085.
 
-Aufbau: `api.d` ist der @safe-Client für die REST-API hinter dem Port `IHttpTransport` (getestet mit einem Fake),
-`transport.d` der echte Transport über libcurl, `widgets.d`, `pages.d`, `login.d` und `window.d` die GTK-Oberfläche.
-GtkD ist nicht @safe, die Oberflächenmodule bleiben deshalb @system und enthalten keine eigene Logik.
+Structure: `api.d` is the @safe REST API client behind the `IHttpTransport` port (tested with a fake),
+`transport.d` is the actual libcurl transport, and `widgets.d`, `pages.d`, `login.d` and `window.d` provide the GTK interface.
+GtkD is not @safe, so the interface modules remain @system and contain no logic of their own.
 
 ## Unix Domain Socket
 
-Mit `UNIX_SOCKET=/run/hdb/hdb.sock` nimmt der Server zusätzlich zu HTTP Anfragen über einen Unix Domain Socket an
-(`presentation/unix`). Ohne die Variable gibt es keinen Socket. Pfade und JSON sind dieselben wie bei der REST-API:
+With `UNIX_SOCKET=/run/hdb/hdb.sock`, the server accepts requests over a Unix domain socket as well as HTTP
+(`presentation/unix`). Without this variable, there is no socket. Paths and JSON are the same as for the REST API:
 `/api/v1/health`, `/auth/login`, `/auth/logout`, `/sql`, `/tables`, `/stats`, `/checkpoint` und `/merge`.
 
     POST /api/v1/sql
@@ -217,71 +218,70 @@ Mit `UNIX_SOCKET=/run/hdb/hdb.sock` nimmt der Server zusätzlich zu HTTP Anfrage
 
     {"statement":"SELECT COUNT(*) FROM t"}
 
-Antwort: Zeile `STATUS 200`, Header mit `Content-Length`, Leerzeile, Body. Eine Verbindung bedient mehrere Anfragen nacheinander.
+Response: a `STATUS 200` line, headers including `Content-Length`, a blank line and the body. A connection serves multiple sequential requests.
 
-- Der Socket hat die Rechte 0600. Das ersetzt die Anmeldung nicht: jede Anfrage braucht ein Token, Rollen gelten wie bei HTTP.
-- Ein Body hat höchstens 16 MB, Header höchstens 64 KB. Eine ungültige Nachricht wird mit 400 oder 413 beantwortet, danach
-  endet die Verbindung. Ohne Anfrage endet sie nach 5 Minuten.
-- Ein verwaister Socket nach einem Absturz wird beim Start ersetzt. Antwortet er noch oder liegt dort etwas anderes als ein
-  Socket, bricht der Start ab; es wird nichts gelöscht.
+- The socket has permissions 0600. This does not replace authentication: every request needs a token, and roles apply as with HTTP.
+- A body is limited to 16 MB and headers to 64 KB. An invalid message receives 400 or 413, after which the connection
+  closes. An idle connection closes after 5 minutes.
+- A stale socket after a crash is replaced at startup. If it still responds or the path contains something other than a
+  socket, startup fails and nothing is deleted.
 
-## Betriebsarten
+## Operating modes
 
-| Betriebsart | Start | Wofür |
+| Mode | Start | Purpose |
 |---|---|---|
-| Eingebettet | Bibliothek, `dub build --config=library` | Datenbank im eigenen D-Programm, ohne Netz und Anmeldung |
-| Einzelmandant | `HDB_MODE=single ./hdb` | ein Server mit genau einer Datenbank, ohne Mandantenfeld und Systembereich |
-| Mehrmandanten | `./hdb` (Standard, `HDB_MODE=multi`) | ein Server mit mehreren getrennten Mandanten, siehe [Mandanten](#mandanten) |
-| Verteilt (Gateway) | `HDB_MODE=gateway ./hdb` | ein Zugang vor mehreren hdb-Servern, jeder Mandant liegt auf einem davon |
+| Embedded | Library, `dub build --config=library` | Database in your own D program, without networking or authentication |
+| Single tenant | `HDB_MODE=single ./hdb` | One server with exactly one database, without a tenant login field or system scope |
+| Multi-tenant | `./hdb` (default, `HDB_MODE=multi`) | One server with multiple isolated tenants, see [Tenants](#tenants) |
+| Distributed (gateway) | `HDB_MODE=gateway ./hdb` | One entry point in front of multiple hdb servers, each tenant on one server |
 
-`GET /api/v1/info` (ohne Anmeldung) nennt die Betriebsart, etwa `{"mode":"single","tenantLogin":false}`. Fiori-Client,
-Admin-Oberfläche und GTK-Client blenden danach das Mandantenfeld der Anmeldung aus. Ein ungültiger Wert von `HDB_MODE`
-oder eine unpassende Konfiguration beendet den Start mit Exit-Code 1.
+`GET /api/v1/info` (no authentication) reports the operating mode, for example `{"mode":"single","tenantLogin":false}`.
+The Fiori client, admin interface and GTK client use it to hide the tenant login field. An invalid `HDB_MODE` value
+or incompatible configuration aborts startup with exit code 1.
 
-### Eingebettet
+### Embedded
 
-Die Datenbank läuft im Prozess der Anwendung: kein HTTP, keine Benutzer und Rollen, wer die API aufruft, hat alle Rechte.
-Es braucht keine Ereignisschleife von vibe.d; der Delta-Merge läuft wie im Server in einem eigenen Thread.
+The database runs in the application's process: no HTTP, users or roles; anyone calling the API has all permissions.
+No vibe.d event loop is needed; as on the server, delta merges run in a separate thread.
 
-    // dub.sdl der Anwendung
+    // Application's dub.sdl
     dependency "hdb" path="../hdb"
     subConfiguration "hdb" "library"
 
 ```d
 import neko.database.embedded;
 
-auto db = HdbDatabase.open("data/mydb");     // oder HdbDatabase.inMemory()
-scope (exit) db.close();                     // schreibt den Stand weg
+auto db = HdbDatabase.open("data/mydb");     // or HdbDatabase.inMemory()
+scope (exit) db.close();                     // persists the current state
 db.execute("CREATE TABLE t (k INTEGER, name VARCHAR) USING FILE");
 auto tx = db.begin();
 scope (failure) tx.rollback();
 tx.execute("INSERT INTO t VALUES (1, 'a')");
 tx.commit();
 auto result = db.execute("SELECT k, name FROM t");   // QueryResult: columns, rows (Value)
-auto backup = db.backup("vor-umbau");               // auch backups(), restore(name), removeBackup(name)
+auto backup = db.backup("vor-umbau");               // also backups(), restore(name), removeBackup(name)
 ```
 
-Das Verzeichnis hat denselben Aufbau wie ein Mandant im Server (`tables/`, `hdb.log`, `backups/`): nach
-`TENANTS_DIR/<mandant>` kopiert und als Mandant angelegt, gehört es dem Server, und umgekehrt. Ein Verzeichnis darf nur
-ein Prozess gleichzeitig öffnen. `inMemory()` kennt nur Tabellen im Hauptspeicher und Sicherungen nur mit Verzeichnis
-(`inMemory("backups")`). Die Bibliothek enthält den ganzen Server-Code und hängt daher von vibe.d ab, startet aber
-nichts davon.
+The directory has the same layout as a server tenant (`tables/`, `hdb.log`, `backups/`): once copied to
+`TENANTS_DIR/<mandant>` and created as a tenant, it belongs to the server, and vice versa. Only one process may open a
+directory at a time. `inMemory()` supports only in-memory tables and requires a directory for backups
+(`inMemory("backups")`). The library contains all server code and therefore depends on vibe.d, but does not start it.
 
-### Einzelmandant
+### Single tenant
 
-`HDB_MODE=single` betreibt genau den Mandanten `default`:
+`HDB_MODE=single` operates only the `default` tenant:
 
-- Die Anmeldung fragt keinen Mandanten ab; eine Angabe per API wird nicht beachtet.
-- Es gibt keinen Systembereich: `sysadmin` wird nicht angelegt, Benutzer des Bereichs `system` können sich nicht anmelden.
-  Benutzer, Rollen, Tabellenfreigaben, befristete Rechte, erlaubte Netze, Sicherungen und Replikation gelten wie gewohnt.
-- Die Daten liegen wie im Mehrmandanten-Betrieb unter `data/tenants/default`. Ein Wechsel zu `HDB_MODE=multi` braucht
-  deshalb keine Umstellung. Zurück zu `single` geht es nur, solange es außer `default` keinen Mandanten gibt; sonst
-  bricht der Start mit einer Meldung ab, damit keine Daten unerreichbar werden.
+- Login does not ask for a tenant; a tenant specified through the API is ignored.
+- There is no system scope: `sysadmin` is not created and users in the `system` scope cannot log in.
+  Users, roles, table grants, time-limited permissions, allowed networks, backups and replication work as usual.
+- As in multi-tenant mode, data is stored under `data/tenants/default`, so switching to `HDB_MODE=multi` requires
+  no migration. Switching back to `single` is possible only if no tenant other than `default` exists; otherwise
+  startup fails with a message so that no data becomes inaccessible.
 
-### Verteilt (Gateway)
+### Distributed (gateway)
 
-Das Gateway hat selbst keine Daten und keine Benutzer. Es nimmt jede Anfrage an und reicht sie an den hdb-Server
-(Backend) des Mandanten weiter; Rechte prüft das Backend wie bei einem direkten Zugriff.
+The gateway has no data or users of its own. It accepts each request and forwards it to the tenant's hdb server
+(backend); the backend checks permissions as it would for direct access.
 
     HDB_MODE=gateway GATEWAY_CONFIG=data/hdb-gateway.json PORT=8080 ./hdb
 
@@ -293,57 +293,56 @@ Das Gateway hat selbst keine Daten und keine Benutzer. Es nimmt jede Anfrage an 
 }
 ```
 
-- **Anmeldung:** Das Gateway schickt sie an das Backend des Mandanten und gibt dessen Token mit vorangestellter Kennung
-  zurück (`us.<token>`, im Cookie der Admin-Oberfläche ebenso). Spätere Anfragen gehen anhand der Kennung an dasselbe
-  Backend, ohne die Kennung. Ein Token geht nie an ein anderes Backend: mit falscher Kennung kommt 401.
-- **Mandanten ohne Eintrag** gehen an `fallback`. Ohne `fallback` scheitert ihre Anmeldung. Von `fallback` (sonst vom
-  ersten Backend nach Namen) kommen auch die öffentlichen Seiten: Anmeldeformular, Fiori-Client.
-- **Systemadministratoren:** Jedes Backend hat seinen eigenen Systembereich. Am Gateway meldet man sich mit Mandant
-  `system@<backend>` an, etwa `system@us`; nur `system` geht an das Backend, das `tenants` oder `fallback` dafür nennt.
-- **Neuer Mandant:** Ein Systemadministrator legt ihn auf einem Backend an; danach gehört er in `tenants`, sofern er
-  nicht auf `fallback` liegt. Die Datei wird ohne Neustart neu gelesen (höchstens einmal je Sekunde); ist sie
-  fehlerhaft, gilt die bisherige weiter und das Log sagt warum.
-- **Adresse des Clients:** Das Gateway hängt sie an `X-Forwarded-For` an. Die Backends müssen das Gateway in
-  `TRUSTED_PROXIES` eintragen, sonst prüfen sie erlaubte Netze gegen die Adresse des Gateways. Der Host-Header des Clients
-  bleibt erhalten, damit die Admin-Oberfläche Formulare als gleiche Herkunft erkennt.
-- **Mandant umziehen:** Den Mandanten auf dem neuen Backend anlegen und als Replikationsziel des alten einrichten
-  (siehe [Replikation](#replikation)), nachziehen lassen, die Replikation beenden (das Ziel wird beschreibbar) und den
-  Eintrag in `tenants` ändern. Die Replikation überträgt nur Daten: Benutzer und Rollen des Mandanten müssen auf dem
-  neuen Backend angelegt werden. Bestehende Sitzungen enden mit dem Umzug.
+- **Login:** The gateway forwards it to the tenant's backend and returns its token with a prefixed identifier
+  (`us.<token>`, likewise in the admin interface cookie). Subsequent requests use the identifier to reach the same
+  backend, without the identifier. A token never goes to another backend: an incorrect identifier results in 401.
+- **Tenants without an entry** go to `fallback`. Without `fallback`, their login fails. Public pages, including the login
+  form and Fiori client, also come from `fallback` (or the first backend by name if there is no fallback).
+- **System administrators:** Each backend has its own system scope. Log in through the gateway with tenant
+  `system@<backend>`, for example `system@us`; `system` alone goes to the backend specified by `tenants` or `fallback`.
+- **New tenant:** A system administrator creates it on a backend; then it must be added to `tenants` unless it is on
+  `fallback`. The file is reloaded without restarting (at most once per second); if invalid, the previous configuration
+  remains active and the log explains why.
+- **Client address:** The gateway appends it to `X-Forwarded-For`. Backends must include the gateway in
+  `TRUSTED_PROXIES`, otherwise they check allowed networks against the gateway's address. The client's Host header
+  is preserved so that the admin interface recognizes forms as same-origin.
+- **Moving a tenant:** Create the tenant on the new backend and configure it as a replication target of the old one
+  (see [Replication](#replikation)), let it catch up, stop replication (making the target writable) and change the
+  entry in `tenants`. Replication transfers only data: the tenant's users and roles must be created on the new backend.
+  Existing sessions end when the tenant moves.
 
-| Variable | Standard | Bedeutung |
+| Variable | Default | Meaning |
 |---|---|---|
-| `GATEWAY_CONFIG` | `data/hdb-gateway.json` | Konfiguration wie oben |
-| `GATEWAY_CONNECT_SECONDS` | `5` | Zeit für den Verbindungsaufbau zu einem Backend |
-| `GATEWAY_READ_SECONDS` | `300` | Zeit für eine Antwort (lange Abfragen, Sicherungen) |
-| `PORT`, `MAX_REQUEST_MB` | `8080`, `256` | wie beim Server |
+| `GATEWAY_CONFIG` | `data/hdb-gateway.json` | Configuration as above |
+| `GATEWAY_CONNECT_SECONDS` | `5` | Timeout for connecting to a backend |
+| `GATEWAY_READ_SECONDS` | `300` | Timeout for a response (long queries, backups) |
+| `PORT`, `MAX_REQUEST_MB` | `8080`, `256` | As on the server |
 
-Ist ein Backend nicht erreichbar, antwortet das Gateway mit 502. Mandanten auf anderen Backends sind davon nicht
-betroffen. Das Gateway spricht nur HTTP; Unix-Socket und Replikation laufen weiter direkt zwischen den Servern.
+If a backend is unreachable, the gateway responds with 502. Tenants on other backends are unaffected. The gateway
+supports HTTP only; Unix sockets and replication continue directly between servers.
 
-## Mandanten
+## Tenants
 
-Jeder Mandant hat seine eigene Datenbank: Tabellen, Anweisungsprotokoll, Sicherungen, Zeitplan und Benutzer. Nichts davon
-wird geteilt, auch nicht eine offene Transaktion. Zwei Mandanten können dieselben Tabellen- und Benutzernamen haben.
+Each tenant has its own database: tables, statement log, backups, schedule and users. None of these are shared, nor is
+an open transaction. Two tenants can have the same table and user names.
 
-    data/hdb-tenants.json          Liste der Mandanten (TENANTS_FILE)
-    data/hdb-users.json            Benutzer aller Mandanten (USERS_FILE)
-    data/tenants/<mandant>/        Daten eines Mandanten (TENANTS_DIR)
-        hdb.log                    Anweisungsprotokoll
-        tables/file, tables/json   Tabellen mit Speicher FILE und JSON
-        backups/                   Sicherungen und schedule.json
+    data/hdb-tenants.json          List of tenants (TENANTS_FILE)
+    data/hdb-users.json            Users of all tenants (USERS_FILE)
+    data/tenants/<mandant>/        Tenant data (TENANTS_DIR)
+        hdb.log                    Statement log
+        tables/file, tables/json   Tables using FILE and JSON storage
+        backups/                   Backups and schedule.json
 
-Anmeldung mit Mandant: in den Formularen im Feld „Mandant“, per API im Feld `tenant`. Ohne Angabe gilt `default`,
-bestehende Skripte laufen also unverändert weiter.
+Log in with a tenant using the tenant field in forms or the `tenant` field in the API. If omitted, `default` is used,
+so existing scripts continue to work unchanged.
 
     curl -s localhost:8080/api/v1/auth/login -H 'Content-Type: application/json' \
       -d '{"tenant":"acme","user":"admin","password":"..."}'
 
-Mandanten verwalten nur Systemadministratoren, also Administratoren im Bereich `system`. Sie melden sich mit dem
-Mandanten `system` an, legen Mandanten mit ihrem ersten Administrator an, ändern Anzeigenamen und deaktivieren oder
-löschen Mandanten. Auf Daten der Mandanten haben sie keinen Zugriff: SQL, OData, Tabellen und Sicherungen antworten mit 403,
-und die Administrationsoberfläche zeigt ihnen nur Mandanten, Systembenutzer und ihr Konto. Alles andere verwalten die
-Administratoren eines Mandanten selbst, und nur in ihrem Mandanten.
+Only system administrators, i.e. administrators in the `system` scope, manage tenants. They log in with the `system`
+tenant, create tenants with their first administrator, change display names, and deactivate or delete tenants. They
+cannot access tenant data: SQL, OData, tables and backups return 403, and the administration interface shows them only
+tenants, system users and their account. Tenant administrators manage everything else themselves, only within their tenant.
 
     curl localhost:8080/api/v1/tenants -H "Authorization: Bearer $SYSTOKEN" -H 'Content-Type: application/json' \
       -d '{"name":"acme","label":"Acme Corp","adminName":"admin","adminPassword":"..."}'
@@ -351,22 +350,22 @@ Administratoren eines Mandanten selbst, und nur in ihrem Mandanten.
       -d '{"label":"Acme Corp","active":false}'
     curl -X DELETE localhost:8080/api/v1/tenants/acme -H "Authorization: Bearer $SYSTOKEN"
 
-- Mandantennamen: 1 bis 32 Kleinbuchstaben, Ziffern, `_` und `-`, beginnend mit Buchstabe oder Ziffer. Sie sind Teil der
-  Anmeldung und der Verzeichnisname, deshalb nicht änderbar. `system` ist reserviert.
-- Deaktivieren beendet sofort alle Sitzungen des Mandanten und verhindert neue Anmeldungen. Daten und Benutzer bleiben.
-- Löschen geht nur bei deaktivierten Mandanten und entfernt Benutzer, Daten und Sicherungen endgültig.
-- Liegen beim Anlegen noch Daten eines früheren Mandanten gleichen Namens auf der Platte, wird abgelehnt, statt sie zu übernehmen.
-- Die Anmeldung meldet einen unbekannten oder deaktivierten Mandanten genauso wie ein falsches Passwort.
-- Alle Mandanten werden beim Start geladen und liegen im Speicher, wie bisher die eine Datenbank.
+- Tenant names: 1 to 32 lowercase letters, digits, `_` and `-`, starting with a letter or digit. They form part of
+  the login and directory name and cannot be changed. `system` is reserved.
+- Deactivation immediately ends all tenant sessions and prevents new logins. Data and users remain.
+- Only deactivated tenants can be deleted; deletion permanently removes users, data and backups.
+- If data from a former tenant of the same name remains on disk, creation is rejected rather than adopting it.
+- Login reports an unknown or deactivated tenant in the same way as an incorrect password.
+- All tenants are loaded at startup and held in memory, as the single database was previously.
 
-Erster Start: Es entstehen der Mandant `default` mit `ADMIN_USER` (Standard `admin`, Passwort `ADMIN_PASSWORD`) und der
-Systemadministrator `SYSTEM_ADMIN_USER` (Standard `sysadmin`, Passwort `SYSTEM_ADMIN_PASSWORD`). Ohne Passwort wird eines
-erzeugt und einmalig ins Log geschrieben. Der Systemadministrator wird auch angelegt, wenn der Bereich `system` noch
-keine Benutzer hat, etwa beim ersten Start nach der Umstellung.
+First startup: the `default` tenant is created with `ADMIN_USER` (default `admin`, password `ADMIN_PASSWORD`) and the
+system administrator `SYSTEM_ADMIN_USER` (default `sysadmin`, password `SYSTEM_ADMIN_PASSWORD`). If no password is supplied,
+one is generated and logged once. The system administrator is also created if the `system` scope has no users yet,
+for example on the first startup after migration.
 
-Umstellung einer bestehenden Installation: Beim ersten Start ziehen `DATA_FILE`, `TABLES_DIR` und `BACKUP_DIR` nach
-`TENANTS_DIR/default` um (verschoben, nicht kopiert), und alle bisherigen Benutzer gehören zu `default`. Anmeldungen
-ohne Mandant funktionieren wie vorher. Das geschieht nur, solange `TENANTS_DIR/default` noch nicht existiert.
+Migrating an existing installation: on first startup, `DATA_FILE`, `TABLES_DIR` and `BACKUP_DIR` move to
+`TENANTS_DIR/default` (moved, not copied), and all existing users belong to `default`. Logins without a tenant work as
+before. This happens only while `TENANTS_DIR/default` does not yet exist.
 
 ## Benutzer und Rechte
 

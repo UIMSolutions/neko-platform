@@ -39,10 +39,10 @@ class WebhookOtpSender : IOtpSender {
         req.writeJsonBody(payload);
       }, (scope res) {
         if (res.statusCode >= 300)
-          logError("identity-authentication: OTP webhook answered %d", res.statusCode);
+          logError("authentication: OTP webhook answered %d", res.statusCode);
       }, settings);
     } catch (Exception e) {
-      logError("identity-authentication: OTP webhook failed: %s", e.msg);
+      logError("authentication: OTP webhook failed: %s", e.msg);
     }
   }
 }

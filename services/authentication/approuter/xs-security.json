@@ -1,5 +1,5 @@
 {
-  "xsappname": "uim-identity-authentication",
+  "xsappname": "neko-authentication",
   "tenant-mode": "dedicated",
   "description": "UIM Identity Authentication service",
   "scopes": [

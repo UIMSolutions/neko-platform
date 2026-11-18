@@ -41,7 +41,7 @@ class JsonFileSnapshotStorage : ISnapshotStorage {
       auto text = (() @trusted => readText(path))();
       return text.length == 0 ? Json.emptyArray : parseJsonString(text);
     } catch (Exception e) {
-      logError("identity-authentication: cannot read snapshot %s: %s", path, e.msg);
+      logError("authentication: cannot read snapshot %s: %s", path, e.msg);
       return Json.emptyArray;
     }
   }

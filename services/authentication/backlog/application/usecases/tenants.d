@@ -3,7 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file. 
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module identity-authentication.backlog.application.usecases.tenants;
+module authentication.backlog.application.usecases.tenants;
 // import neko.authentication.domain.entities.tenant;
 // import neko.authentication.domain.types;
 // import neko.authentication.domain.ports.repositories.tenant;

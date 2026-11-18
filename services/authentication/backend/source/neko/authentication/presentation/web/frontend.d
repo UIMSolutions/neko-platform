@@ -32,7 +32,7 @@ class FrontendController {
 
   /// Serve the app at "/" (index.html) — register AFTER all API routes, since
   /// this is a catch-all for GET requests. The UI5 manifest uses relative URIs
-  /// ("odata/v4/identity-authentication/"), so the same build works behind the approuter.
+  /// ("odata/v4/authentication/"), so the same build works behind the approuter.
   void registerRoutes(URLRouter router) {
     if (!available)
       return;

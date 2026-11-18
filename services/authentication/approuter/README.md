@@ -4,7 +4,7 @@ Single entry point on SAP BTP / Cloud Foundry: XSUAA login, CSRF protection and 
 
 | Route | Target | Protection |
 |---|---|---|
-| `/odata/v4/identity-authentication/*` | `ias-srv` (backend OData v4) | GET: `IdentityViewer`; writes: `IdentityAdmin` |
+| `/odata/v4/authentication/*` | `ias-srv` (backend OData v4) | GET: `IdentityViewer`; writes: `IdentityAdmin` |
 | `/api/v1/auth/*`, `/.well-known/openid-configuration` | `ias-srv` (login, token, introspection) | public — these endpoints authenticate end users and OAuth clients themselves |
 | `/api/v1/*`, `/rest/v1/*` | `ias-srv` (backend REST administration) | GET: `IdentityViewer`; writes: `IdentityAdmin` |
 | `/*` | `resources/` (copy of `../frontend`) | `IdentityViewer` or `IdentityAdmin` |

@@ -194,7 +194,7 @@ class IdentityODataController {
     } catch (PayloadException e) {
       writeError(res, 400, "InvalidPayload", e.msg);
     } catch (Exception e) {
-      logError("identity-authentication odata: %s", e.msg);
+      logError("authentication odata: %s", e.msg);
       writeError(res, 500, "InternalError", "Internal server error");
     }
   }
@@ -615,7 +615,7 @@ unittest {
   mixin(ShowTest!("IdentityODataController actions"));
 
   auto c = buildContainer(testConfig());
-  auto odata = new IdentityODataController(c.ports, "/odata/v4/identity-authentication", "default");
+  auto odata = new IdentityODataController(c.ports, "/odata/v4/authentication", "default");
   RequestIdentity who;
   who.tenantId = TenantId("default");
   who.userId = UserId("admin");

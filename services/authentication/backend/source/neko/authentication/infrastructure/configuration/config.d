@@ -24,7 +24,7 @@ enum defaultJwtSecret = "change-me-in-production-use-env-var";
 ///   2. config file  (IAS_CONFIG_FILE or config/default.json)
 ///   3. environment variables (IAS_*, PORT)
 ///   4. VCAP_SERVICES — credentials of a bound service named / tagged
-///      "identity-authentication-config"
+///      "authentication-config"
 struct IdentityConfig {
   string serviceName = "Identity Authentication Service";
   string host = "0.0.0.0";
@@ -35,13 +35,13 @@ struct IdentityConfig {
   string dataDir = "data";
   string defaultTenant = "default";
   string apiPath = "/api/v1";
-  string restPath = "/rest/v1/identity-authentication";
-  string odataPath = "/odata/v4/identity-authentication";
+  string restPath = "/rest/v1/authentication";
+  string odataPath = "/odata/v4/authentication";
   /// Serve the Fiori app from this directory at "/" (local development; "" = off).
   string frontendDir = "../frontend";
 
   // ── security ──────────────────────────────────────────────────────────
-  string issuer = "uim-identity-authentication";
+  string issuer = "neko-authentication";
   string jwtSecret = defaultJwtSecret;
   int sessionTimeoutMinutes = 480;
   int accessTokenMinutes = 60;
@@ -166,7 +166,7 @@ IdentityConfig loadConfig() {
     try {
       config.apply(parseJsonString((() @trusted => readText(file))()), file);
     } catch (Exception e) {
-      logWarn("identity-authentication: ignoring config file %s: %s", file, e.msg);
+      logWarn("authentication: ignoring config file %s: %s", file, e.msg);
     }
   }
 
@@ -202,18 +202,18 @@ IdentityConfig loadConfig() {
     if (env.length > 0)
       config.apply(env, "environment");
   } catch (Exception e) {
-    logWarn("identity-authentication: invalid environment configuration: %s", e.msg);
+    logWarn("authentication: invalid environment configuration: %s", e.msg);
   }
 
   // 4. VCAP_SERVICES
   auto vcap = environment.get("VCAP_SERVICES", "");
   if (vcap.length > 0) {
     try {
-      auto credentials = findServiceCredentials(parseJsonString(vcap), "identity-authentication-config");
+      auto credentials = findServiceCredentials(parseJsonString(vcap), "authentication-config");
       if (credentials.type == Json.Type.object)
         config.apply(credentials, "VCAP_SERVICES");
     } catch (Exception e) {
-      logWarn("identity-authentication: cannot parse VCAP_SERVICES: %s", e.msg);
+      logWarn("authentication: cannot parse VCAP_SERVICES: %s", e.msg);
     }
   }
 
@@ -265,9 +265,9 @@ unittest {
   assert(cfg.port == 9000 && !cfg.usesFileStorage);
   assert(cfg.cleanupTenants == ["a", "b"] && cfg.settings.maxFailedLogins == 3);
 
-  auto vcap = parseJsonString(`{"user-provided": [{"name": "identity-authentication-config",
+  auto vcap = parseJsonString(`{"user-provided": [{"name": "authentication-config",
     "credentials": {"jwtSecret": "0123456789abcdef0123"}}]}`);
-  cfg.apply(findServiceCredentials(vcap, "identity-authentication-config"), "vcap");
+  cfg.apply(findServiceCredentials(vcap, "authentication-config"), "vcap");
   assert(!cfg.isInsecure);
   assert(cfg.toJson["jwtSecret"].get!string == "<set>");
   assert(cfg.sources == ["defaults", "test", "vcap"]);

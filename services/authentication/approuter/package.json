@@ -1,5 +1,5 @@
 {
-  "name": "uim-identity-authentication-approuter",
+  "name": "neko-authentication-approuter",
   "version": "1.0.0",
   "description": "Approuter (XSUAA login, routing) for the UIM Identity Authentication service",
   "private": true,

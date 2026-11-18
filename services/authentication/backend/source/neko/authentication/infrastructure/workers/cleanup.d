@@ -36,9 +36,9 @@ class ExpiryCleanupWorker {
       try
         runOnce();
       catch (Exception e)
-        logError("identity-authentication: cleanup failed: %s", e.msg);
+        logError("authentication: cleanup failed: %s", e.msg);
     }, true);
-    logInfo("identity-authentication: expiry cleanup every %d min for %s", intervalMinutes, tenants);
+    logInfo("authentication: expiry cleanup every %d min for %s", intervalMinutes, tenants);
   }
 
   /// Purge once for all tenants. Returns the number of removed records.
@@ -49,7 +49,7 @@ class ExpiryCleanupWorker {
       auto k = tokens.purgeExpired(TenantId(t));
       auto removed = s.data["removed"].get!long + k.data["removed"].get!long;
       if (removed > 0)
-        logInfo("identity-authentication: cleanup %s: %s, %s", t, s.message, k.message);
+        logInfo("authentication: cleanup %s: %s, %s", t, s.message, k.message);
       total += removed;
     }
     return total;

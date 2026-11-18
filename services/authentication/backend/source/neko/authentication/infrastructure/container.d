@@ -104,7 +104,7 @@ class Container {
 
   protected void wireSecurity() {
     if (config.isInsecure)
-      logWarn("identity-authentication: the token signing secret is the built-in default — set IAS_JWT_SECRET (≥ 16 characters)");
+      logWarn("authentication: the token signing secret is the built-in default — set IAS_JWT_SECRET (≥ 16 characters)");
     passwords = new Pbkdf2PasswordService(cast(uint) max(config.passwordIterations, 1));
     secrets = new Sha256SecretService();
     tokenSigner = new JwtTokenService(config.jwtSecret);

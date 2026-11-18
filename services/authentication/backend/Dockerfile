@@ -1,10 +1,10 @@
 # Build context: the neko-services-platform repository root (the backend depends on
 # neko-services-platform:service via a path dependency):
-#   docker build -f identity-authentication/backend/Dockerfile -t neko-services-platform/identity-authentication .
+#   docker build -f authentication/backend/Dockerfile -t neko-services-platform/authentication .
 FROM dlang2/ldc-ubuntu:1.40.1 AS build
 WORKDIR /build
 COPY . .
-WORKDIR /build/identity-authentication/backend
+WORKDIR /build/authentication/backend
 RUN dub build --build=release --config=defaultRun --compiler=ldc2 \
  && dub build --build=release --config=cli --compiler=ldc2
 
@@ -15,8 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN useradd -r -s /bin/false appuser && mkdir -p /data && chown appuser:appuser /data
 WORKDIR /app
-COPY --from=build /build/identity-authentication/backend/build/neko-service-authentication /build/identity-authentication/backend/build/uim-ias-cli ./
-COPY --from=build /build/identity-authentication/backend/config ./config
+COPY --from=build /build/authentication/backend/build/neko-service-authentication /build/authentication/backend/build/uim-ias-cli ./
+COPY --from=build /build/authentication/backend/config ./config
 USER appuser
 
 EXPOSE 8125

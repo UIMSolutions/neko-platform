@@ -15,7 +15,7 @@ mixin(ShowModule!());
 
 struct AuthenticationSettings {
   /// Token issuer (iss) and TOTP issuer label.
-  string issuer = "uim-identity-authentication";
+  string issuer = "neko-authentication";
   /// SSO session lifetime.
   int sessionTimeoutMinutes = 480;
   /// Lock the account after this many consecutive failures (0 = never).

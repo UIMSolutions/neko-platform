@@ -1,5 +1,5 @@
 _schema-version: "3.3"
-ID: uim-identity-authentication
+ID: neko-authentication
 version: 1.0.0
 description: UIM Identity Authentication — D/vibe.d backend (REST, OAuth 2.0 / OIDC, OData v4), SAP Fiori 3 UI and approuter
 
@@ -41,7 +41,7 @@ modules:
       srv-url: ${default-url}
   requires:
   - name: ias-xsuaa
-  - name: identity-authentication-config
+  - name: authentication-config
 
 # ── Approuter (serves the Fiori app from resources/) ──────────────────────
 - name: ias-approuter
@@ -76,15 +76,15 @@ resources:
     service-plan: application
     path: approuter/xs-security.json
     config:
-      xsappname: uim-identity-authentication-${space}
+      xsappname: neko-authentication-${space}
 
 # Runtime settings read from VCAP_SERVICES (credentials of the service named /
-# tagged "identity-authentication-config"). The token signing secret MUST be
+# tagged "authentication-config"). The token signing secret MUST be
 # set here (≥ 16 characters) — the built-in default is for development only:
-#   cf update-user-provided-service identity-authentication-config -p '{"jwtSecret":"…"}'
-- name: identity-authentication-config
+#   cf update-user-provided-service authentication-config -p '{"jwtSecret":"…"}'
+- name: authentication-config
   type: org.cloudfoundry.user-provided-service
   parameters:
-    service-name: identity-authentication-config
+    service-name: authentication-config
     config:
       cleanupTenants: default

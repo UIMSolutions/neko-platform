@@ -16,7 +16,7 @@ dependency "uim-framework" version="~>26.11.1"
 buildRequirements "allowWarnings" "silenceDeprecations"
 buildOptions "ignoreDeprecations" "debugInfo"
 
-// ── HTTP server: REST (/api/v1, /rest/v1/identity-authentication) + OData v4 (/odata/v4/identity-authentication) ────
+// ── HTTP server: REST (/api/v1, /rest/v1/authentication) + OData v4 (/odata/v4/authentication) ────
 // dub build            (or --config=defaultRun)
 // ./build/neko-service-authentication
 configuration "defaultRun" {

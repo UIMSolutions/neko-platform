@@ -31,7 +31,7 @@ connectivity/
 │   ├── config/default.json     default configuration
 │   └── source/
 │       ├── app.d · cli.d · gui.d                  composition roots
-│       └── uim/platform/connectivity/
+│       └── neko/connectivity/
 │           ├── domain/          entities, types (ids, value objects), enumerations,
 │           │                    services (names, endpoints, auth flows, access control,
 │           │                    lifecycle, certificate validity), exceptions

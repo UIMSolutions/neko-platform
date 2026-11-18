@@ -31,7 +31,7 @@ ubyte[] secureRandomBytes(size_t n) @trusted {
   // Fallback for platforms without /dev/urandom — not a CSPRNG.
   import std.random : Random, unpredictableSeed, uniform;
 
-  logWarn("identity-authentication: /dev/urandom unavailable, falling back to a PRNG");
+  logWarn("authentication: /dev/urandom unavailable, falling back to a PRNG");
   auto rng = Random(unpredictableSeed);
   foreach (ref b; buffer)
     b = cast(ubyte) uniform(0, 256, rng);

@@ -1,6 +1,6 @@
 name "connectivity"
 description "SAP BTP style Connectivity service — D/vibe.d backend with REST, OData v4, CLI and GtkD GUI"
-homepage "https://github.com/UIMSolutions/uim/platform/connectivity"
+homepage "https://github.com/UIMSolutions/neko/connectivity"
 authors "Ozan Nurettin Süel" "UI Manufaktur (R.I.P)"
 copyright "Copyright © 2018-2026, Ozan Nurettin Süel"
 license "Apache-2.0"

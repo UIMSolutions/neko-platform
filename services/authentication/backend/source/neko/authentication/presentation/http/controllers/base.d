@@ -101,7 +101,7 @@ abstract class IdentityHttpController {
     catch (PayloadException e)
       fail(res, 400, e.msg);
     catch (Exception e) {
-      logError("identity-authentication http: %s", e.msg);
+      logError("authentication http: %s", e.msg);
       fail(res, 500, "Internal server error");
     }
   }

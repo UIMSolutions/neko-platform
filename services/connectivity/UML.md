@@ -1,6 +1,6 @@
 # UML — Connectivity Service
 
-Diagrams of the hexagonal backend (`backend/source/uim/platform/connectivity`), the
+Diagrams of the hexagonal backend (`backend/source/neko/connectivity`), the
 Fiori frontend and the BTP deployment. All diagrams are Mermaid.
 
 ## Class Diagram — Domain Entities

@@ -70,7 +70,7 @@ class TotpMfaService : IMfaService {
 
   void sendOtp(MfaType mfaType, string destination, string code) {
     if (sender is null) {
-      logWarn("identity-authentication: no OTP sender configured — %s code for %s not delivered",
+      logWarn("authentication: no OTP sender configured — %s code for %s not delivered",
         enumValue(mfaType), destination);
       return;
     }

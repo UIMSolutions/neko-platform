@@ -4,7 +4,7 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// HTTP server entry point (composition root): REST /api/v1, vibe.d REST
-/// interface /rest/v1/identity-authentication, OData v4 and the Fiori app.
+/// interface /rest/v1/authentication, OData v4 and the Fiori app.
 module app;
 
 import neko.authentication;
@@ -37,7 +37,7 @@ version (unittest) {
     new StatisticsController(ports.statistics, api, tenant, verifier).registerRoutes(router);
     new HealthController(config.serviceName).registerRoutes(router);
 
-    // ── vibe.d REST interface (/rest/v1/identity-authentication/users) ────
+    // ── vibe.d REST interface (/rest/v1/authentication/users) ────
     router.registerRestInterface(new UserRestService(ports.users), config.restPath.stripRight("/") ~ "/users");
 
     // ── OData v4 driving adapter (SAP Fiori) ──────────────────────────────

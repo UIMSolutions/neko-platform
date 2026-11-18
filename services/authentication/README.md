@@ -1,19 +1,19 @@
 # Identity Authentication Service
 
-A D / vibe.d 0.10 service in the style of **SAP Cloud Identity Services – Authentication (IAS)**:
+A D / vibe.d 0.10 service for **Identity Authentication**:
 form login with account lockout, risk-based multi-factor authentication, OAuth 2.0 / OIDC
 tokens, authorization policies, corporate identity providers, and administration of users,
 groups, applications, sessions and tokens.
 
 It has five driving adapters on the same hexagonal core:
 
-| Adapter | Entry point | Purpose |
-|---|---|---|
-| REST + OAuth / OIDC | `backend/source/app.d` → `/api/v1/…` | login, token, refresh, introspection, revocation, userinfo, administration |
-| vibe.d REST interface | `/rest/v1/identity-authentication/users` | typed `registerRestInterface` API |
-| **OData v4** | `/odata/v4/identity-authentication` | SAP Fiori 3 UI, `$metadata`, `$filter/$orderby/$select/$top/$skip/$count/$search`, actions |
-| **CLI** | `backend/source/cli.d` → `uim-ias-cli` | administration and end-to-end flow tests from the shell |
-| **GtkD GUI** | `backend/source/gui.d` → `uim-ias-gui` | desktop administration client (GTK 3) |
+| Adapter               | Entry point                                 | Purpose                                                                                        |
+| --------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| REST + OAuth / OIDC   | `backend/source/app.d` → `/api/v1/…`  | login, token, refresh, introspection, revocation, userinfo, administration                     |
+| vibe.d REST interface | `/rest/v1/authentication/users`  | typed `registerRestInterface` API                                                            |
+| **OData v4**    | `/odata/v4/authentication`       | SAP Fiori 3 UI, `$metadata`, `$filter/$orderby/$select/$top/$skip/$count/$search`, actions |
+| **CLI**         | `backend/source/cli.d` → `uim-ias-cli` | administration and end-to-end flow tests from the shell                                        |
+| **GtkD GUI**    | `backend/source/gui.d` → `uim-ias-gui` | desktop administration client (GTK 3)                                                          |
 
 Server, CLI and GUI share data through the snapshot storage (`backend/data/*.json`), so a user
 created in the CLI appears in the Fiori app and the GUI.
@@ -21,9 +21,9 @@ created in the CLI appears in the Fiori app and the GUI.
 ## Layout
 
 ```
-identity-authentication/
+authentication/
 ├── mta.yaml                      MTA: backend + approuter + XSUAA + config service
-├── backend/                      D / vibe.d (dub package "identity-authentication")
+├── backend/                      D / vibe.d (dub package "authentication")
 │   ├── config/default.json       defaults (overridden by IAS_* env vars, then VCAP_SERVICES)
 │   ├── Dockerfile, Containerfile
 │   └── source/
@@ -79,16 +79,16 @@ Exit codes: 0 ok, 1 failure, 2 usage error.
 
 ## Authentication flows
 
-| Endpoint | Description |
-|---|---|
-| `POST /api/v1/auth/login` | `{"email" or "userName", "password", "mfaCode"?}` → session. 401 bad credentials or MFA required, 403 denied by risk rule, 423 locked |
-| `POST /api/v1/auth/token` | `grant_type=session` (session → tokens) or `refresh_token`; JSON or form body; client auth in the body or via HTTP Basic |
-| `POST /api/v1/auth/refresh` | refresh with **rotation**; reusing a rotated refresh token revokes the whole session |
-| `POST /api/v1/auth/introspect` | RFC 7662 |
-| `POST /api/v1/auth/revoke` | RFC 7009 |
-| `GET /api/v1/auth/userinfo` | OIDC userinfo for a bearer access token |
-| `POST /api/v1/auth/logout` | revokes the session and all its tokens |
-| `GET /.well-known/openid-configuration` | discovery document |
+| Endpoint                                  | Description                                                                                                                              |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /api/v1/auth/login`               | `{"email" or "userName", "password", "mfaCode"?}` → session. 401 bad credentials or MFA required, 403 denied by risk rule, 423 locked |
+| `POST /api/v1/auth/token`               | `grant_type=session` (session → tokens) or `refresh_token`; JSON or form body; client auth in the body or via HTTP Basic            |
+| `POST /api/v1/auth/refresh`             | refresh with **rotation**; reusing a rotated refresh token revokes the whole session                                               |
+| `POST /api/v1/auth/introspect`          | RFC 7662                                                                                                                                 |
+| `POST /api/v1/auth/revoke`              | RFC 7009                                                                                                                                 |
+| `GET /api/v1/auth/userinfo`             | OIDC userinfo for a bearer access token                                                                                                  |
+| `POST /api/v1/auth/logout`              | revokes the session and all its tokens                                                                                                   |
+| `GET /.well-known/openid-configuration` | discovery document                                                                                                                       |
 
 Login pipeline: user lookup (unknown users cost the same time) → status check → password →
 risk rules (may deny or demand a second factor) → one-time code (SMS / e-mail codes are sent
@@ -102,16 +102,16 @@ application's allowed scopes, and every **authorization policy** assigned to the
 
 All under `/api/v1`. The tenant comes from the bearer token, `X-Tenant-Id`, or the default tenant.
 
-| Resource | Endpoints |
-|---|---|
-| users | CRUD, `/:id/status`, `/:id/password`, `/:id/reset-password`, `/:id/mfa` (POST / DELETE), `/:id/sessions` |
-| groups | CRUD, `/:id/members` (GET / POST), `/:id/members/:userId` (DELETE) |
-| applications | CRUD, `/:id/rotate-secret` |
-| policies | CRUD, `/evaluate` |
-| risk-rules | CRUD, `/assess` |
-| identity-providers | CRUD, `/resolve?email=&redirectUri=` |
-| sessions, tokens | list / get / DELETE (= revoke), `/purge` |
-| statistics | tenant figures |
+| Resource           | Endpoints                                                                                                          |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| users              | CRUD, `/:id/status`, `/:id/password`, `/:id/reset-password`, `/:id/mfa` (POST / DELETE), `/:id/sessions` |
+| groups             | CRUD, `/:id/members` (GET / POST), `/:id/members/:userId` (DELETE)                                             |
+| applications       | CRUD, `/:id/rotate-secret`                                                                                       |
+| policies           | CRUD, `/evaluate`                                                                                                |
+| risk-rules         | CRUD, `/assess`                                                                                                  |
+| identity-providers | CRUD, `/resolve?email=&redirectUri=`                                                                             |
+| sessions, tokens   | list / get / DELETE (= revoke), `/purge`                                                                         |
+| statistics         | tenant figures                                                                                                     |
 
 The old routes `POST /users/change-password` and `POST /groups/members` still work.
 
@@ -142,28 +142,28 @@ Password hashes, MFA seeds, client-secret hashes and token values are never part
 ## Configuration
 
 Precedence: `config/default.json` → environment variables → `VCAP_SERVICES` (service
-`identity-authentication-config`).
+`authentication-config`).
 
-| Variable | Default | Description |
-|---|---|---|
-| `IAS_HOST` / `IAS_PORT` (`PORT`) | `0.0.0.0` / `8125` | bind address |
-| `IAS_STORAGE` / `IAS_DATA_DIR` | `file` / `data` | `memory` or JSON snapshots |
-| `IAS_JWT_SECRET` | development default | token signing secret |
-| `IAS_ISSUER` | `uim-identity-authentication` | `iss` claim and TOTP issuer |
-| `IAS_SESSION_TIMEOUT` | `480` | session lifetime (minutes) |
-| `IAS_ACCESS_TOKEN_MINUTES` / `IAS_REFRESH_TOKEN_HOURS` | `60` / `24` | token lifetimes |
-| `IAS_MAX_FAILED_LOGINS` | `5` | lockout threshold (0 = off) |
-| `IAS_PASSWORD_ITERATIONS` | `60000` | PBKDF2 iterations for new hashes |
-| `IAS_OTP_WEBHOOK_URL` | — | POST target for SMS / e-mail codes (otherwise logged) |
-| `IAS_CLEANUP_INTERVAL` / `IAS_CLEANUP_TENANTS` | `30` / `default` | purge expired sessions and tokens |
-| `IAS_FRONTEND_DIR` | `../frontend` | serve the Fiori app locally (`""` = off) |
-| `IAS_CONFIG_FILE` | — | alternative config file |
+| Variable                                                   | Default                         | Description                                           |
+| ---------------------------------------------------------- | ------------------------------- | ----------------------------------------------------- |
+| `IAS_HOST` / `IAS_PORT` (`PORT`)                     | `0.0.0.0` / `8125`          | bind address                                          |
+| `IAS_STORAGE` / `IAS_DATA_DIR`                         | `file` / `data`             | `memory` or JSON snapshots                          |
+| `IAS_JWT_SECRET`                                         | development default             | token signing secret                                  |
+| `IAS_ISSUER`                                             | `neko-authentication` | `iss` claim and TOTP issuer                         |
+| `IAS_SESSION_TIMEOUT`                                    | `480`                         | session lifetime (minutes)                            |
+| `IAS_ACCESS_TOKEN_MINUTES` / `IAS_REFRESH_TOKEN_HOURS` | `60` / `24`                 | token lifetimes                                       |
+| `IAS_MAX_FAILED_LOGINS`                                  | `5`                           | lockout threshold (0 = off)                           |
+| `IAS_PASSWORD_ITERATIONS`                                | `60000`                       | PBKDF2 iterations for new hashes                      |
+| `IAS_OTP_WEBHOOK_URL`                                    | —                              | POST target for SMS / e-mail codes (otherwise logged) |
+| `IAS_CLEANUP_INTERVAL` / `IAS_CLEANUP_TENANTS`         | `30` / `default`            | purge expired sessions and tokens                     |
+| `IAS_FRONTEND_DIR`                                       | `../frontend`                 | serve the Fiori app locally (`""` = off)            |
+| `IAS_CONFIG_FILE`                                        | —                              | alternative config file                               |
 
 ## Deployment (SAP BTP, Cloud Foundry)
 
 ```bash
-cf create-user-provided-service identity-authentication-config -p '{"jwtSecret":"<random>"}'
-mbt build && cf deploy mta_archives/uim-identity-authentication_1.0.0.mtar
+cf create-user-provided-service authentication-config -p '{"jwtSecret":"<random>"}'
+mbt build && cf deploy mta_archives/neko-authentication_1.0.0.mtar
 ```
 
 The approuter protects administration with the `IdentityViewer` / `IdentityAdmin` scopes. It

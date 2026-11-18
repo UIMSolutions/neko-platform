@@ -1,5 +1,5 @@
 {
-  "name": "uim-identity-authentication-ui",
+  "name": "neko-authentication-ui",
   "version": "1.0.0",
   "description": "SAP Fiori 3 / UI5 frontend of the UIM Identity Authentication service",
   "private": true,

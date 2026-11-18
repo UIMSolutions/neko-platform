@@ -9,7 +9,7 @@
     "applicationVersion": { "version": "1.0.0" },
     "dataSources": {
       "mainService": {
-        "uri": "odata/v4/identity-authentication/",
+        "uri": "odata/v4/authentication/",
         "type": "OData",
         "settings": {
           "odataVersion": "4.0",

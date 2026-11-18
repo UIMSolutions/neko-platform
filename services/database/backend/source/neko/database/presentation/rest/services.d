@@ -416,13 +416,18 @@ string jsonLiteral(ColumnStats column, Json value) {
     }
 }
 
-private void writeRestError(HTTPServerResponse res, Exception e) @safe {
+/// Fehler als JSON mit passendem Status: 401, 403, 404, 409, 429, sonst 400.
+void writeRestError(HTTPServerResponse res, Exception e) @safe {
     if (cast(AuthenticationRequired) e)
         res.statusCode = HTTPStatus.unauthorized;
     else if (cast(AccessDenied) e)
         res.statusCode = HTTPStatus.forbidden;
-    else if (cast(BackupNotFound) e)
+    else if (cast(BackupNotFound) e || cast(NotFound) e)
         res.statusCode = HTTPStatus.notFound;
+    else if (cast(Conflict) e)
+        res.statusCode = HTTPStatus.conflict;
+    else if (cast(WorkloadLimitExceeded) e)
+        res.statusCode = HTTPStatus.tooManyRequests;
     else if (auto status = cast(HTTPStatusException) e)
         res.statusCode = status.status;
     else

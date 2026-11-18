@@ -8,3 +8,4 @@ public:
     import neko.database.application.services.replication;
     import neko.database.application.services.sql;
     import neko.database.application.services.tenants;
+    import neko.database.application.services.cloud;

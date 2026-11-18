@@ -30,7 +30,7 @@ private immutable Rule[] rules = [
     Rule(["authentication required", "token", "expired"],
         "Sessions expire or tokens are invalid.",
         "Sign in again; for applications use a service binding and renew the token before it expires."),
-    Rule(["unknown table", "table not found", "no such table", "existiert nicht", "unbekannte tabelle"],
+    Rule(["unknown table", "table not found", "no such table", "tabelle nicht gefunden", "existiert nicht", "unbekannte tabelle"],
         "Statements reference tables that do not exist in this instance (schema drift or a wrong tenant).",
         "Check the tenant the application binds to and deploy the missing tables, or install the data product that provides them."),
     Rule(["unknown column", "unbekannte spalte"],

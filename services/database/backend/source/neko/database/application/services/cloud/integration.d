@@ -60,13 +60,10 @@ final class BindingService : IBindingUseCase {
             auto at = s.bindings.countUntil!(x => x.name.toLower == name.toLower);
             if (at < 0)
                 throw new NotFound("No binding " ~ name);
-            try
-                access.deleteUser(actor, s.bindings[at].user);
-            catch (AccessDenied e)
-                throw e;
-            catch (Exception) {
-                // Benutzer schon gelöscht: die Bindung trotzdem lösen
-            }
+            auto user = s.bindings[at].user;
+            // Ist der Benutzer schon gelöscht, wird nur die Bindung gelöst
+            if (access.listUsers(actor).any!(u => u.name == user))
+                access.deleteUser(actor, user);
             s.bindings = s.bindings.filter!(x => x.name.toLower != name.toLower).array;
             repo.saveTenantState(actor.tenant, s);
         });

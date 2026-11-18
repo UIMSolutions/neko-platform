@@ -59,6 +59,13 @@ immutable string[] auditCategories = [
     "data", // INSERT, UPDATE, DELETE (nur Tabelle und Verb, keine Werte)
     "maintenance", // Checkpoint, Delta-Merge
     "logs", // Protokolleinstellungen
+    "instances", // Instanzen anlegen, skalieren, starten, stoppen, löschen (Bereich system)
+    "workloads", // Workload-Klassen und Zuordnungen
+    "monitoring", // Trace-Einstellungen
+    "views", // Calculation Views
+    "bindings", // Anwendungen binden und lösen
+    "dataproducts", // Datenprodukte installieren und entfernen
+    "assistant", // Aufträge an den Assistenten
 ];
 
 /// Kategorien des Audit-Protokolls, die sich nicht abwählen lassen.

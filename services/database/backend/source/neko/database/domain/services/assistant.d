@@ -46,7 +46,7 @@ struct AssistantIntent {
 }
 
 /// Themen der Anleitungen.
-immutable string[] guideTopics = ["backup", "restore", "instance", "scale", "workload", "view", "binding",
+immutable string[] guideTopics = ["restore", "backup", "instance", "scale", "workload", "view", "binding",
     "dataproduct", "monitoring", "advisor"];
 
 /// Zerlegt eine Nachricht in einzelne Aufträge.

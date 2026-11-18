@@ -210,7 +210,7 @@ GtkD is not @safe, so the interface modules remain @system and contain no logic 
 
 With `UNIX_SOCKET=/run/hdb/hdb.sock`, the server accepts requests over a Unix domain socket as well as HTTP
 (`presentation/unix`). Without this variable, there is no socket. Paths and JSON are the same as for the REST API:
-`/api/v1/health`, `/auth/login`, `/auth/logout`, `/sql`, `/tables`, `/stats`, `/checkpoint` und `/merge`.
+`/api/v1/health`, `/auth/login`, `/auth/logout`, `/sql`, `/tables`, `/stats`, `/checkpoint` and `/merge`.
 
     POST /api/v1/sql
     Authorization: Bearer <token>
@@ -307,7 +307,7 @@ The gateway has no data or users of its own. It accepts each request and forward
   `TRUSTED_PROXIES`, otherwise they check allowed networks against the gateway's address. The client's Host header
   is preserved so that the admin interface recognizes forms as same-origin.
 - **Moving a tenant:** Create the tenant on the new backend and configure it as a replication target of the old one
-  (see [Replication](#replikation)), let it catch up, stop replication (making the target writable) and change the
+  (see [Replication](#replication)), let it catch up, stop replication (making the target writable) and change the
   entry in `tenants`. Replication transfers only data: the tenant's users and roles must be created on the new backend.
   Existing sessions end when the tenant moves.
 
@@ -367,32 +367,31 @@ Migrating an existing installation: on first startup, `DATA_FILE`, `TABLES_DIR` 
 `TENANTS_DIR/default` (moved, not copied), and all existing users belong to `default`. Logins without a tenant work as
 before. This happens only while `TENANTS_DIR/default` does not yet exist.
 
-## Benutzer und Rechte
+## Users and permissions
 
-Außer `GET /health`, `GET /api/v1/health` und den Anmeldeseiten verlangt jede Route eine Anmeldung.
+Every route requires authentication except `GET /health`, `GET /api/v1/health` and the login pages.
 
-Rechte werden über Rollen vergeben (RBAC), auf drei Ebenen:
+Permissions are assigned through roles (RBAC) at three levels:
 
-| Ebene | Wer | Rechte |
+| Level | Who | Permissions |
 |---|---|---|
-| Server | Benutzer im Bereich `system` | `viewTenants`, `manageTenants`, `manageAccess` (Systembenutzer und -rollen), `viewLogs`, `manageLogs` |
-| Mandant | Rolle eines Benutzers, gilt für alle Tabellen | `select`, `insert`, `update`, `delete`, `drop`, `create`, `transact`, `maintain`, `manageBackups`, `replicate`, `manageReplication`, `manageAccess`, `viewLogs`, `manageLogs`, `execute`, `manageProcedures` |
-| Tabelle | Freigabe: Rolle für eine einzelne Tabelle | davon nur `select`, `insert`, `update`, `delete`, `drop` |
+| Server | Users in the `system` scope | `viewTenants`, `manageTenants`, `manageAccess` (system users and roles), `viewLogs`, `manageLogs` |
+| Tenant | A user's role, applies to all tables | `select`, `insert`, `update`, `delete`, `drop`, `create`, `transact`, `maintain`, `manageBackups`, `replicate`, `manageReplication`, `manageAccess`, `viewLogs`, `manageLogs`, `execute`, `manageProcedures` |
+| Table | Grant: a role for one table | Only `select`, `insert`, `update`, `delete`, `drop` from the above |
 
-Vordefinierte Rollen, unveränderlich; bestehende Benutzer behalten damit ihre Rechte:
+Predefined, immutable roles ensure existing users retain their permissions:
 
-| Bereich | Rolle | Rechte |
+| Scope | Role | Permissions |
 |---|---|---|
-| Mandant | `viewer` | `select`, `replicate`, `execute` |
-| Mandant | `editor` | zusätzlich `insert`, `update`, `delete`, `transact` |
-| Mandant | `admin` | alle Mandantenrechte |
+| Tenant | `viewer` | `select`, `replicate`, `execute` |
+| Tenant | `editor` | Also `insert`, `update`, `delete`, `transact` |
+| Tenant | `admin` | All tenant permissions |
 | `system` | `viewer` | `viewTenants` |
-| `system` | `admin` | alle Serverrechte |
+| `system` | `admin` | All server permissions |
 
-Eigene Rollen legt man mit `manageAccess` unter `/admin/roles` oder per API an, je Mandant bzw. im Bereich `system`.
-Ein Benutzer hat höchstens eine Rolle im Mandanten (oder keine) und beliebig viele Tabellenfreigaben unter
-`/admin/users/<name>/grants`. Rechte addieren sich, es gibt keine Verbote. Ein Benutzer ohne Rolle sieht nur die
-freigegebenen Tabellen.
+Custom roles can be created with `manageAccess` at `/admin/roles` or through the API, per tenant or in the `system`
+scope. A user has at most one tenant role (or none) and any number of table grants under
+`/admin/users/<name>/grants`. Permissions are additive; there are no denials. A user without a role sees only granted tables.
 
     curl -X PUT localhost:8080/api/v1/roles/clerk -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
       -d '{"description":"Reads and adds rows","permissions":["select","insert"]}'
@@ -400,128 +399,126 @@ freigegebenen Tabellen.
       -d '{"name":"tina","password":"...","role":""}'
     curl -X PUT localhost:8080/api/v1/users/tina/grants -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
       -d '{"grants":[{"table":"orders","role":"clerk"}]}'
-    curl localhost:8080/api/v1/auth/me -H "Authorization: Bearer $TOKEN"   # aufgelöste Rechte, auch je Tabelle
+    curl localhost:8080/api/v1/auth/me -H "Authorization: Bearer $TOKEN"   # resolved permissions, including per table
 
-- Tabellenrechte prüft der SQL-Kern an jeder Stelle, an der eine Anweisung eine Tabelle holt: bei Joins für jede
-  beteiligte Tabelle, vor jeder Änderung. Eine verborgene Tabelle verhält sich wie eine fehlende (403 bzw. 404 mit
-  derselben Meldung wie für unbekannte Tabellen), ihre Existenz wird nicht verraten.
-- Tabellenlisten, Statistik, OData-`$metadata` und die Oberflächen zeigen nur Tabellen, auf denen der Benutzer ein Recht
-  hat, und nur die Schaltflächen, die er nutzen darf.
-- `create` und `transact` gelten nur im ganzen Mandanten: `BEGIN` sperrt alle Tabellen.
-- Freigaben dürfen Tabellen nennen, die es noch nicht gibt, und gelten nach `DROP` für eine neu angelegte Tabelle
-  gleichen Namens wieder.
-- Rollen- und Freigabeänderungen wirken sofort, auch in laufenden Sitzungen. Eine Rolle lässt sich erst löschen,
-  wenn sie niemand mehr verwendet.
-- In jedem Bereich muss ein aktiver Benutzer `manageAccess` behalten; Änderungen, die das verhindern würden, werden
-  abgelehnt. Dieses Recht kommt nur aus der Rolle im Mandanten, nie aus einer Tabellenfreigabe.
-- Sicherungen (`manageBackups`) und der Replikationsstrom (`replicate`) enthalten alle Tabellen: diese Rechte deshalb
-  nur Rollen geben, die ohnehin alles lesen dürfen.
-- Eigene Rollen liegen in `ROLES_FILE` (Standard `data/hdb-roles.json`), Rollen und Freigaben der Benutzer in `USERS_FILE`.
+- The SQL core checks table permissions wherever a statement accesses a table: for each table in joins and before
+  every change. A hidden table behaves like a missing one (403 or 404 with the same message as an unknown table);
+  its existence is not disclosed.
+- Table lists, statistics, OData `$metadata` and interfaces show only tables on which the user has permission, and
+  only buttons the user may use.
+- `create` and `transact` apply only tenant-wide: `BEGIN` locks all tables.
+- Grants may name tables that do not yet exist, and apply again after `DROP` if a table of the same name is recreated.
+- Role and grant changes take effect immediately, even in active sessions. A role can be deleted only when nobody uses it.
+- Each scope must retain an active user with `manageAccess`; changes that would prevent this are rejected. This
+  permission comes only from the tenant role, never from a table grant.
+- Backups (`manageBackups`) and the replication stream (`replicate`) contain all tables: grant these permissions only
+  to roles that may already read everything.
+- Custom roles are stored in `ROLES_FILE` (default `data/hdb-roles.json`), and user roles and grants in `USERS_FILE`.
 
-Eine offene Transaktion kann nur ihr Besitzer verwenden.
+Only its owner can use an open transaction.
 
-### Befristete Rechte
+### Time-limited permissions
 
-Zusätzliche Rollen eines Benutzers (unter `/admin/users/<name>/grants` oder `PUT /api/v1/users/<name>/grants`) lassen
-sich befristen. Ohne Tabelle gilt eine solche Rolle im ganzen Mandanten, im Bereich `system` auf dem Server, etwa
-„admin bis Freitag 18 Uhr“:
+A user's additional roles (under `/admin/users/<name>/grants` or `PUT /api/v1/users/<name>/grants`) can be time-limited.
+Without a table, such a role applies throughout the tenant, or on the server in the `system` scope, for example
+"admin until Friday at 18:00":
 
     curl -X PUT localhost:8080/api/v1/users/vic/grants -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
       -d '{"grants":[{"table":"","role":"admin","until":"2026-11-13T17:00:00Z"},
                      {"table":"orders","role":"editor","from":"2026-11-10T08:00","until":"2026-11-10T18:00"}]}'
 
-- `from` (einschließlich) und `until` (ausschließlich) sind optional und UTC; ohne Zeitzone gilt UTC. Gespeichert wird
-  kanonisch (`2026-11-10T08:00:00Z`).
-- Außerhalb des Zeitraums hat eine Freigabe keine Wirkung. Die Rechte werden bei jeder Anfrage neu aufgelöst: eine
-  Freigabe beginnt und endet auf die Sekunde, auch in bereits offenen Sitzungen.
-- Antworten nennen den Zustand (`active`, `scheduled`, `expired`). Abgelaufene Freigaben bleiben zur Nachvollziehbarkeit
-  stehen, bis man sie entfernt („Remove expired grants“); neu anlegen lassen sich abgelaufene nicht.
-- Befristete Rollen zählen nicht für die Regel, dass ein aktiver Benutzer `manageAccess` behalten muss: dafür zählt nur
-  die dauerhafte Rolle.
+- `from` (inclusive) and `until` (exclusive) are optional and in UTC; a missing time zone means UTC. Values are stored
+  in canonical form (`2026-11-10T08:00:00Z`).
+- Outside the interval, a grant has no effect. Permissions are resolved on every request: a grant starts and ends
+  to the second, even in existing sessions.
+- Responses report the state (`active`, `scheduled`, `expired`). Expired grants remain for traceability until removed
+  ("Remove expired grants"); new expired grants cannot be created.
+- Time-limited roles do not count toward the rule requiring an active user to retain `manageAccess`: only the permanent
+  role counts.
 
-### Erlaubte Netze
+### Allowed networks
 
-Administratoren eines Mandanten (`manageAccess`) legen unter `/admin/network` oder per API fest, von welchen
-IP-Adressen und Netzen (IPv4/IPv6, CIDR) dessen Benutzer arbeiten dürfen. Eine leere Liste erlaubt alles.
+Tenant administrators (`manageAccess`) configure the IP addresses and networks (IPv4/IPv6, CIDR) from which their
+users may work under `/admin/network` or through the API. An empty list allows all addresses.
 
-    curl localhost:8080/api/v1/network -H "Authorization: Bearer $TOKEN"     # Liste und eigene Adresse
+    curl localhost:8080/api/v1/network -H "Authorization: Bearer $TOKEN"     # list and own address
     curl -X PUT localhost:8080/api/v1/network -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
       -d '{"networks":["192.168.10.0/24","2001:db8::/32"]}'
 
-- Geprüft wird bei der Anmeldung (nach dem Passwort; außerhalb: 403 mit Meldung) und bei jeder Anfrage. Ein Token, das von
-  einer anderen Adresse kommt, gilt dort nicht; die Sitzung bleibt für erlaubte Adressen bestehen.
-- Eine Liste, die die eigene Adresse ausschließt, wird abgelehnt: so sperrt sich niemand selbst aus. Haben sich die
-  Administratoren eines Mandanten trotzdem ausgesperrt, setzen Systemadministratoren (`manageTenants`) die Liste auf der
-  Mandantenseite oder per `PUT /api/v1/tenants/<name>/networks` zurück.
-- Der Bereich `system` wird nicht eingeschränkt.
-- Clients am Unix-Socket gelten als `127.0.0.1`. Replikationsziele brauchen ihre Adresse in der Liste der Quelle.
-- Hinter einem Reverse-Proxy: `TRUSTED_PROXIES` (Adressen oder Netze, durch Komma getrennt) nennen. Nur von diesen
-  Proxys gilt `X-Forwarded-For`, und zwar der letzte Eintrag, der kein vertrauter Proxy ist. Ohne die Variable zählt
-  die Adresse der Verbindung; dann sieht der Server bei einem Proxy nur dessen Adresse.
-- Die Listen stehen in `TENANTS_FILE` (Feld `networks`).
+- Checks run at login (after the password; disallowed addresses receive 403 with a message) and on every request. A token
+  from another address is invalid there; the session remains valid for allowed addresses.
+- A list excluding the caller's own address is rejected to prevent self-lockout. If tenant administrators are still
+  locked out, system administrators (`manageTenants`) can reset the list on the tenant page or through
+  `PUT /api/v1/tenants/<name>/networks`.
+- The `system` scope is not restricted.
+- Unix socket clients are treated as `127.0.0.1`. Replication targets need their address on the source's list.
+- Behind a reverse proxy, specify `TRUSTED_PROXIES` (comma-separated addresses or networks). `X-Forwarded-For` is
+  trusted only from these proxies; the last entry that is not a trusted proxy is used. Without the variable, the
+  connection address is used, so behind a proxy the server sees only the proxy's address.
+- Lists are stored in `TENANTS_FILE` (the `networks` field).
 
-Erster Start: siehe Mandanten. Erzeugte Passwörter bitte unter `/admin/account` ändern; danach werden die Variablen
-ignoriert. Administrator-Passwort eines Mandanten verloren: ein anderer Administrator des Mandanten setzt es zurück.
-Gibt es keinen mehr, lässt sich der Mandant nur noch über `USERS_FILE` reparieren.
+First startup: see Tenants. Change generated passwords under `/admin/account`; the variables are ignored afterwards.
+If a tenant administrator's password is lost, another tenant administrator can reset it. If none remains, the tenant
+can only be repaired through `USERS_FILE`.
 
     TOKEN=$(curl -s localhost:8080/api/v1/auth/login -H 'Content-Type: application/json' \
       -d '{"user":"admin","password":"..."}' | jq -r .token)
     curl localhost:8080/sql -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
       -d '{"statement":"SELECT * FROM orders"}'
 
-- Anmeldung: `/admin` nutzt ein Cookie (HttpOnly, SameSite=Strict), alle REST-Routen nur Bearer-Tokens. Tokens gelten
-  12 Stunden, liegen nur als Hash im Speicher und enden bei Neustart, Passwortwechsel, Deaktivieren oder Löschen.
-- Passwörter: mindestens 12 Zeichen, PBKDF2-HMAC-SHA256 mit 600 000 Runden. Nach 5 Fehlversuchen ist der Name 1 Minute
-  gesperrt, auch wenn er nicht existiert. Dadurch kann ein Angreifer die Anmeldung eines Namens zeitweise blockieren.
-- Benutzer aller Mandanten liegen in `USERS_FILE` (Standard `data/hdb-users.json`, Rechte 0600), nicht im Anweisungsprotokoll.
-  Eine beschädigte Datei bricht den Start ab. Sicherungen müssen die Datei einschließen.
-- Das Log enthält weiterhin alle Daten im Klartext; die Rechte gelten nur für den Zugriff über HTTP.
-- Tokens, Cookies und Passwörter gehen im Klartext über HTTP: im Netz nur hinter TLS betreiben. Das Cookie erhält
-  `Secure`, wenn der Proxy `X-Forwarded-Proto: https` setzt.
+- Authentication: `/admin` uses a cookie (HttpOnly, SameSite=Strict); all REST routes use bearer tokens only. Tokens
+  last 12 hours, are stored only as hashes in memory, and expire on restart, password change, deactivation or deletion.
+- Passwords: at least 12 characters, PBKDF2-HMAC-SHA256 with 600,000 rounds. After 5 failed attempts the name is locked
+  for 1 minute, even if it does not exist. An attacker can therefore temporarily block login for a name.
+- Users of all tenants are stored in `USERS_FILE` (default `data/hdb-users.json`, permissions 0600), not in the statement
+  log. A damaged file aborts startup. Backups must include this file.
+- The log still contains all data in plaintext; permissions apply only to access over HTTP.
+- Tokens, cookies and passwords travel in plaintext over HTTP: use TLS on networks. The cookie gets `Secure` when the
+  proxy sets `X-Forwarded-Proto: https`.
 
-Durchgesetzt wird an einer Stelle: `TenantDatabases` wählt die Datenbank des angemeldeten Mandanten, und dort umschließt
-`SecuredSqlUseCase` den Kern. Alle eingehenden Adapter sehen nur `TenantDatabases`.
-`SecurityGate` setzt je Anfrage die Identität und lässt nur die öffentlichen Pfade ohne Anmeldung durch.
+Enforcement is centralized: `TenantDatabases` selects the logged-in tenant's database, where `SecuredSqlUseCase` wraps
+the core. All inbound adapters see only `TenantDatabases`.
+`SecurityGate` sets the identity for each request and allows only public paths without authentication.
 
-## Tabellenspeicher
+## Table storage
 
     CREATE TABLE klein (id INTEGER, name VARCHAR) USING JSON
 
-Beim Anlegen wählt man im Admin-Formular, per `USING` oder im Feld `storage` von `POST /api/v1/tables`, wo eine Tabelle
-liegt. Ohne Angabe gilt `MEMORY`. Abfragen laufen immer im Hauptspeicher, der Unterschied betrifft nur die Dauerhaftigkeit.
-Der Speicher lässt sich später nicht ändern; dafür Tabelle neu anlegen und Daten kopieren.
+When creating a table, choose its storage in the admin form, using `USING`, or in the `storage` field of
+`POST /api/v1/tables`. The default is `MEMORY`. Queries always run in memory; the difference concerns durability only.
+Storage cannot be changed later; instead, recreate the table and copy the data.
 
-| Speicher | Repository | Dauerhaft durch | Schreiben kostet |
+| Storage | Repository | Persisted by | Write cost |
 |---|---|---|---|
-| `MEMORY` | `MemoryTableRepository` | Anweisungsprotokoll (siehe Persistenz) | eine Zeile im Log |
-| `FILE` | `FileTableRepository` | `tables/file/<name>.tbl` (Text, tabulatorgetrennt) | ganze Datei neu |
-| `JSON` | `JsonTableRepository` | `tables/json/<name>.json` | ganze Datei neu |
-| `BINARY` | `BinaryTableRepository` | `tables/binary/<name>.bin` (kompakt, mit SHA-256) | ganze Datei neu |
-| `BSON` | `BsonTableRepository` | `tables/bson/<name>.bson` (ein BSON-Dokument) | ganze Datei neu |
+| `MEMORY` | `MemoryTableRepository` | Statement log (see Persistence) | One log line |
+| `FILE` | `FileTableRepository` | `tables/file/<name>.tbl` (tab-separated text) | Entire file rewritten |
+| `JSON` | `JsonTableRepository` | `tables/json/<name>.json` | Entire file rewritten |
+| `BINARY` | `BinaryTableRepository` | `tables/binary/<name>.bin` (compact, with SHA-256) | Entire file rewritten |
+| `BSON` | `BsonTableRepository` | `tables/bson/<name>.bson` (one BSON document) | Entire file rewritten |
 
-Die Pfade liegen im Verzeichnis des Mandanten (`TENANTS_DIR/<mandant>`, siehe Mandanten). `RoutingTableRepository` verteilt die Tabellen, Namen sind über alle Speicher
-eindeutig. `GET /stats` und `GET /api/v1/stats` zeigen `storage`.
+Paths are inside the tenant directory (`TENANTS_DIR/<mandant>`, see Tenants). `RoutingTableRepository` distributes
+tables; names are unique across all storage types. `GET /stats` and `GET /api/v1/stats` show `storage`.
 
-- `FILE`-, `JSON`-, `BINARY`- und `BSON`-Tabellen stehen nie im Anweisungsprotokoll: jede Tabelle hat genau eine dauerhafte Quelle.
-- `BINARY`: little-endian, Zahlen bitgenau (int64, IEEE-754 double), Text als UTF-8 mit Längenangabe, exakte
-  Dezimalzahlen als Text. Am Ende steht eine SHA-256-Prüfsumme; eine beschädigte Datei bricht den Start ab.
-  Aufbau im Kommentar von `BinaryTableRepository`.
-- `BSON`: `{format: "hdb-table", version: 1, name, columns: [{name, type}], rows: [[...], ...]}`. Ganzzahlen sind int64,
-  `DOUBLE`/`REAL` double, `BOOLEAN` bool, alles andere string (auch `DECIMAL`, damit keine Stelle verloren geht).
-  Lesbar etwa mit `bsondump tables/bson/<name>.bson`. Gelesen wird streng: unbekannte BSON-Typen, falsche Längen oder
-  Werte, die nicht zum Spaltentyp passen, brechen den Start ab. BSON erlaubt höchstens 2 GB je Datei, MongoDB nimmt
-  nur Dokumente bis 16 MB an.
-- Geschrieben wird am Commit-Punkt, also nach jeder Anweisung oder beim `COMMIT`; `ROLLBACK` erreicht die Datei nie.
-  Dateien werden per temporärer Datei, `fsync` und `rename` ersetzt, es liegt also der alte oder der neue Stand vor.
-- Bei jeder Änderung wird die ganze Datei neu geschrieben. Für große oder oft geänderte Tabellen ist `MEMORY` die bessere Wahl.
-- Eine Transaktion über mehrere Dateien oder über Datei und Log ist bei einem Absturz mitten im `COMMIT` nicht atomar:
-  Dateien werden nacheinander geschrieben, das Log zuletzt.
-- Eine beschädigte Datei, oder derselbe Tabellenname in zwei Speichern, bricht den Start ab.
-- Die Dateien sind Klartext. Sicherungen des Servers müssen `TENANTS_DIR` einschließen.
+- `FILE`, `JSON`, `BINARY` and `BSON` tables never appear in the statement log: each table has exactly one durable source.
+- `BINARY`: little-endian, bit-exact numbers (int64, IEEE-754 double), UTF-8 text with length, exact decimals as text.
+  A SHA-256 checksum appears at the end; a damaged file aborts startup. The layout is documented in a comment in
+  `BinaryTableRepository`.
+- `BSON`: `{format: "hdb-table", version: 1, name, columns: [{name, type}], rows: [[...], ...]}`. Integers are int64,
+  `DOUBLE`/`REAL` are double, `BOOLEAN` is bool, everything else is string (including `DECIMAL`, to avoid losing digits).
+  Readable with, for example, `bsondump tables/bson/<name>.bson`. Reading is strict: unknown BSON types, incorrect
+  lengths or values incompatible with the column type abort startup. BSON allows at most 2 GB per file; MongoDB accepts
+  documents up to 16 MB only.
+- Writes happen at the commit point, after each statement or at `COMMIT`; `ROLLBACK` never reaches the file.
+  Files are replaced using a temporary file, `fsync` and `rename`, leaving either the old or the new state.
+- Every change rewrites the entire file. `MEMORY` is a better choice for large or frequently changed tables.
+- A transaction spanning multiple files or a file and the log is not atomic if a crash occurs during `COMMIT`:
+  files are written sequentially, with the log last.
+- A damaged file or the same table name in two storage types aborts startup.
+- Files are plaintext. Server backups must include `TENANTS_DIR`.
 
-## Sichern und Wiederherstellen
+## Backup and restore
 
-Nur für die Rolle `admin`, in der Administrationsoberfläche (`/admin/backups`), im Fiori-Frontend und per REST:
+Only for the `admin` role, in the administration interface (`/admin/backups`), the Fiori frontend and through REST:
 
     curl -X POST localhost:8080/api/v1/backups -H "Authorization: Bearer $TOKEN" \
       -H 'Content-Type: application/json' -d '{"label": "vor dem Update"}'
@@ -531,238 +528,231 @@ Nur für die Rolle `admin`, in der Administrationsoberfläche (`/admin/backups`)
       -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/octet-stream'
     curl -X POST localhost:8080/api/v1/backups/<name>/restore -H "Authorization: Bearer $TOKEN"
 
-- Sicherungen gehören zum Mandanten: Administratoren sehen und erzeugen nur Sicherungen ihres Mandanten, eine Wiederherstellung
-  ersetzt nur dessen Tabellen, und jeder Mandant hat seinen eigenen Zeitplan.
-- Eine Sicherung ist eine Datei (`*.hdbbak`, Rechte 0600) in `TENANTS_DIR/<mandant>/backups`. Sie enthält alle Tabellen
-  aller Speicher mit Schema, Speicherart und exakten Werten und endet mit einer SHA-256-Prüfsumme. Sie ist nicht verschlüsselt.
-- Sichern braucht einen ruhenden Stand: bei einer offenen Transaktion wird abgelehnt. Die Datenbank bleibt sonst benutzbar,
-  ist aber während des Kopierens gesperrt. Eine Sicherung liegt vollständig im Speicher, auch beim Hoch- und Herunterladen.
-- Wiederherstellen ersetzt alle Tabellen. Die Datei wird vorher vollständig geprüft, dann entsteht automatisch die
-  Sicherheitskopie `before-restore`, mit der sich auch ein Erfolg rückgängig machen lässt. Schlägt das Ersetzen fehl, wird der alte
-  Stand zurückgespielt. Bei einem Absturz mitten im Ersetzen kann ein Mischzustand bleiben: dann die Sicherheitskopie
-  wiederherstellen. Sicherheitskopien werden nicht automatisch gelöscht.
-- Benutzer gehören nicht zur Sicherung: eine Wiederherstellung sperrt niemanden aus und bringt keine alten Passwörter zurück.
-  `USERS_FILE` muss getrennt gesichert werden.
-- Hochgeladene Dateien gelten als nicht vertrauenswürdig. Die Prüfsumme erkennt Beschädigung, nicht Fälschung; Namen, Typen und
-  Werte werden deshalb immer geprüft. Hochladen stellt noch nichts wieder her.
-- `MAX_REQUEST_MB` (Standard 256) begrenzt Anfragen und damit die Größe beim Hochladen. Ohne Anmeldung gelten höchstens 64 KB.
-- Sicherungen liegen auf demselben Datenträger wie die Daten: für den Schutz vor dessen Ausfall müssen sie zusätzlich an
-  einen anderen Ort kopiert werden.
+- Backups belong to tenants: administrators see and create only their tenant's backups, restore replaces only its tables,
+  and each tenant has its own schedule.
+- A backup is a file (`*.hdbbak`, permissions 0600) in `TENANTS_DIR/<mandant>/backups`. It contains all tables from all
+  storage types with schema, storage type and exact values, and ends with a SHA-256 checksum. It is not encrypted.
+- Backup requires a quiescent state: it is rejected if a transaction is open. The database otherwise remains usable,
+  but is locked during copying. A backup is held entirely in memory, including during upload and download.
+- Restore replaces all tables. The file is fully validated first, then a `before-restore` safety backup is created
+  automatically, allowing even a successful restore to be undone. If replacement fails, the old state is restored.
+  A crash during replacement can leave a mixed state; restore the safety backup in that case. Safety backups are not
+  automatically deleted.
+- Users are not included in backups: restoring does not lock anyone out or bring back old passwords.
+  `USERS_FILE` must be backed up separately.
+- Uploaded files are untrusted. The checksum detects corruption, not forgery, so names, types and values are always
+  validated. Uploading does not restore anything.
+- `MAX_REQUEST_MB` (default 256) limits requests and thus upload size. Unauthenticated requests are limited to 64 KB.
+- Backups are on the same disk as the data: copy them elsewhere as well to protect against disk failure.
 
-Zeitplan und Aufbewahrung sind standardmäßig aktiv: alle 24 Stunden eine Sicherung, 7 geplante und 5 Sicherheitskopien bleiben.
-Einstellbar in beiden Oberflächen und per `GET|PUT /api/v1/backups/schedule`, gespeichert in `backups/schedule.json` des Mandanten.
+Scheduling and retention are enabled by default: one backup every 24 hours, retaining 7 scheduled and 5 safety backups.
+They can be configured in both interfaces and through `GET|PUT /api/v1/backups/schedule`, and are stored in the tenant's
+`backups/schedule.json`.
 
     curl -X PUT localhost:8080/api/v1/backups/schedule -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
       -d '{"enabled": true, "intervalHours": 6, "keepScheduled": 28, "keepSafety": 5}'
 
-- Die erste Sicherung entsteht kurz nach dem Start, sobald es Tabellen gibt. Ein Neustart setzt die Frist nicht zurück.
-  `BACKUP_TICK_SECONDS` (Standard 60) legt fest, wie oft auf Fälligkeit geprüft wird.
-- Die Aufbewahrung löscht nur die Arten `scheduled` und `safety`, die ältesten zuerst und erst nach einer erfolgreichen neuen
-  Sicherung. Eigene und hochgeladene Sicherungen bleiben immer. Die Labels `scheduled` und `before-restore` sind deshalb reserviert.
-  Weniger aufzubewahren wirkt sofort.
-- Scheitert eine geplante Sicherung, etwa wegen einer offenen Transaktion, erscheint das in den Oberflächen und im Log; nach
-  5 Minuten folgt der nächste Versuch.
-- Die Aufbewahrung zählt, sie prüft keinen Inhalt: ein unbemerkt falscher Datenstand verdrängt nach `keepScheduled` Läufen alle
-  älteren geplanten Stände. Wichtige Stände deshalb als eigene Sicherung anlegen.
+- The first backup is created shortly after startup as soon as tables exist. Restarting does not reset the deadline.
+  `BACKUP_TICK_SECONDS` (default 60) controls how often the server checks whether a backup is due.
+- Retention deletes only `scheduled` and `safety` backups, oldest first and only after a successful new backup. Manual
+  and uploaded backups always remain. The labels `scheduled` and `before-restore` are therefore reserved. Reducing
+  retention takes effect immediately.
+- If a scheduled backup fails, for example because a transaction is open, the interfaces and log report it; the next
+  attempt follows after 5 minutes.
+- Retention counts backups without inspecting their contents: an unnoticed incorrect state displaces all older scheduled
+  states after `keepScheduled` runs. Create manual backups for important states.
 
-## Replikation
+## Replication
 
-Ein Mandant lässt sich auf einen anderen hdb-Server spiegeln: eine Quelle, beliebig viele Ziele, Änderungen fließen nur
-von der Quelle zum Ziel. Das Ziel holt zuerst einen vollständigen Stand und danach jede bestätigte Änderung, für alle
-Speicherarten (`MEMORY`, `FILE`, `JSON`). Ein Ziel kann selbst Quelle sein (A -> B -> C).
+A tenant can be mirrored to another hdb server: one source, any number of targets, with changes flowing only from source
+to target. The target first fetches a full snapshot and then every committed change, for all storage types (`MEMORY`,
+`FILE`, `JSON`). A target can itself be a source (A -> B -> C).
 
-Einrichten auf dem Ziel, als Administrator des Ziel-Mandanten, unter `/admin/replication` oder per API. Auf der Quelle
-genügt ein Benutzer mit der Rolle `viewer`:
+Configure on the target, as an administrator of the target tenant, under `/admin/replication` or through the API. On
+the source, a user with the `viewer` role is sufficient:
 
     curl -X PUT localhost:8081/api/v1/replication/source -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
       -d '{"url":"https://primary:8080","tenant":"default","user":"replica","password":"...","intervalSeconds":2}'
-    curl localhost:8081/api/v1/replication -H "Authorization: Bearer $TOKEN"              # Zustand
-    curl -X POST localhost:8081/api/v1/replication/resync -H "Authorization: Bearer $TOKEN"  # vollständig neu holen
-    curl -X DELETE localhost:8081/api/v1/replication/source -H "Authorization: Bearer $TOKEN"  # beenden
+    curl localhost:8081/api/v1/replication -H "Authorization: Bearer $TOKEN"              # status
+    curl -X POST localhost:8081/api/v1/replication/resync -H "Authorization: Bearer $TOKEN"  # fetch a full snapshot again
+    curl -X DELETE localhost:8081/api/v1/replication/source -H "Authorization: Bearer $TOKEN"  # stop
 
-- Der erste Lauf ersetzt alle Tabellen des Ziel-Mandanten. Solange die Replikation läuft, nimmt das Ziel keine
-  Schreibzugriffe an (403), auch kein `BEGIN` und keine Wiederherstellung; Lesen, Sicherungen und Statistik gehen.
-  Nach dem Beenden behält das Ziel seinen Stand und ist wieder beschreibbar, etwa um es nach einem Ausfall der Quelle
-  zu übernehmen.
-- Die Quelle liefert `GET /api/v1/replication/snapshot` (Stand im Sicherungsformat, Position in `X-Hdb-Epoch` und
-  `X-Hdb-Sequence`) und `GET /api/v1/replication/changes?epoch=&since=&max=`. Jede Änderung ist eine einzelne Anweisung
-  oder eine ganze Transaktion; das Ziel spielt sie als Einheit ein. Zurückgerollte Transaktionen erscheinen nie.
-- Der Änderungsstrom liegt nur im Speicher. Nach einem Neustart oder einer Wiederherstellung der Quelle beginnt eine neue
-  Epoche, nach einem Neustart des Ziels ebenso: dann holt das Ziel einen vollständigen Stand. Das gilt auch, wenn es weiter
-  zurückliegt, als die Quelle Änderungen aufbewahrt (`REPLICATION_RETAIN`, Standard 10000 je Mandant), oder wenn sich eine
-  Änderung nicht einspielen lässt.
-- Ausfälle der Quelle meldet das Ziel einmal im Log und in `lastError`, danach versucht es es im eingestellten Abstand
-  (mindestens 5 Sekunden) weiter und holt auf. Abgelaufene Sitzungen erneuert es selbst.
-- Das Passwort für die Quelle liegt im Klartext in `TENANTS_DIR/<mandant>/replication.json` (Rechte 0600), damit sich
-  das Ziel neu anmelden kann. Die API gibt es nie aus; ein leeres Passwort beim Ändern behält es, aber nur für dieselbe
-  Quelle und denselben Benutzer.
-- Die Quelle wird mit den Rechten des Servers abgefragt. `REPLICATION_ALLOWED_HOSTS` (durch Komma getrennt) begrenzt
-  die erlaubten Hosts; ohne die Variable dürfen Mandanten-Administratoren jede http(s)-Adresse eintragen.
-- Zwischen Servern im Netz nur über TLS betreiben: Zugangsdaten und Daten gehen sonst im Klartext.
-- Benutzer werden nicht repliziert, wie bei Sicherungen.
+- The first run replaces all tables of the target tenant. While replication runs, the target rejects writes (403),
+  including `BEGIN` and restore; reads, backups and statistics remain available. Once stopped, the target retains its
+  state and becomes writable again, for example to take over after a source failure.
+- The source provides `GET /api/v1/replication/snapshot` (state in backup format, position in `X-Hdb-Epoch` and
+  `X-Hdb-Sequence`) and `GET /api/v1/replication/changes?epoch=&since=&max=`. Each change is a single statement
+  or a whole transaction; the target applies it as a unit. Rolled-back transactions never appear.
+- The change stream exists only in memory. Restarting or restoring the source starts a new epoch, as does restarting
+  the target: the target then fetches a full snapshot. This also happens if it falls further behind than the source's
+  retained changes (`REPLICATION_RETAIN`, default 10000 per tenant), or if a change cannot be applied.
+- The target reports source failures once in the log and `lastError`, then retries at the configured interval
+  (at least 5 seconds) and catches up. It renews expired sessions itself.
+- The source password is stored in plaintext in `TENANTS_DIR/<mandant>/replication.json` (permissions 0600) so the target
+  can log in again. The API never returns it; an empty password when editing retains it, but only for the same source
+  and user.
+- The source is queried with the server's permissions. `REPLICATION_ALLOWED_HOSTS` (comma-separated) restricts allowed
+  hosts; without it, tenant administrators may enter any http(s) address.
+- Use TLS between servers on a network: otherwise credentials and data travel in plaintext.
+- Users are not replicated, as with backups.
 
-## Protokolle
+## Logs
 
-Drei Protokolle, jedes mit eigenen Einstellungen, die Administratoren in `hdb-admin` (Seiten *Audit log*,
-*Application log*, *Event log*, Knopf *Settings…*) oder über die REST-API ändern:
+Three logs, each with its own settings, which administrators can change in `hdb-admin` (the *Audit log*,
+*Application log* and *Event log* pages, *Settings…* button) or through the REST API:
 
-| Protokoll | Inhalt | Kategorien |
+| Log | Contents | Categories |
 |---|---|---|
-| `audit` | wer hat wann was getan, mit Adresse und Ergebnis; Fehlschläge mit Grund | `auth`, `users`, `roles`, `network`, `tenants`, `backups`, `replication`, `schema`, `data`, `maintenance`, `logs` |
-| `event` | Betriebsereignisse | `server` (Start, Ende, Ersteinrichtung), `backups` (geplante Sicherungen), `replication` (Zustandswechsel, Fehler) |
-| `application` | alles, was über `vibe.core.log` geht (auch aus vibe.d), mit dem meldenden Modul | – |
+| `audit` | Who did what and when, with address and outcome; failures with reason | `auth`, `users`, `roles`, `network`, `tenants`, `backups`, `replication`, `schema`, `data`, `maintenance`, `logs` |
+| `event` | Operational events | `server` (startup, shutdown, initial setup), `backups` (scheduled backups), `replication` (state changes, errors) |
+| `application` | Everything sent through `vibe.core.log` (including from vibe.d), with the reporting module | – |
 
-- **Bereiche:** jeder Mandant hat sein eigenes Audit- und Ereignisprotokoll mit eigenen Einstellungen und sieht nur
-  diese. Der Bereich des Servers (`system`, im Einzelmandanten-Betrieb `default`) hat dazu das Anwendungsprotokoll und
-  sieht die Einträge aller Mandanten (Filter `tenant`). Einträge zu unbekannten Mandanten (etwa eine Anmeldung bei
-  einem erfundenen) landen im Bereich des Servers.
-- **Rechte:** `viewLogs` zum Lesen, `manageLogs` zum Einstellen. Beide gehören zur Rolle `admin` im Mandanten und im
-  Bereich `system` und lassen sich eigenen Rollen geben.
-- **Einstellungen je Protokoll:** an/aus, Mindestschwere (`debug`, `info`, `warning`, `error`), Aufbewahrung in Tagen
-  (1–3650), höchstens so viele Einträge (100–1 000 000) und die aufgezeichneten Kategorien. Voreinstellungen: Audit
-  365 Tage / 50 000 ohne `data`, Ereignisse 90 Tage / 20 000, Anwendung 30 Tage / 20 000 ab `info`. Kürzere
-  Aufbewahrung wirkt sofort, sonst räumt der Server stündlich auf.
-- **Immer aufgezeichnet:** Änderungen an den Protokolleinstellungen (Kategorie `logs`), auch abgelehnte und auch bei
-  abgeschaltetem Audit.
-- **Audit-Schwere:** Erfolg `info`, Misserfolg `warning`; mit Mindestschwere `warning` bleiben nur Fehlschläge.
-- **Nie im Protokoll:** Passwörter, Tokens, Werte aus Zeilen (`data` nennt nur Tabelle, Verb und Zeilenzahl), das
-  Passwort einer Replikationsquelle. `SELECT`, `BEGIN`, `COMMIT` und `ROLLBACK` werden nicht aufgezeichnet,
-  Änderungen in einer Transaktion beim Ausführen (auch wenn sie später zurückgerollt werden).
-- **Ablage:** `LOG_DIR` (Standard `data/logs`) mit `audit.jsonl`, `event.jsonl`, `application.jsonl`, ein JSON-Objekt
-  je Zeile, Rechte 0600; Einstellungen in `LOG_SETTINGS_FILE` (Standard `data/hdb-logs.json`). Eine beschädigte
-  Einstellungsdatei bricht den Start ab; unlesbare Protokollzeilen werden übersprungen. Alle Einträge liegen auch im
-  Speicher, gesucht wird dort.
-- Ein Fehler beim Schreiben eines Eintrags hält keine Aktion auf.
+- **Scopes:** Each tenant has its own audit and event logs with separate settings and sees only those logs. The server
+  scope (`system`, or `default` in single-tenant mode) also has the application log and sees entries for all tenants
+  (`tenant` filter). Entries for unknown tenants (such as login to a nonexistent tenant) go to the server scope.
+- **Permissions:** `viewLogs` to read, `manageLogs` to configure. Both belong to the `admin` role in tenants and in
+  the `system` scope and can be assigned to custom roles.
+- **Settings per log:** on/off, minimum severity (`debug`, `info`, `warning`, `error`), retention in days (1–3650),
+  maximum entries (100–1,000,000) and recorded categories. Defaults: audit 365 days / 50,000 without `data`,
+  events 90 days / 20,000, application 30 days / 20,000 from `info`. Shorter retention takes effect immediately;
+  otherwise the server cleans up hourly.
+- **Always recorded:** Changes to log settings (category `logs`), including rejected changes and even when audit is off.
+- **Audit severity:** Success `info`, failure `warning`; with minimum severity `warning`, only failures remain.
+- **Never logged:** Passwords, tokens, row values (`data` records only table, verb and row count), and the password of
+  a replication source. `SELECT`, `BEGIN`, `COMMIT` and `ROLLBACK` are not recorded; changes in a transaction are
+  recorded when executed (even if later rolled back).
+- **Storage:** `LOG_DIR` (default `data/logs`) with `audit.jsonl`, `event.jsonl`, `application.jsonl`, one JSON object
+  per line, permissions 0600; settings in `LOG_SETTINGS_FILE` (default `data/hdb-logs.json`). A damaged settings
+  file aborts startup; unreadable log lines are skipped. All entries are also held and searched in memory.
+- An error writing an entry does not block an action.
 
-REST (`kind` ist `audit`, `application` oder `event`):
+REST (`kind` is `audit`, `application` or `event`):
 
-    GET /api/v1/logs                        # Protokolle der Anmeldung mit Einstellungen und Kategorien
+    GET /api/v1/logs                        # logs for the current login, with settings and categories
     GET /api/v1/logs/:kind?severity=warning&category=auth&actor=ann&text=login&tenant=acme&from=2026-11-08T00:00&until=...&limit=200&before=<id>
     GET /api/v1/logs/:kind/settings
     PUT /api/v1/logs/:kind/settings         # {"enabled", "minSeverity", "retentionDays", "maxEntries", "categories"}
 
-Einträge kommen neueste zuerst mit `total` (alle Treffer); weiterblättern mit `before` = kleinste Id der Seite.
+Entries are returned newest first with `total` (all matches); paginate using `before` = the smallest ID on the page.
 
-Aufbau: `domain/types/logentry.d` (Eintrag, Einstellungen, Kategorien), `application/services/logging.d`
-(`LogService`: Filtern nach Einstellungen, Suche, Aufbewahrung), `application/services/audit.d` (Dekoratoren um
-`IAccessUseCase`, `ITenantUseCase` und die Datenports: die Dienste selbst wissen nichts vom Audit),
-`adapters/outbound/file_log_store.d` und `adapters/inbound/application_log.d` (vibe-Logger, der Zeilen aus allen
-Threads puffert und im Hauptthread abgibt).
+Structure: `domain/types/logentry.d` (entry, settings, categories), `application/services/logging.d`
+(`LogService`: filtering according to settings, search, retention), `application/services/audit.d` (decorators around
+`IAccessUseCase`, `ITenantUseCase` and the data ports: the services themselves know nothing about auditing),
+`adapters/outbound/file_log_store.d` and `adapters/inbound/application_log.d` (vibe logger buffering lines from all
+threads and emitting them on the main thread).
 
-## Persistenz
+## Persistence
 
-Command-Log (Write-Ahead-Log) über den Port `IStatementLog`, Adapter `FileStatementLog`.
-Jede erfolgreiche Änderung an `MEMORY`-Tabellen (`CREATE`, `DROP`, `INSERT`, `UPDATE`, `DELETE`) wird angehängt, beim Start spielt `recover()` das Log ein.
-Nach 1000 Anweisungen oder per `POST /checkpoint` wird das Log kompakt neu geschrieben.
-Datei: `TENANTS_DIR/<mandant>/hdb.log`, je Mandant eine (siehe Mandanten). `DATA_FILE` nennt nur noch den bisherigen Ort für die Umstellung.
+Command log (write-ahead log) through the `IStatementLog` port, `FileStatementLog` adapter.
+Every successful change to `MEMORY` tables (`CREATE`, `DROP`, `INSERT`, `UPDATE`, `DELETE`) is appended; `recover()` replays the log at startup.
+After 1000 statements or via `POST /checkpoint`, the log is rewritten compactly.
+File: `TENANTS_DIR/<mandant>/hdb.log`, one per tenant (see Tenants). `DATA_FILE` now specifies only the old location for migration.
 
-## Spaltenspeicher: Dictionary + Delta-Merge
+## Column storage: dictionary + delta merge
 
-Jede Spalte (`domain/column.d`) besteht aus einem sortierten Main-Store (Dictionary + Codes) und einem
-Delta-Store (unsortiertes Dictionary + Codes). `INSERT` landet im Delta. Der Delta-Merge baut das sortierte
-Dictionary neu auf und schreibt alle Codes um; er läuft im Hintergrund (siehe unten), automatisch ab 1000
-Delta-Zeilen, per `POST /merge` und einmal synchron nach dem Start. `WHERE` wird nur pro DISTINCT-Wert ausgewertet, danach werden Codes
-gescannt. `GET /stats` zeigt Zeilen und DISTINCT-Werte je Spalte (Main/Delta).
+Each column (`domain/column.d`) consists of a sorted main store (dictionary + codes) and a delta store (unsorted
+dictionary + codes). `INSERT` goes into the delta. The delta merge rebuilds the sorted dictionary and rewrites all
+codes; it runs in the background (see below), automatically at 1000 delta rows, via `POST /merge`, and once
+synchronously after startup. `WHERE` is evaluated only per DISTINCT value, then codes are scanned. `GET /stats`
+shows rows and DISTINCT values per column (main/delta).
 
 ## GROUP BY
 
     SELECT customer, COUNT(*), SUM(amount) FROM orders WHERE amount >= 10 GROUP BY customer
 
-Erlaubt sind die Gruppierungsspalte, `COUNT(*)` und `SUM(x)`. Die Gruppe wird je DISTINCT-Schlüssel des
-Dictionarys (Main und Delta) bestimmt, nicht je Zeile. Ergebnis sortiert nach Gruppenwert.
+The grouping column, `COUNT(*)` and `SUM(x)` are allowed. The group is determined per DISTINCT dictionary key
+(main and delta), not per row. Results are sorted by group value.
 
 ## Bitpacking
 
-Die Main-Codes liegen in `domain/packed_vector.d`: jeder Code belegt nur `ceil(log2(distinct))` Bits statt 32.
-`GET /stats` zeigt `mainBits` und `mainCodeBytes` je Spalte.
+Main codes are stored in `domain/packed_vector.d`: each code occupies only `ceil(log2(distinct))` bits instead of 32.
+`GET /stats` shows `mainBits` and `mainCodeBytes` per column.
 
-## ORDER BY und weitere Aggregate
+## ORDER BY and additional aggregates
 
     SELECT n, MIN(q), MAX(q), AVG(w) FROM p WHERE q >= 1 GROUP BY n ORDER BY AVG(w) DESC, n
     SELECT n FROM p ORDER BY q DESC
 
-- Aggregate: `COUNT(*)`, `SUM(x)`, `AVG(x)` (nur numerisch), `MIN(x)`, `MAX(x)` (auch Text); auch ohne `GROUP BY`.
-- `ORDER BY` mit mehreren Schlüsseln, `ASC`/`DESC`. Ohne Aggregation darf nach jeder Tabellenspalte sortiert
-  werden, auch nach nicht ausgewählten. Mit Aggregation: Ergebnisspalte, Ausdruck wie im SELECT oder Position (1-basiert).
-- Die Sortierung ist stabil. Ohne `ORDER BY` sind Gruppen nach dem Gruppenwert sortiert.
-- Ergebnisspalten heißen jetzt `COUNT` und z.B. `SUM(amount)`.
-- Aggregate ignorieren NULL; ohne Werte liefern `SUM`/`AVG`/`MIN`/`MAX` NULL, `COUNT` liefert 0.
+- Aggregates: `COUNT(*)`, `SUM(x)`, `AVG(x)` (numeric only), `MIN(x)`, `MAX(x)` (also text); also without `GROUP BY`.
+- `ORDER BY` with multiple keys, `ASC`/`DESC`. Without aggregation, any table column may be used for sorting,
+  even if not selected. With aggregation: a result column, expression as in SELECT, or position (1-based).
+- Sorting is stable. Without `ORDER BY`, groups are sorted by group value.
+- Result columns are now named `COUNT` and, for example, `SUM(amount)`.
+- Aggregates ignore NULL; with no values, `SUM`/`AVG`/`MIN`/`MAX` return NULL, and `COUNT` returns 0.
 
 ## HAVING, LIMIT, OFFSET
 
     SELECT g, SUM(v) FROM h GROUP BY g HAVING COUNT(*) >= 2 ORDER BY SUM(v) DESC LIMIT 10 OFFSET 20
 
-- `HAVING ausdruck op wert`: Ausdruck ist ein Aggregat oder die Gruppierungsspalte; er muss nicht im `SELECT` stehen.
-- `LIMIT n [OFFSET m]` wirkt nach `ORDER BY`. `OFFSET` gibt es nur zusammen mit `LIMIT`.
-- Reihenfolge: WHERE, GROUP BY, HAVING, ORDER BY, LIMIT.
+- `HAVING expression op value`: the expression is an aggregate or grouping column; it need not appear in `SELECT`.
+- `LIMIT n [OFFSET m]` applies after `ORDER BY`. `OFFSET` is available only with `LIMIT`.
+- Order: WHERE, GROUP BY, HAVING, ORDER BY, LIMIT.
 
-## UPDATE und DELETE
+## UPDATE and DELETE
 
     UPDATE orders SET amount = 120.5, customer = 'ACME' WHERE id = 7
     DELETE FROM orders WHERE amount < 10
 
-- `DELETE` markiert Zeilen in einem Löschvektor; alle Abfragen überspringen sie.
-- `UPDATE` ist insert-only: die alte Zeilenversion wird gelöscht, die neue landet im Delta (am Ende der Tabelle,
-  daher ändert sich die Reihenfolge ohne `ORDER BY`).
-- Gelöschte Zeilen werden beim Delta-Merge (`POST /merge`, nach dem Start) physisch entfernt, automatisch ab 1000 gelöschten
-  Zeilen, wenn sie mehr als die Hälfte der Tabelle ausmachen. Beim Checkpoint werden sie nicht ins Log geschrieben.
-- Beide Anweisungen werden ins Log geschrieben und beim Start deterministisch wieder eingespielt.
-- `GET /stats` zeigt `rows` (lebende Zeilen) und `deletedRows`.
+- `DELETE` marks rows in a deletion vector; all queries skip them.
+- `UPDATE` is insert-only: the old row version is deleted and the new one goes into the delta (at the end of the table,
+  so the order changes without `ORDER BY`).
+- Deleted rows are physically removed during delta merge (`POST /merge`, after startup), automatically at 1000 deleted
+  rows if they make up more than half the table. They are not written to the log at checkpoint.
+- Both statements are logged and deterministically replayed at startup.
+- `GET /stats` shows `rows` (live rows) and `deletedRows`.
 
 ## DROP TABLE
 
     DROP TABLE orders
 
-Wird geloggt und beim Start wiederholt. In einer Transaktion stellt `ROLLBACK` die Tabelle samt Daten wieder her.
+Logged and replayed at startup. In a transaction, `ROLLBACK` restores the table and its data.
 
 ## JOIN
 
     SELECT c.name, SUM(o.amt) FROM customers c JOIN orders o ON c.id = o.cid
     WHERE o.amt >= 2 GROUP BY c.name ORDER BY SUM(o.amt) DESC
 
-- `[INNER] JOIN tabelle [alias] ON a = b`, auch mehrere hintereinander (links-tief). Umgesetzt als Hash-Join.
-- Das Join-Ergebnis ist eine temporäre Spaltentabelle mit Spalten `alias.spalte`; WHERE, GROUP BY, HAVING,
-  ORDER BY und Aggregate laufen darauf unverändert. Unqualifizierte Namen gehen, wenn sie eindeutig sind.
-- Ein Alias auf einer einzelnen Tabelle (`FROM orders o`) erlaubt `o.spalte`.
-- Nur Gleichheits-Joins (INNER und LEFT). Self-Joins brauchen zwei verschiedene Aliase.
-- Beide Seiten werden für den Join kopiert (Speicher O(Zeilen)), allerdings nur die Zeilen, die nach dem
-  WHERE-Pushdown (siehe unten) übrig bleiben.
+- `[INNER] JOIN table [alias] ON a = b`, including multiple joins in sequence (left-deep). Implemented as a hash join.
+- The join result is a temporary column table with `alias.column` columns; WHERE, GROUP BY, HAVING, ORDER BY and
+  aggregates run on it unchanged. Unqualified names work if unambiguous.
+- An alias on a single table (`FROM orders o`) allows `o.column`.
+- Equijoins only (INNER and LEFT). Self-joins require two different aliases.
+- Both sides are copied for the join (O(rows) memory), but only rows remaining after WHERE pushdown (see below).
 
-## NULL und LEFT JOIN
+## NULL and LEFT JOIN
 
     SELECT c.name, COUNT(o.id) FROM customers c LEFT JOIN orders o ON c.id = o.cid GROUP BY c.name
     SELECT c.name FROM customers c LEFT JOIN orders o ON c.id = o.cid WHERE o.id IS NULL
 
-- `LEFT [OUTER] JOIN`: linke Zeilen ohne Treffer bleiben erhalten, die rechten Spalten sind NULL.
-- NULL-Literal in `INSERT` und `UPDATE ... SET x = NULL`; `WHERE x IS [NOT] NULL`.
-- Vergleiche mit NULL sind nie wahr (`x = NULL` trifft nichts, dafür gibt es `IS NULL`). NULL passt in keinem Join auf NULL.
-- `COUNT(spalte)` zählt nur Nicht-NULL-Werte, `COUNT(*)` alle Zeilen. NULL bildet in `GROUP BY` eine eigene Gruppe.
-- `ORDER BY`: NULL sortiert zuerst (bei `DESC` zuletzt). Im JSON erscheint NULL als `null`, im Log als `NULL`.
+- `LEFT [OUTER] JOIN`: unmatched left rows are retained, with NULL in the right columns.
+- NULL literal in `INSERT` and `UPDATE ... SET x = NULL`; `WHERE x IS [NOT] NULL`.
+- Comparisons with NULL are never true (`x = NULL` matches nothing; use `IS NULL`). NULL never joins to NULL.
+- `COUNT(column)` counts only non-NULL values, `COUNT(*)` all rows. NULL forms its own `GROUP BY` group.
+- `ORDER BY`: NULL sorts first (last with `DESC`). In JSON NULL appears as `null`, in the log as `NULL`.
 
-## Transaktionen
+## Transactions
 
     POST /sql {"statement": "BEGIN"}                      -> {"transaction": "<id>", ...}
     POST /sql {"statement": "INSERT ..."}  + Header  X-Transaction-Id: <id>
-    POST /sql {"statement": "COMMIT"}      + Header  X-Transaction-Id: <id>   (oder ROLLBACK)
+    POST /sql {"statement": "COMMIT"}      + Header  X-Transaction-Id: <id>   (or ROLLBACK)
 
-Die ID kann statt im Header auch als Feld `"transaction"` im JSON-Body stehen.
+The ID can instead be supplied as the `"transaction"` field in the JSON body.
 
-- Eine offene Transaktion sperrt die Datenbank für alle anderen Sitzungen (serialisierbar, ein Schreiber).
-  Andere Anfragen bekommen sofort 400 "gesperrt"; es wird nicht gewartet. Auch `/tables`, `/stats`, `/merge`
-  und `/checkpoint` sind währenddessen gesperrt.
-- Eigene Änderungen sind in der Transaktion sichtbar. Ohne Aktivität werden Transaktionen nach 30 s zurückgerollt.
-- Rollback: vor der ersten Änderung einer Tabelle wird ein Snapshot angelegt (Copy-on-first-write, O(Tabelle)).
-  Auch `CREATE TABLE` wird zurückgerollt.
-- Log: erst beim `COMMIT` wird die ganze Transaktion als Gruppe `BEGIN ... COMMIT` geschrieben. Beim Start werden
-  nur vollständige Gruppen eingespielt; ein unvollständiger Rest wird verworfen.
-- Ein fehlerhaftes Statement macht die Transaktion nicht ungültig, hinterlässt aber keine Teiländerung.
-- Ohne `BEGIN` läuft jede Anweisung wie bisher als eigene Transaktion (Autocommit).
-- Keine Savepoints und keine verschachtelten Transaktionen.
+- An open transaction locks the database for all other sessions (serializable, one writer). Other requests immediately
+  receive 400 "locked"; they do not wait. `/tables`, `/stats`, `/merge` and `/checkpoint` are also locked.
+- A transaction sees its own changes. Inactive transactions are rolled back after 30 seconds.
+- Rollback: a snapshot is created before the first change to a table (copy-on-first-write, O(table)).
+  `CREATE TABLE` is also rolled back.
+- Log: the entire transaction is written as a `BEGIN ... COMMIT` group only at `COMMIT`. At startup, only complete
+  groups are replayed; an incomplete remainder is discarded.
+- A failed statement does not invalidate the transaction, but leaves no partial changes.
+- Without `BEGIN`, each statement runs as its own transaction as before (autocommit).
+- No savepoints or nested transactions.
 
-## Gespeicherte Prozeduren
+## Stored procedures
 
-Eine Prozedur ist eine benannte Folge von SQL-Anweisungen mit typisierten Parametern. Angelegt, aufgerufen und
-angesehen wird sie mit SQL, also aus jedem Client: SQL-Konsole, `POST /api/v1/sql`, Unix-Socket, eingebettete Datenbank.
+A procedure is a named sequence of SQL statements with typed parameters. It is created, called and inspected using SQL,
+from any client: SQL console, `POST /api/v1/sql`, Unix socket or embedded database.
 
     CREATE [OR REPLACE] PROCEDURE mark_paid (order_id INTEGER, who VARCHAR(40)) AS BEGIN
       UPDATE orders SET paid = TRUE, customer = :who WHERE id = :order_id;
@@ -773,131 +763,127 @@ angesehen wird sie mit SQL, also aus jedem Client: SQL-Konsole, `POST /api/v1/sq
     SHOW PROCEDURE mark_paid
     DROP PROCEDURE mark_paid
 
-- **Parameter:** `:name` im Rumpf. Beim Aufruf wird jedes Argument gegen den Typ des Parameters geprüft (wie ein Wert in
-  `INSERT ... VALUES`) und als Literal eingesetzt; Text muss in Hochkommata stehen, `NULL` geht immer. Ausdrücke oder
-  Anweisungsteile lassen sich so nicht einschleusen. In 'Textliteralen' wird nichts ersetzt. Schon beim Anlegen wird
-  geprüft, dass jeder verwendete Parameter deklariert ist.
-- **Rumpf:** `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `CREATE TABLE`, `DROP TABLE`, getrennt durch `;`. Keine
-  Transaktionssteuerung, keine Aufrufe anderer Prozeduren, keine Variablen oder Schleifen.
-- **Ergebnis:** das der letzten Abfrage im Rumpf; `affected` zählt die geänderten Zeilen aller Anweisungen.
-- **Alles oder nichts:** Außerhalb einer Transaktion läuft ein `CALL` in einer eigenen; scheitert eine Anweisung, ist keine
-  Änderung geblieben. In einer offenen Transaktion gehören die Anweisungen zu ihr, `ROLLBACK` nimmt sie zurück.
-- **Rechte des Aufrufers:** `CALL` und `SHOW` brauchen `execute` (Rolle `viewer` und höher), Anlegen, Ersetzen und Löschen
-  `manageProcedures` (Rolle `admin`). Jede Anweisung im Rumpf prüft die Rechte und Tabellenfreigaben des Aufrufers: über
-  eine Prozedur kann niemand mehr als direkt. Das interne `BEGIN` eines Aufrufs braucht kein `transact`.
-- **Dauerhaft:** Prozeduren stehen im Anweisungsprotokoll und nach einem Checkpoint am Anfang des neuen. In Sicherungen
-  und im vollständigen Stand der Replikation stehen sie als Tabelle `hdb_procedures`; der Name ist dafür reserviert und
-  erscheint nicht in der Tabellenliste. Ein Replikationsziel erhält neue und gelöschte Prozeduren mit dem Änderungsstrom;
-  dort ist `CALL` wie jede schreibende Anweisung gesperrt, `SHOW` geht.
-- Anlegen und Löschen nur außerhalb einer Transaktion. Die Prozeduren gehören zum Mandanten.
+- **Parameters:** `:name` in the body. On invocation, each argument is checked against the parameter type (as with a
+  value in `INSERT ... VALUES`) and substituted as a literal; text must be single-quoted, and `NULL` is always allowed.
+  Expressions or statement fragments cannot be injected this way. Nothing is substituted inside 'text literals'.
+  At creation, every parameter used is checked for a declaration.
+- **Body:** `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `CREATE TABLE`, `DROP TABLE`, separated by `;`. No transaction
+  control, calls to other procedures, variables or loops.
+- **Result:** That of the last query in the body; `affected` counts changed rows across all statements.
+- **All or nothing:** Outside a transaction, a `CALL` runs in its own transaction; if a statement fails, no changes
+  remain. In an open transaction, the statements belong to it and `ROLLBACK` undoes them.
+- **Caller's permissions:** `CALL` and `SHOW` require `execute` (`viewer` role or higher); creation, replacement and
+  deletion require `manageProcedures` (`admin` role). Each statement in the body checks the caller's permissions and
+  table grants: a procedure cannot give anyone more access than direct execution. A call's internal `BEGIN` does not
+  require `transact`.
+- **Durability:** Procedures appear in the statement log and at the beginning of the new log after a checkpoint. In
+  backups and full replication snapshots they appear as the `hdb_procedures` table; this name is reserved and does not
+  appear in the table list. A replication target receives created and deleted procedures in the change stream;
+  `CALL` is blocked there like any write statement, while `SHOW` works.
+- Creation and deletion are allowed only outside a transaction. Procedures belong to the tenant.
 
-## WHERE-Pushdown
+## WHERE pushdown
 
-Die WHERE-Bedingung wird vor dem Kopieren und Joinen auf der betroffenen Tabelle ausgewertet, wenn das das
-Ergebnis nicht verändert. Das spart Kopierarbeit und verkleinert die Hash-Tabelle.
+The WHERE condition is evaluated on the affected table before copying and joining when this does not change the result.
+This saves copying and reduces the hash table's size.
 
-- Vorgezogen wird bei der ersten Tabelle und bei Tabellen eines `INNER JOIN`.
-- Nicht vorgezogen wird bei einer `LEFT JOIN`-Tabelle, weil deren Spalten mit NULL aufgefüllt werden
-  (`WHERE o.id IS NULL` findet gerade die Zeilen ohne Treffer). Dort gilt die Bedingung nach dem Join.
-- Unqualifizierte Spalten werden nur vorgezogen, wenn sie in genau einer Tabelle vorkommen. Bei Mehrdeutigkeit
-  gibt es wie bisher einen Fehler nach dem Join.
-- Bei `FROM tabelle alias` ohne Join werden nur die Treffer in die Alias-Kopie übernommen.
-- Das Ergebnis ist immer dasselbe wie ohne Pushdown. Der Zähler `pushedDownFilters` im `SqlService` dient der Diagnose.
+- Conditions are pushed down for the first table and tables in an `INNER JOIN`.
+- They are not pushed down for a `LEFT JOIN` table because its columns are filled with NULL
+  (`WHERE o.id IS NULL` specifically finds unmatched rows). The condition applies after the join there.
+- Unqualified columns are pushed down only if they occur in exactly one table. Ambiguity produces an error after the
+  join, as before.
+- With `FROM table alias` without a join, only matching rows are copied to the alias.
+- The result is always the same as without pushdown. The `pushedDownFilters` counter in `SqlService` aids diagnosis.
 
-## AND, OR und Klammern in WHERE
+## AND, OR and parentheses in WHERE
 
     SELECT k FROM w WHERE (n = 'a' OR n = 'b') AND v IS NOT NULL
     UPDATE w SET v = 0 WHERE n = 'a' AND k >= 3
     DELETE FROM w WHERE k = 1 OR k = 2
 
-- Bedingungen `spalte op wert` und `spalte IS [NOT] NULL`, verknüpft mit `AND`, `OR` und Klammern.
-  `AND` bindet stärker als `OR`. `<>` ist gleichbedeutend mit `!=`. Schlüsselwörter in Textliteralen
-  (`'x AND y'`) bleiben unangetastet.
-- Gilt für `SELECT`, `UPDATE` und `DELETE`. `NOT` gibt es bewusst nicht: Mit NULL-Werten (Dreiwertlogik) wäre
-  das Komplement einer Treffermenge falsch. Ohne `NOT` sind Schnitt (`AND`) und Vereinigung (`OR`) der
-  Treffermengen exakt.
-- Pushdown: Die Bedingung wird in ihre obersten `AND`-Teile zerlegt. Jeder Teil, dessen Spalten alle zu genau
-  einer vorziehbaren Tabelle gehören (erste Tabelle oder `INNER JOIN`), wird vor dem Join ausgewertet, auch ein
-  `OR` innerhalb einer Tabelle. Teile über mehrere Tabellen und Teile auf der NULL-ergänzten Seite eines
-  `LEFT JOIN` gelten nach dem Join.
+- Conditions `column op value` and `column IS [NOT] NULL`, combined with `AND`, `OR` and parentheses.
+  `AND` binds more strongly than `OR`. `<>` is equivalent to `!=`. Keywords in text literals
+  (`'x AND y'`) remain untouched.
+- Applies to `SELECT`, `UPDATE` and `DELETE`. `NOT` is deliberately unavailable: with NULL values (three-valued logic),
+  the complement of a match set would be incorrect. Without `NOT`, intersection (`AND`) and union (`OR`) of match sets
+  are exact.
+- Pushdown: the condition is split into its top-level `AND` parts. Each part whose columns all belong to exactly one
+  eligible table (first table or `INNER JOIN`) is evaluated before the join, including an `OR` within one table.
+  Parts spanning multiple tables and parts on the NULL-extended side of a `LEFT JOIN` apply after the join.
 
 ## IN, BETWEEN, LIKE
 
     SELECT k FROM p WHERE n LIKE 'a%' AND k IN (1, 4, 6)
     SELECT k FROM p WHERE v BETWEEN 2 AND 5 OR n NOT LIKE '%an%'
 
-- `spalte [NOT] IN (wert, ...)`, `spalte [NOT] BETWEEN a AND b` (Grenzen inklusive) und `spalte [NOT] LIKE 'muster'`
-  mit `%` (beliebig viele Zeichen) und `_` (genau ein Zeichen); Groß-/Kleinschreibung zählt, ein Escape-Zeichen gibt
-  es nicht. `LIKE` gilt nur für Textspalten.
-- Wie alle Vergleiche sind auch diese nie wahr, wenn der Spaltenwert NULL ist, also auch `NOT IN`,
-  `NOT BETWEEN` und `NOT LIKE`. `x NOT IN (1, NULL)` ist nie wahr, `x IN (1, NULL)` trifft nur die 1.
-- Die Prüfung läuft wie die übrigen Vergleiche einmal pro DISTINCT-Wert des Dictionarys; das `AND` innerhalb von
-  `BETWEEN` gehört zum Operator und wird nicht als logisches `AND` gelesen.
-- Gilt in `SELECT`, `UPDATE` und `DELETE` und wird wie jede andere Bedingung vor einem Join vorgezogen.
+- `column [NOT] IN (value, ...)`, `column [NOT] BETWEEN a AND b` (inclusive bounds) and `column [NOT] LIKE 'pattern'`
+  with `%` (any number of characters) and `_` (exactly one character); case matters and there is no escape character.
+  `LIKE` applies only to text columns.
+- Like all comparisons, these are never true when the column value is NULL, including `NOT IN`,
+  `NOT BETWEEN` and `NOT LIKE`. `x NOT IN (1, NULL)` is never true; `x IN (1, NULL)` matches only 1.
+- As with other comparisons, evaluation occurs once per DISTINCT dictionary value; the `AND` within `BETWEEN` belongs
+  to the operator and is not interpreted as logical `AND`.
+- Applies to `SELECT`, `UPDATE` and `DELETE`, and is pushed down before joins like any other condition.
 
-## Mehrere Gruppierungsspalten
+## Multiple grouping columns
 
     SELECT region, product, COUNT(*), SUM(qty) FROM sales GROUP BY region, product ORDER BY region, product
 
-- `GROUP BY spalte [, spalte ...]`, auch mit qualifizierten Namen (`c.name`) nach einem Join. Duplikate in der Liste
-  zählen einmal. Im `SELECT` und in `HAVING` sind alle Gruppierungsspalten und Aggregate erlaubt, die
-  Gruppierungsspalten müssen aber nicht ausgewählt werden.
-- Umsetzung: Je Gruppierungsspalte bekommt jeder DISTINCT-Wert (Main und Delta) eine dichte Id; je Treffer werden die
-  Ids zu einem Schlüssel kombiniert (gemischte Basis, `ulong`). Es werden also keine Werte pro Zeile verglichen.
-  Bei einer unrealistisch großen Zahl möglicher Kombinationen gibt es einen Fehler.
-- Ohne `ORDER BY` sind die Gruppen lexikographisch nach den Schlüsselwerten sortiert, NULL zuerst. NULL bildet
-  je Spalte einen eigenen Wert.
+- `GROUP BY column [, column ...]`, also with qualified names (`c.name`) after a join. Duplicates in the list count
+  once. All grouping columns and aggregates are allowed in `SELECT` and `HAVING`, but grouping columns need not be selected.
+- Implementation: for each grouping column, each DISTINCT value (main and delta) gets a dense ID; for each match,
+  the IDs are combined into a key (mixed radix, `ulong`). No values are compared per row. An unrealistically large
+  number of possible combinations produces an error.
+- Without `ORDER BY`, groups are sorted lexicographically by key values, NULL first. NULL forms a separate value per column.
 
 ## DISTINCT
 
     SELECT DISTINCT region, product FROM sales ORDER BY region
     SELECT COUNT(DISTINCT customer), SUM(DISTINCT price) FROM sales
 
-- `SELECT DISTINCT ...` entfernt doppelte Ergebniszeilen, auch mit `*`. Ohne Aggregate wird das als `GROUP BY` über
-  alle ausgewählten Spalten ausgeführt (Gruppierung über die Dictionary-Ids). Das Ergebnis ist daher nach den
-  Werten sortiert, nicht in Einfügereihenfolge. `ORDER BY` darf nur ausgewählte Spalten nennen (wie in SQL).
-- Mit Aggregaten oder `GROUP BY` werden die fertigen Ergebniszeilen dedupliziert, danach folgen `ORDER BY` und `LIMIT`.
-- `COUNT(DISTINCT x)`, `SUM(DISTINCT x)`, `AVG(DISTINCT x)`: NULL zählt nicht, ein Wert zählt je Gruppe einmal, auch wenn
-  er im Main- und im Delta-Store vorkommt. `MIN`/`MAX` mit `DISTINCT` sind gleichbedeutend mit ohne.
-  `COUNT(DISTINCT *)` gibt es nicht.
+- `SELECT DISTINCT ...` removes duplicate result rows, including with `*`. Without aggregates, it runs as a `GROUP BY`
+  over all selected columns (grouping by dictionary IDs). The result is therefore sorted by value, not insertion order.
+  `ORDER BY` may name only selected columns (as in SQL).
+- With aggregates or `GROUP BY`, completed result rows are deduplicated, followed by `ORDER BY` and `LIMIT`.
+- `COUNT(DISTINCT x)`, `SUM(DISTINCT x)`, `AVG(DISTINCT x)`: NULL does not count; a value counts once per group, even
+  if it appears in both main and delta stores. `MIN`/`MAX` with `DISTINCT` are equivalent to those without it.
+  `COUNT(DISTINCT *)` is unavailable.
 
-## Delta-Merge im Hintergrund
+## Background delta merge
 
-Der Merge sperrt die Datenbank nur noch kurz. Er läuft in drei Phasen (`domain/column.d`):
+The merge locks the database only briefly. It runs in three phases (`domain/column.d`):
 
-1. **Einfrieren** (unter der Sperre, kurz): `beginMerge()` merkt sich Main und die aktuellen Delta-Zeilen.
-2. **Aufbau** (ohne Sperre, in einem Hintergrund-Thread): `MergeJob.run()` baut das sortierte Dictionary und die neu
-   gepackten Codes. Er liest nur die eingefrorenen Daten; das Main wird nie verändert, nur ersetzt, und eingefrorene
-   Delta-Einträge bleiben unverändert. Abfragen und Änderungen laufen währenddessen normal weiter.
-3. **Umschalten** (unter der Sperre, kurz): `finishMerge()` ersetzt Main. Zeilen, die in der Zwischenzeit ins Delta kamen,
-   bekommen ein neues kleines Delta. Zeilennummern ändern sich nicht, weil die eingefrorenen Zeilen schon direkt hinter
-   dem Main stehen und das Delta ein eigenes Dictionary hat.
+1. **Freeze** (briefly under lock): `beginMerge()` records main and the current delta rows.
+2. **Build** (without lock, in a background thread): `MergeJob.run()` builds the sorted dictionary and newly packed
+   codes. It reads only frozen data; main is never modified, only replaced, and frozen delta entries remain unchanged.
+   Queries and changes continue normally.
+3. **Switch** (briefly under lock): `finishMerge()` replaces main. Rows added to delta in the meantime get a new small
+   delta. Row numbers do not change because frozen rows already follow main directly and delta has its own dictionary.
 
-- Ausgelöst wird er automatisch, sobald eine Spalte 1000 Delta-Zeilen hat (nach `INSERT`/`UPDATE`), und per
-  `POST /merge`. Das antwortet sofort mit 202 (`STARTED` oder `RUNNING`); `GET /merge` zeigt `running`,
-  `completed` und `lastError`. Pro Spalte läuft höchstens ein Merge, insgesamt höchstens ein Merge-Thread.
-- Während einer Transaktion bleiben `POST /merge` und `/stats` gesperrt wie alle anderen Aufrufe. Ein schon laufender
-  Merge stört die Transaktion nicht; ein Rollback stellt den Snapshot der Tabelle wieder her.
-- Beim Einspielen des Logs beim Start werden keine Hintergrund-Merges gestartet; danach läuft ein synchroner Merge.
-- Grenzen: Checkpoint, Rollback-Snapshots und der Aufbau temporärer Join-Tabellen laufen weiterhin unter der Sperre.
+- Triggered automatically once a column has 1000 delta rows (after `INSERT`/`UPDATE`), and by `POST /merge`.
+  This responds immediately with 202 (`STARTED` or `RUNNING`); `GET /merge` shows `running`, `completed` and
+  `lastError`. At most one merge runs per column, and at most one merge thread overall.
+- During a transaction, `POST /merge` and `/stats` remain locked like all other calls. An already running merge does
+  not interfere with the transaction; rollback restores the table snapshot.
+- No background merges start during log replay at startup; a synchronous merge runs afterwards.
+- Limits: checkpoints, rollback snapshots and construction of temporary join tables still run under the lock.
 
-### Kompaktierung im Hintergrund
+### Background compaction
 
-Gelöschte Zeilen zu entfernen ändert die Zeilennummern. Auch das läuft in drei Phasen (`domain/table.d`):
+Removing deleted rows changes row numbers. This also runs in three phases (`domain/table.d`):
 
-1. **Einfrieren** (unter der Sperre): `beginCompaction()` merkt sich Zeilenzahl `N`, die Nummern der lebenden Zeilen
-   und je Spalte eine Momentaufnahme (Main + Delta). Ab jetzt protokolliert `markDeleted` jede Löschung.
-2. **Aufbau** (ohne Sperre): `CompactionJob.run()` baut aus den lebenden Zeilen neue Spalten mit sortiertem Dictionary.
-3. **Umschalten** (unter der Sperre): `finishCompaction()` überträgt, was seit dem Einfrieren geschah.
-   Zeilen ab `N` kommen ins Delta der neuen Spalten und stehen direkt hinter den `L` lebenden Zeilen (neue Nummer
-   `L + (alt - N)`). Jede protokollierte Löschung wird auf die neue Nummer abgebildet: alte Zeilen über ihren Rang
-   unter den lebenden Zeilen, neue Zeilen über die Verschiebung. Ein `UPDATE` ist Löschen plus Einfügen und
-   wird damit automatisch richtig übertragen.
+1. **Freeze** (under lock): `beginCompaction()` records row count `N`, the live row numbers and a snapshot of each
+   column (main + delta). From then on, `markDeleted` records every deletion.
+2. **Build** (without lock): `CompactionJob.run()` builds new columns with sorted dictionaries from the live rows.
+3. **Switch** (under lock): `finishCompaction()` carries over what happened since freezing. Rows from `N` onward go
+   into the new columns' delta, directly after the `L` live rows (new number `L + (old - N)`). Each recorded deletion
+   is mapped to the new number: old rows by their rank among the live rows, new rows by the offset. An `UPDATE` is
+   a deletion plus an insertion, so it is carried over correctly automatically.
 
-- Automatisch ab 1000 gelöschten Zeilen, wenn sie mehr als die Hälfte der Tabelle sind (nach `UPDATE`/`DELETE`), und
-  ausdrücklich per `POST /merge` für jede Tabelle mit gelöschten Zeilen. Eine kompaktierte Tabelle wird nicht zusätzlich
-  spaltenweise gemergt, denn der Aufbau mergt das Delta mit.
-- Während der Kompaktierung werden Spalten dieser Tabelle nicht gemergt, und eine laufende Spalten-Merge verhindert
-  den Start der Kompaktierung (sie wird übersprungen und beim nächsten Zyklus nachgeholt).
-- Ein Rollback ersetzt die Tabelle durch den Snapshot; ein schon laufender Job arbeitet dann auf der verworfenen Tabelle
-  und ist wirkungslos. Zeilennummern werden nirgends über Aufrufe hinweg gehalten, die Umnummerierung ist daher unsichtbar.
+- Automatic at 1000 deleted rows if they make up more than half the table (after `UPDATE`/`DELETE`), and explicitly
+  via `POST /merge` for every table with deleted rows. A compacted table is not additionally merged column by column,
+  because the build merges the delta too.
+- During compaction, columns of that table are not merged, and an ongoing column merge prevents compaction from
+  starting (it is skipped and retried in the next cycle).
+- A rollback replaces the table with the snapshot; an already running job then works on the discarded table and has
+  no effect. Row numbers are not retained across calls, so renumbering is invisible.

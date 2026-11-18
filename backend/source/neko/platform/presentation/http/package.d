@@ -76,7 +76,7 @@ class SecurityMiddleware {
 }
 
 /// GET /health (plain text, for load balancers) and GET /api/v1/info.
-class HealthController {
+class Health_Controller {
   private PlatformConfig config;
   private SecurityDomain domain;
 

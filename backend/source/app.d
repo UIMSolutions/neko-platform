@@ -49,7 +49,7 @@ int serve(PlatformContainer c) {
 
   // Order matters: middleware first, the static catch-all last.
   (new SecurityMiddleware(config)).registerRoutes(router);
-  (new HealthController(config, selfDomain)).registerRoutes(router);
+  (new Health_Controller(config, selfDomain)).registerRoutes(router);
   UnixSocketController socket;
   if (config.transport == "unix") {
     socket = new UnixSocketController(config.effectiveSocketPath(selfDomain));

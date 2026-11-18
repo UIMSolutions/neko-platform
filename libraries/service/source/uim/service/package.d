@@ -14,7 +14,7 @@ module uim.service;
 
 public {
   import uim.oop;
-  // import uim.services;
+  import uim.services;
 
   import uim.service.application;
   import uim.service.classes;

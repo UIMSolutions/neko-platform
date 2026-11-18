@@ -7,10 +7,10 @@
 /// are named per protocol, their table columns and actions — plus the
 /// operations that are not resources (content, listing, access evaluation,
 /// CORS check, credential verification, lifecycle run).
-module uim.platform.object_store.presentation.resources.registry;
+module neko.objects.presentation.resources.registry;
 
-import uim.platform.object_store;
-import uim.platform.object_store.presentation.resources.adapter;
+import neko.objects;
+import neko.objects.presentation.resources.adapter;
 
 mixin(ShowModule!());
 

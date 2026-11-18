@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Strongly typed identifiers of the object store aggregates.
 /// (TenantId, UserId and ServiceBindingId come from uim-platform:service.)
-module uim.platform.object_store.domain.types.ids;
+module neko.objects.domain.types.ids;
 
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

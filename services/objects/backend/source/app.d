@@ -7,7 +7,7 @@
 /// Fiori app and the lifecycle worker.
 module app;
 
-import uim.platform.object_store;
+import neko.objects;
 
 @safe:
 

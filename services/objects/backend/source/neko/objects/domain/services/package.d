@@ -4,14 +4,14 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Pure domain services (business-only operations).
-module uim.platform.object_store.domain.services;
+module neko.objects.domain.services;
 
 public {
-  import uim.platform.object_store.domain.services.access_evaluator;
-  import uim.platform.object_store.domain.services.bucket_rules;
-  import uim.platform.object_store.domain.services.catalogs;
-  import uim.platform.object_store.domain.services.checksums;
-  import uim.platform.object_store.domain.services.cors_matcher;
-  import uim.platform.object_store.domain.services.lifecycle_planner;
-  import uim.platform.object_store.domain.services.naming;
+  import neko.objects.domain.services.access_evaluator;
+  import neko.objects.domain.services.bucket_rules;
+  import neko.objects.domain.services.catalogs;
+  import neko.objects.domain.services.checksums;
+  import neko.objects.domain.services.cors_matcher;
+  import neko.objects.domain.services.lifecycle_planner;
+  import neko.objects.domain.services.naming;
 }

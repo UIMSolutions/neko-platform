@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// IAM style evaluation of bucket access policies.
-module uim.platform.object_store.domain.services.access_evaluator;
+module neko.objects.domain.services.access_evaluator;
 
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

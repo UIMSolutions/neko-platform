@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Content checksums and credential material.
-module uim.platform.object_store.domain.services.checksums;
+module neko.objects.domain.services.checksums;
 
 import std.digest : toHexString, LetterCase;
 import std.digest.md : md5Of;
 import std.digest.sha : sha256Of;
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

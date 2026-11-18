@@ -10,7 +10,7 @@
 module cli;
 
 import std.stdio : stdout;
-import uim.platform.object_store;
+import neko.objects;
 
 version (unittest) {
 } else {

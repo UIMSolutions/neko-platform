@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// CORS preflight evaluation and rule validation.
-module uim.platform.object_store.domain.services.cors_matcher;
+module neko.objects.domain.services.cors_matcher;
 
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

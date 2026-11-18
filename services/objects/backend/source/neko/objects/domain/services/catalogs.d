@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Reference data: provider regions and storage classes.
-module uim.platform.object_store.domain.services.catalogs;
+module neko.objects.domain.services.catalogs;
 
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

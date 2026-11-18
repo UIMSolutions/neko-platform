@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Technical clients for external services.
-module uim.platform.object_store.infrastructure.clients;
+module neko.objects.infrastructure.clients;
 
 public {
-  import uim.platform.object_store.infrastructure.clients.key_management;
+  import neko.objects.infrastructure.clients.key_management;
 }

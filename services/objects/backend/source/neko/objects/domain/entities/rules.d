@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Bucket configuration aggregates: access policies, lifecycle rules, CORS rules.
-module uim.platform.object_store.domain.entities.rules;
+module neko.objects.domain.entities.rules;
 
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

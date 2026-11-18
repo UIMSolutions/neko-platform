@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Infrastructure layer (cross-cutting concerns).
-module uim.platform.object_store.infrastructure;
+module neko.objects.infrastructure;
 
 public {
-  import uim.platform.object_store.infrastructure.clients;
-  import uim.platform.object_store.infrastructure.configuration;
-  import uim.platform.object_store.infrastructure.logging;
-  import uim.platform.object_store.infrastructure.security;
-  import uim.platform.object_store.infrastructure.workers;
-  import uim.platform.object_store.infrastructure.container;
+  import neko.objects.infrastructure.clients;
+  import neko.objects.infrastructure.configuration;
+  import neko.objects.infrastructure.logging;
+  import neko.objects.infrastructure.security;
+  import neko.objects.infrastructure.workers;
+  import neko.objects.infrastructure.container;
 }

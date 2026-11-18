@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driven ports for event brokers and messaging.
-module uim.platform.object_store.ports.messaging;
+module neko.objects.ports.messaging;
 
 public {
-  import uim.platform.object_store.ports.messaging.publisher;
+  import neko.objects.ports.messaging.publisher;
 }

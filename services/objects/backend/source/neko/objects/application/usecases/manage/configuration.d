@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Interactors of the bucket configuration: access policies, lifecycle rules, CORS rules.
-module uim.platform.object_store.application.usecases.manage.configuration;
+module neko.objects.application.usecases.manage.configuration;
 
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

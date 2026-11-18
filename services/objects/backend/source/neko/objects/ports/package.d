@@ -4,14 +4,14 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Ports (interfaces) of the hexagon.
-module uim.platform.object_store.ports;
+module neko.objects.ports;
 
 public {
-  import uim.platform.object_store.ports.gateways;
-  import uim.platform.object_store.ports.messaging;
-  import uim.platform.object_store.ports.repositories;
-  import uim.platform.object_store.ports.services;
-  import uim.platform.object_store.ports.storages;
-  import uim.platform.object_store.ports.usecases;
-  import uim.platform.object_store.ports.driving;
+  import neko.objects.ports.gateways;
+  import neko.objects.ports.messaging;
+  import neko.objects.ports.repositories;
+  import neko.objects.ports.services;
+  import neko.objects.ports.storages;
+  import neko.objects.ports.usecases;
+  import neko.objects.ports.driving;
 }

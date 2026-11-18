@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// REST (management plane) and content (data plane) controllers.
-module uim.platform.object_store.presentation.http.controllers;
+module neko.objects.presentation.http.controllers;
 
 public {
-  import uim.platform.object_store.presentation.http.controllers.content;
-  import uim.platform.object_store.presentation.http.controllers.resources;
+  import neko.objects.presentation.http.controllers.content;
+  import neko.objects.presentation.http.controllers.resources;
 }

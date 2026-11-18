@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Minimal, dependency-free command line parser:
 ///   positional arguments, --key=value, --key value and boolean --flag.
-module uim.platform.object_store.presentation.cli.args;
+module neko.objects.presentation.cli.args;
 
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

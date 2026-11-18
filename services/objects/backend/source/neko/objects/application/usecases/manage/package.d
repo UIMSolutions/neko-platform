@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Interactors of the aggregates.
-module uim.platform.object_store.application.usecases.manage;
+module neko.objects.application.usecases.manage;
 
 public {
-  import uim.platform.object_store.application.usecases.manage.bindings;
-  import uim.platform.object_store.application.usecases.manage.buckets;
-  import uim.platform.object_store.application.usecases.manage.configuration;
-  import uim.platform.object_store.application.usecases.manage.objects;
-  import uim.platform.object_store.application.usecases.manage.versions;
+  import neko.objects.application.usecases.manage.bindings;
+  import neko.objects.application.usecases.manage.buckets;
+  import neko.objects.application.usecases.manage.configuration;
+  import neko.objects.application.usecases.manage.objects;
+  import neko.objects.application.usecases.manage.versions;
 }

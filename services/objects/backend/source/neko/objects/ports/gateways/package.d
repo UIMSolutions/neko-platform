@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driven ports for external APIs and third-party systems.
-module uim.platform.object_store.ports.gateways;
+module neko.objects.ports.gateways;
 
 public {
-  import uim.platform.object_store.ports.gateways.key_management;
+  import neko.objects.ports.gateways.key_management;
 }

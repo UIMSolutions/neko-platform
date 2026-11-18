@@ -5,16 +5,16 @@
 *****************************************************************************************************************/
 /// Object Store service — hexagonal architecture:
 ///   domain ← ports ← application ← persistence / infrastructure ← presentation
-module uim.platform.object_store;
+module neko.objects;
 
 public {
   import uim.platform.service;
 
-  import uim.platform.object_store.helpers;
-  import uim.platform.object_store.domain;
-  import uim.platform.object_store.ports;
-  import uim.platform.object_store.application;
-  import uim.platform.object_store.persistence;
-  import uim.platform.object_store.infrastructure;
-  import uim.platform.object_store.presentation;
+  import neko.objects.helpers;
+  import neko.objects.domain;
+  import neko.objects.ports;
+  import neko.objects.application;
+  import neko.objects.persistence;
+  import neko.objects.infrastructure;
+  import neko.objects.presentation;
 }

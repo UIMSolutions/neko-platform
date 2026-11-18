@@ -5,10 +5,10 @@
 *****************************************************************************************************************/
 /// Tabular projections of resource payloads, shared by the text based
 /// presentation adapters (CLI tables and GtkD list views).
-module uim.platform.object_store.presentation.tabular;
+module neko.objects.presentation.tabular;
 
-import uim.platform.object_store;
-import uim.platform.object_store.presentation.resources;
+import neko.objects;
+import neko.objects.presentation.resources;
 
 mixin(ShowModule!());
 

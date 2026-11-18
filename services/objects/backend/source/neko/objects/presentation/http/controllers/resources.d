@@ -20,12 +20,12 @@
 /// Errors: { "error": { "code": "...", "message": "..." } } with 400/403/404/405/409/413/422/500.
 /// Tenant / user come from the XSUAA token or the X-Tenant-Id / X-User-Id headers.
 /// Bucket references (bucketId) accept an id or the bucket name.
-module uim.platform.object_store.presentation.http.controllers.resources;
+module neko.objects.presentation.http.controllers.resources;
 
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
-import uim.platform.object_store;
-import uim.platform.object_store.presentation.resources;
+import neko.objects;
+import neko.objects.presentation.resources;
 
 mixin(ShowModule!());
 

@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Blob storages (object content) implementing IBlobStorage.
-module uim.platform.object_store.persistence.storages.blobs;
+module neko.objects.persistence.storages.blobs;
 
 import std.file : exists, mkdirRecurse, read, rename, write, remove;
 import std.path : buildPath;
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

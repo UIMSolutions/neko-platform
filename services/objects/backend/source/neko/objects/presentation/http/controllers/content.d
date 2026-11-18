@@ -16,16 +16,16 @@
 /// (behind the approuter) or with service binding credentials:
 ///   X-Access-Key-Id / X-Secret-Access-Key   or   Authorization: OSK <accessKeyId>:<secret>
 /// Binding permissions and the bucket's access policies are enforced.
-module uim.platform.object_store.presentation.http.controllers.content;
+module neko.objects.presentation.http.controllers.content;
 
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.http.common : HTTPMethod;
 import vibe.stream.operations : readAll;
 import vibe.textfilter.urlencode : urlDecode;
-import uim.platform.object_store;
-import uim.platform.object_store.presentation.resources;
-import uim.platform.object_store.presentation.http.controllers.resources : guard, writeJson, writeError;
+import neko.objects;
+import neko.objects.presentation.resources;
+import neko.objects.presentation.http.controllers.resources : guard, writeJson, writeError;
 
 mixin(ShowModule!());
 

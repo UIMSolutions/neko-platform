@@ -6,9 +6,9 @@
 /// Application service shared by the object, version, bucket and lifecycle
 /// interactors: writes content and versions, deletes with delete markers,
 /// collects unreferenced blobs and keeps the bucket usage up to date.
-module uim.platform.object_store.application.services.object_storage;
+module neko.objects.application.services.object_storage;
 
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

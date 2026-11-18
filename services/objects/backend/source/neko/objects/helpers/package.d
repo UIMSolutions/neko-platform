@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Technical helpers shared by all layers (no business logic).
-module uim.platform.object_store.helpers;
+module neko.objects.helpers;
 
 public {
-  import uim.platform.object_store.helpers.codec;
-  import uim.platform.object_store.helpers.enums;
-  import uim.platform.object_store.helpers.json;
-  import uim.platform.object_store.helpers.time;
+  import neko.objects.helpers.codec;
+  import neko.objects.helpers.enums;
+  import neko.objects.helpers.json;
+  import neko.objects.helpers.time;
 }

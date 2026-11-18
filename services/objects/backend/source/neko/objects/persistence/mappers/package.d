@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Converters between database records and domain entities.
-module uim.platform.object_store.persistence.mappers;
+module neko.objects.persistence.mappers;
 
 public {
-  import uim.platform.object_store.persistence.mappers.record;
+  import neko.objects.persistence.mappers.record;
 }

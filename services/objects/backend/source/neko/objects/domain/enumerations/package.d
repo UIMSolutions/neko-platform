@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Business enumerations and status values.
-module uim.platform.object_store.domain.enumerations;
+module neko.objects.domain.enumerations;
 
 public {
-  import uim.platform.object_store.domain.enumerations.access;
-  import uim.platform.object_store.domain.enumerations.rules;
-  import uim.platform.object_store.domain.enumerations.storage;
+  import neko.objects.domain.enumerations.access;
+  import neko.objects.domain.enumerations.rules;
+  import neko.objects.domain.enumerations.storage;
 }

@@ -29,17 +29,17 @@
 /// IEEE754Compatible=true (UI5 does).
 ///
 /// $batch is not supported — configure the UI5 model with groupId "$direct".
-module uim.platform.object_store.presentation.odata.controller;
+module neko.objects.presentation.odata.controller;
 
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.http.common : HTTPMethod;
 import vibe.textfilter.urlencode : urlDecode;
-import uim.platform.object_store;
-import uim.platform.object_store.presentation.resources;
-import uim.platform.object_store.presentation.odata.model;
-import uim.platform.object_store.presentation.odata.metadata;
-import uim.platform.object_store.presentation.odata.query;
+import neko.objects;
+import neko.objects.presentation.resources;
+import neko.objects.presentation.odata.model;
+import neko.objects.presentation.odata.metadata;
+import neko.objects.presentation.odata.query;
 
 mixin(ShowModule!());
 

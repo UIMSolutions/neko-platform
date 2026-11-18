@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Naming rules for buckets and object keys, and glob matching for policies.
-module uim.platform.object_store.domain.services.naming;
+module neko.objects.domain.services.naming;
 
 import std.ascii : isDigit, isLower;
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

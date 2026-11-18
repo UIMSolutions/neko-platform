@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Protocol-neutral resource adapters shared by all driving adapters.
-module uim.platform.object_store.presentation.resources;
+module neko.objects.presentation.resources;
 
 public {
-  import uim.platform.object_store.presentation.resources.adapter;
-  import uim.platform.object_store.presentation.resources.registry;
+  import neko.objects.presentation.resources.adapter;
+  import neko.objects.presentation.resources.registry;
 }

@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Common behaviour of the resource interactors: result mapping, parent
 /// lookups, uniqueness checks and event publishing.
-module uim.platform.object_store.application.usecases.base;
+module neko.objects.application.usecases.base;
 
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

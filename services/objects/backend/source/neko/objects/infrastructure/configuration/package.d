@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Loading environment variables & config files (VCAP_SERVICES).
-module uim.platform.object_store.infrastructure.configuration;
+module neko.objects.infrastructure.configuration;
 
 public {
-  import uim.platform.object_store.infrastructure.configuration.config;
+  import neko.objects.infrastructure.configuration.config;
 }

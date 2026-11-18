@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// The user settable fields of each aggregate. Field names equal the entity's,
 /// so adapters derive the spec of an existing entity for PATCH semantics.
-module uim.platform.object_store.application.dtos.specs;
+module neko.objects.application.dtos.specs;
 
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

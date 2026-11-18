@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Background tasks.
-module uim.platform.object_store.infrastructure.workers;
+module neko.objects.infrastructure.workers;
 
 public {
-  import uim.platform.object_store.infrastructure.workers.lifecycle_worker;
+  import neko.objects.infrastructure.workers.lifecycle_worker;
 }

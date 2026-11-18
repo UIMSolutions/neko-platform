@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Domain layer (core logic) of the Object Store service.
-module uim.platform.object_store.domain;
+module neko.objects.domain;
 
 public {
-  import uim.platform.object_store.domain.entities;
-  import uim.platform.object_store.domain.enumerations;
-  import uim.platform.object_store.domain.exceptions;
-  import uim.platform.object_store.domain.services;
-  import uim.platform.object_store.domain.types;
+  import neko.objects.domain.entities;
+  import neko.objects.domain.enumerations;
+  import neko.objects.domain.exceptions;
+  import neko.objects.domain.services;
+  import neko.objects.domain.types;
 }

@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driving ports of the application services.
-module uim.platform.object_store.ports.services.services;
+module neko.objects.ports.services.services;
 
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

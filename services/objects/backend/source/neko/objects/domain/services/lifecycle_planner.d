@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Lifecycle rules: validation and planning (pure — the application layer executes the plan).
-module uim.platform.object_store.domain.services.lifecycle_planner;
+module neko.objects.domain.services.lifecycle_planner;
 
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

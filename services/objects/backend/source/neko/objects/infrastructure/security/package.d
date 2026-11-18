@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// XSUAA / JWT identity resolution.
-module uim.platform.object_store.infrastructure.security;
+module neko.objects.infrastructure.security;
 
 public {
-  import uim.platform.object_store.infrastructure.security.identity;
+  import neko.objects.infrastructure.security.identity;
 }

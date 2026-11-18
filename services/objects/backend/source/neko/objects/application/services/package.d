@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Application-wide services.
-module uim.platform.object_store.application.services;
+module neko.objects.application.services;
 
 public {
-  import uim.platform.object_store.application.services.catalog;
-  import uim.platform.object_store.application.services.events;
-  import uim.platform.object_store.application.services.object_storage;
-  import uim.platform.object_store.application.services.statistics;
+  import neko.objects.application.services.catalog;
+  import neko.objects.application.services.events;
+  import neko.objects.application.services.object_storage;
+  import neko.objects.application.services.statistics;
 }

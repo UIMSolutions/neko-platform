@@ -6,13 +6,13 @@
 /// Command line driving adapter. Generic over the resource registry, so every
 /// resource supports the same verbs — exactly like the REST/OData/GUI adapters —
 /// plus S3 style content commands (put, get, ls, rm).
-module uim.platform.object_store.presentation.cli.commands;
+module neko.objects.presentation.cli.commands;
 
 import std.file : read, exists;
-import uim.platform.object_store;
-import uim.platform.object_store.presentation.cli.args;
-import uim.platform.object_store.presentation.resources;
-import uim.platform.object_store.presentation.tabular;
+import neko.objects;
+import neko.objects.presentation.cli.args;
+import neko.objects.presentation.resources;
+import neko.objects.presentation.tabular;
 
 mixin(ShowModule!());
 

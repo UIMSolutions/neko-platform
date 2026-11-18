@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Technical storage drivers (snapshots, blobs).
-module uim.platform.object_store.persistence.storages;
+module neko.objects.persistence.storages;
 
 public {
-  import uim.platform.object_store.persistence.storages.blobs;
-  import uim.platform.object_store.persistence.storages.json_file;
-  import uim.platform.object_store.persistence.storages.memory;
-  import uim.platform.object_store.persistence.storages.snapshot_store;
+  import neko.objects.persistence.storages.blobs;
+  import neko.objects.persistence.storages.json_file;
+  import neko.objects.persistence.storages.memory;
+  import neko.objects.persistence.storages.snapshot_store;
 }

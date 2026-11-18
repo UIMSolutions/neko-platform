@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Command-line interface.
-module uim.platform.object_store.presentation.cli;
+module neko.objects.presentation.cli;
 
 public {
-  import uim.platform.object_store.presentation.cli.args;
-  import uim.platform.object_store.presentation.cli.commands;
+  import neko.objects.presentation.cli.args;
+  import neko.objects.presentation.cli.commands;
 }

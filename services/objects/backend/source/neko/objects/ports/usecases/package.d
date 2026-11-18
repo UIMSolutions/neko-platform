@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driving ports for use cases.
-module uim.platform.object_store.ports.usecases;
+module neko.objects.ports.usecases;
 
 public {
-  import uim.platform.object_store.ports.usecases.usecases;
+  import neko.objects.ports.usecases.usecases;
 }

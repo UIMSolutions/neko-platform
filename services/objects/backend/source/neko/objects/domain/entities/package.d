@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Business objects with their own identity.
-module uim.platform.object_store.domain.entities;
+module neko.objects.domain.entities;
 
 public {
-  import uim.platform.object_store.domain.entities.bucket;
-  import uim.platform.object_store.domain.entities.object_version;
-  import uim.platform.object_store.domain.entities.rules;
-  import uim.platform.object_store.domain.entities.service_binding;
-  import uim.platform.object_store.domain.entities.storage_object;
+  import neko.objects.domain.entities.bucket;
+  import neko.objects.domain.entities.object_version;
+  import neko.objects.domain.entities.rules;
+  import neko.objects.domain.entities.service_binding;
+  import neko.objects.domain.entities.storage_object;
 }

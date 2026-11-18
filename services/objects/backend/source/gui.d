@@ -8,8 +8,8 @@
 ///   dub run --config=gui -- [--tenant=<id>] [--data-dir=<dir>]
 module gui;
 
-import uim.platform.object_store;
-import uim.platform.object_store.presentation.gui;
+import neko.objects;
+import neko.objects.presentation.gui;
 
 version (unittest) {
 } else {

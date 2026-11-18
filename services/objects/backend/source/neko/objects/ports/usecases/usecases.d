@@ -8,9 +8,9 @@
 /// Mutations return a UsecaseResult; on failure `code` carries an HTTP-like
 /// status (403 access denied, 404 not found, 405 not supported, 409 conflict,
 /// 422 business rule violated).
-module uim.platform.object_store.ports.usecases.usecases;
+module neko.objects.ports.usecases.usecases;
 
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

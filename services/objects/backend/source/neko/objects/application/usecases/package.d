@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Concrete use cases / interactors.
-module uim.platform.object_store.application.usecases;
+module neko.objects.application.usecases;
 
 public {
-  import uim.platform.object_store.application.usecases.manage;
-  import uim.platform.object_store.application.usecases.base;
+  import neko.objects.application.usecases.manage;
+  import neko.objects.application.usecases.base;
 }

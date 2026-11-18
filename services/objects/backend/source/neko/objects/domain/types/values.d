@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Value objects embedded in the aggregates (OData complex types), reference
 /// data and the results of the pure domain services.
-module uim.platform.object_store.domain.types.values;
+module neko.objects.domain.types.values;
 
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

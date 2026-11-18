@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Business rules of a bucket: encryption, quota, write protection.
-module uim.platform.object_store.domain.services.bucket_rules;
+module neko.objects.domain.services.bucket_rules;
 
-import uim.platform.object_store;
+import neko.objects;
 
 mixin(ShowModule!());
 

@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Data transfer objects / request-response models.
-module uim.platform.object_store.application.dtos;
+module neko.objects.application.dtos;
 
 public {
-  import uim.platform.object_store.application.dtos.requests;
-  import uim.platform.object_store.application.dtos.results;
-  import uim.platform.object_store.application.dtos.specs;
+  import neko.objects.application.dtos.requests;
+  import neko.objects.application.dtos.results;
+  import neko.objects.application.dtos.specs;
 }

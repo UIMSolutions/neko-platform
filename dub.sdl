@@ -20,13 +20,13 @@ dependency ":service" version="*"
 
 dependency ":management" version="*"
 dependency ":authentication" version="*"
-// dependency ":authorization" version="*"
+dependency ":authorization" version="*"
 
 subPackage "services/service"
 
 subPackage "services/management/backend"
 subPackage "services/authentication/backend"
-// subPackage "services/authorization/backend"
+subPackage "services/authorization/backend"
 
 configuration "open" {
 	targetType "executable"

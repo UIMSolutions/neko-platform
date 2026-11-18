@@ -18,10 +18,10 @@ buildOptions "ignoreDeprecations" "debugInfo"
 
 // ── HTTP server: REST (/api/v1, /rest/v1/identity-authentication) + OData v4 (/odata/v4/identity-authentication) ────
 // dub build            (or --config=defaultRun)
-// ./build/uim-identity-authentication-platform-service
+// ./build/neko-service-authentication
 configuration "defaultRun" {
 	targetType "executable"
-	targetName "uim-identity-authentication-platform-service"
+	targetName "neko-service-authentication"
 	mainSourceFile "source/app.d"
 	excludedSourceFiles "source/cli.d" "source/gui.d"
 }
@@ -50,7 +50,7 @@ configuration "gui" {
 // ── Libraries / unit tests ──────────────────────────────────────────────────
 configuration "defaultTest" {
 	targetType "library"
-	targetName "uim-identity-authentication-platform-service"
+	targetName "neko-service-authentication"
 	excludedSourceFiles "source/app.d" "source/cli.d" "source/gui.d"
 }
 

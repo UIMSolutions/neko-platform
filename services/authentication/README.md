@@ -47,12 +47,12 @@ identity-authentication/
 
 ```bash
 cd backend
-dub build                      # server   → build/uim-identity-authentication-platform-service
+dub build                      # server   → build/neko-service-authentication
 dub build --config=cli         # CLI      → build/uim-ias-cli
 dub build --config=gui         # GtkD GUI → build/uim-ias-gui   (needs GTK 3.24)
 dub test  --config=defaultTest # unit + end-to-end tests (53 modules)
 
-IAS_JWT_SECRET=$(openssl rand -hex 32) ./build/uim-identity-authentication-platform-service
+IAS_JWT_SECRET=$(openssl rand -hex 32) ./build/neko-service-authentication
 # → http://localhost:8125/index.html   (Fiori app served from ../frontend for local development)
 ```
 

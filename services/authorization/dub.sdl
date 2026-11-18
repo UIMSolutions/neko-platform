@@ -8,11 +8,11 @@ license "Apache-2.0"
 targetType "executable"
 targetName "neko-service-authorization"
 targetPath "build"
-sourcePaths "source"
-importPaths "source"
+sourcePaths "backend/source"
+importPaths "backend/source"
 
 dependency "vibe-d" version="~>0.10.5"
-dependency "neko-service-platform:service" path=".."
+dependency "neko-service-platform:service" version="*"
 dependency "uim-framework" version="~>26.11.1"
 
 buildRequirements "allowWarnings" "silenceDeprecations"
@@ -23,7 +23,7 @@ configuration "defaultRun" {
 }
 configuration "defaultTest" {
   targetType "library"
-  excludedSourceFiles "source/app.d"
+  excludedSourceFiles "backend/source/app.d"
 }
 configuration "modules" {
   targetType "library"

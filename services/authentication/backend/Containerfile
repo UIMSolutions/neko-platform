@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN useradd -r -s /bin/false appuser && mkdir -p /data && chown appuser:appuser /data
 WORKDIR /app
-COPY --from=build /build/identity-authentication/backend/build/uim-identity-authentication-platform-service /build/identity-authentication/backend/build/uim-ias-cli ./
+COPY --from=build /build/identity-authentication/backend/build/neko-service-authentication /build/identity-authentication/backend/build/uim-ias-cli ./
 COPY --from=build /build/identity-authentication/backend/config ./config
 USER appuser
 
@@ -29,4 +29,4 @@ VOLUME ["/data"]
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:8125/api/v1/health || exit 1
 
-CMD ["./uim-identity-authentication-platform-service"]
+CMD ["./neko-service-authentication"]

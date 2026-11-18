@@ -1,4 +1,4 @@
-# neko-service-platform-service
+# neko-platform-service
 
 Shared library for all UIM platform services: hexagonal scaffolding (entities,
 repositories, use cases) plus **opt-in adapters that give a service an OData v4

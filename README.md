@@ -134,7 +134,7 @@ backend/tests/smoke.sh           # end-to-end: CLI, two domains, unix socket, sc
 
 ```bash
 NEKO_DOMAIN=restricted mbt build
-cf deploy mta_archives/neko-service-platform_1.0.0.mtar
+cf deploy mta_archives/neko-platform_1.0.0.mtar
 ```
 
 Deploy each domain into its own space. Local approuter: copy

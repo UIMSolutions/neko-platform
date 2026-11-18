@@ -9,7 +9,7 @@ dependency "gtk-d" version="~>3.11.0"
 dependency "uim-framework" version="~>26.11.1"
 
 targetType "library"
-targetName "neko-service"
+targetName "uim-service"
 targetPath "build"
 
 configuration "default" {

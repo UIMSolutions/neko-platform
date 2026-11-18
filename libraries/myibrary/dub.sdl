@@ -11,7 +11,7 @@ dependency "fluid" version="~>0.9.1"
 dependency "gtk-d" version="~>3.11.0"
 targetType "library"
 targetPath "build"
-targetName "neko-myLibrary"
+targetName "uim-myLibrary"
 configuration "default" {
 	targetType "library"
 }

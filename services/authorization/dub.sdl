@@ -12,7 +12,7 @@ sourcePaths "backend/source"
 importPaths "backend/source"
 
 dependency "vibe-d" version="~>0.10.5"
-dependency "neko-service-platform:service" version="*"
+dependency "neko-platform:service" version="*"
 dependency "uim-framework" version="~>26.11.1"
 
 buildRequirements "allowWarnings" "silenceDeprecations"

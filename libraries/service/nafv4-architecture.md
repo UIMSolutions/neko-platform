@@ -1,4 +1,4 @@
-# NAF v4 Architecture Description — Service Library (neko-service-platform-service)
+# NAF v4 Architecture Description — Service Library (neko-platform-service)
 
 
 ## Documentation update
@@ -109,8 +109,8 @@ Generic OData v4 endpoint provided to services (`ODataController`):
            │ static link / import
            ▼
 ┌──────────────────────────────────────┐
-│  neko-service-platform-service library        │
-│  libneko-service-platform-service.a           │
+│  neko-platform-service library        │
+│  libneko-platform-service.a           │
 └──────────────────────────────────────┘
 ```
 
@@ -134,7 +134,7 @@ Generic OData v4 endpoint provided to services (`ODataController`):
 
 ```
 Build artefact
-├── libneko-service-platform-service.a   (D static library)
+├── libneko-platform-service.a   (D static library)
 ├── libuim-sap-service.a        (SAP-extended static library)
 └── libuim-service.a            (alias entry)
 

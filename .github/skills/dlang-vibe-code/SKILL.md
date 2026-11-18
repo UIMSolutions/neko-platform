@@ -1,6 +1,6 @@
 ---
 name: dlang-vibe-code
-description: "Use when implementing, debugging, reviewing, or testing D code with vibe.d in the neko-service-platform repository, especially service packages, HTTP controllers, URLRouter routes, JSON handlers, repositories, use cases, and manual DI."
+description: "Use when implementing, debugging, reviewing, or testing D code with vibe.d in the neko-platform repository, especially service packages, HTTP controllers, URLRouter routes, JSON handlers, repositories, use cases, and manual DI."
 ---
 
 # D and vibe.d Service Workflow

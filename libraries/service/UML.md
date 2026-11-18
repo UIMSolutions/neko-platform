@@ -1,4 +1,4 @@
-# UML — Service Library (neko-service-platform-service)
+# UML — Service Library (neko-platform-service)
 
 
 ## Documentation update

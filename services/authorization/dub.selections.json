@@ -11,7 +11,7 @@
 		"eventcore": "0.9.39",
 		"gtk-d": "3.11.0",
 		"mir-linux-kernel": "1.2.1",
-		"neko-service-platform": "0.0.2",
+		"neko-platform": "0.0.2",
 		"openssl": "3.4.0",
 		"openssl-static": "1.0.5+3.0.8",
 		"silly": "1.1.1",

@@ -1,4 +1,4 @@
-# Catalog — reference service for neko-service-platform-service
+# Catalog — reference service for neko-platform-service
 
 A small product catalog that shows the target architecture end to end:
 a D/vibe.d backend in Clean Architecture, one EDM model exposed as **OData v4**

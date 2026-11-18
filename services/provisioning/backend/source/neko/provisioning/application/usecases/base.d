@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Common behaviour of the resource interactors: result mapping, parent
 /// lookups, uniqueness checks and event publishing.
-module uim.platform.identity_provisioning.application.usecases.base;
+module neko.provisioning.application.usecases.base;
 
-import uim.platform.identity_provisioning;
+import neko.provisioning;
 
 mixin(ShowModule!());
 

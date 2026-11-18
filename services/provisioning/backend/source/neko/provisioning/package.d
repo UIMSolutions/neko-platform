@@ -5,16 +5,16 @@
 *****************************************************************************************************************/
 /// Identity Provisioning service — hexagonal architecture:
 ///   domain ← ports ← application ← persistence / infrastructure ← presentation
-module uim.platform.identity_provisioning;
+module neko.provisioning;
 
 public {
   import uim.service;
 
-  import uim.platform.identity_provisioning.helpers;
-  import uim.platform.identity_provisioning.domain;
-  import uim.platform.identity_provisioning.ports;
-  import uim.platform.identity_provisioning.application;
-  import uim.platform.identity_provisioning.persistence;
-  import uim.platform.identity_provisioning.infrastructure;
-  import uim.platform.identity_provisioning.presentation;
+  import neko.provisioning.helpers;
+  import neko.provisioning.domain;
+  import neko.provisioning.ports;
+  import neko.provisioning.application;
+  import neko.provisioning.persistence;
+  import neko.provisioning.infrastructure;
+  import neko.provisioning.presentation;
 }

@@ -3,10 +3,10 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.platform.identity_provisioning.presentation.odata.model;
+module neko.provisioning.presentation.odata.model;
 
-import uim.platform.identity_provisioning;
-import uim.platform.identity_provisioning.presentation.resources;
+import neko.provisioning;
+import neko.provisioning.presentation.resources;
 
 mixin(ShowModule!());
 

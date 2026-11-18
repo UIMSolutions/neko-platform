@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Business enumerations & status values.
-module uim.platform.identity_provisioning.domain.enumerations;
+module neko.provisioning.domain.enumerations;
 
 public {
-  import uim.platform.identity_provisioning.domain.enumerations.systems;
-  import uim.platform.identity_provisioning.domain.enumerations.jobs;
-  import uim.platform.identity_provisioning.domain.enumerations.identities;
-  import uim.platform.identity_provisioning.domain.enumerations.transformations;
+  import neko.provisioning.domain.enumerations.systems;
+  import neko.provisioning.domain.enumerations.jobs;
+  import neko.provisioning.domain.enumerations.identities;
+  import neko.provisioning.domain.enumerations.transformations;
 }

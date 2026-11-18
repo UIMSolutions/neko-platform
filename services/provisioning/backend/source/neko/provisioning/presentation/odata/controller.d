@@ -23,17 +23,17 @@
 /// SystemTypes, ProvisioningLogs and ProvisionedEntities are read-only.
 ///
 /// $batch is not supported — configure the UI5 model with groupId "$direct".
-module uim.platform.identity_provisioning.presentation.odata.controller;
+module neko.provisioning.presentation.odata.controller;
 
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.http.common : HTTPMethod;
 import vibe.textfilter.urlencode : urlDecode;
-import uim.platform.identity_provisioning;
-import uim.platform.identity_provisioning.presentation.resources;
-import uim.platform.identity_provisioning.presentation.odata.model;
-import uim.platform.identity_provisioning.presentation.odata.metadata;
-import uim.platform.identity_provisioning.presentation.odata.query;
+import neko.provisioning;
+import neko.provisioning.presentation.resources;
+import neko.provisioning.presentation.odata.model;
+import neko.provisioning.presentation.odata.metadata;
+import neko.provisioning.presentation.odata.query;
 
 mixin(ShowModule!());
 

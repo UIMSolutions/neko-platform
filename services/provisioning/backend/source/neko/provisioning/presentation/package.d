@@ -4,14 +4,14 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Presentation layer (driving adapters).
-module uim.platform.identity_provisioning.presentation;
+module neko.provisioning.presentation;
 
 public {
-  import uim.platform.identity_provisioning.presentation.resources;
-  import uim.platform.identity_provisioning.presentation.tabular;
-  import uim.platform.identity_provisioning.presentation.http;
-  import uim.platform.identity_provisioning.presentation.odata;
-  import uim.platform.identity_provisioning.presentation.cli;
-  import uim.platform.identity_provisioning.presentation.web;
+  import neko.provisioning.presentation.resources;
+  import neko.provisioning.presentation.tabular;
+  import neko.provisioning.presentation.http;
+  import neko.provisioning.presentation.odata;
+  import neko.provisioning.presentation.cli;
+  import neko.provisioning.presentation.web;
   // GtkD GUI: imported explicitly by source/gui.d (only built with --config=gui)
 }

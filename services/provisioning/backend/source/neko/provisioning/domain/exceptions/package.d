@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Business exceptions and error types.
-module uim.platform.identity_provisioning.domain.exceptions;
+module neko.provisioning.domain.exceptions;
 
 public {
-  import uim.platform.identity_provisioning.domain.exceptions.provisioning;
+  import neko.provisioning.domain.exceptions.provisioning;
 }

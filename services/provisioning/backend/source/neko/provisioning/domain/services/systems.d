@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Validation rules of system connections.
-module uim.platform.identity_provisioning.domain.services.systems;
+module neko.provisioning.domain.services.systems;
 
-import uim.platform.identity_provisioning;
+import neko.provisioning;
 
 mixin(ShowModule!());
 

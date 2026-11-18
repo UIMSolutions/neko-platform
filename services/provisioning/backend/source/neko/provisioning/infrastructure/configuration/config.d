@@ -3,12 +3,12 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.platform.identity_provisioning.infrastructure.configuration.config;
+module neko.provisioning.infrastructure.configuration.config;
 
 import std.file : exists, readText, thisExePath;
 import std.path : buildPath, dirName;
 import std.process : environment;
-import uim.platform.identity_provisioning;
+import neko.provisioning;
 
 mixin(ShowModule!());
 

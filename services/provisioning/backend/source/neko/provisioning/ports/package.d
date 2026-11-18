@@ -4,14 +4,14 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Ports (interfaces) of the hexagon.
-module uim.platform.identity_provisioning.ports;
+module neko.provisioning.ports;
 
 public {
-  import uim.platform.identity_provisioning.ports.driving;
-  import uim.platform.identity_provisioning.ports.gateways;
-  import uim.platform.identity_provisioning.ports.messaging;
-  import uim.platform.identity_provisioning.ports.repositories;
-  import uim.platform.identity_provisioning.ports.services;
-  import uim.platform.identity_provisioning.ports.storages;
-  import uim.platform.identity_provisioning.ports.usecases;
+  import neko.provisioning.ports.driving;
+  import neko.provisioning.ports.gateways;
+  import neko.provisioning.ports.messaging;
+  import neko.provisioning.ports.repositories;
+  import neko.provisioning.ports.services;
+  import neko.provisioning.ports.storages;
+  import neko.provisioning.ports.usecases;
 }

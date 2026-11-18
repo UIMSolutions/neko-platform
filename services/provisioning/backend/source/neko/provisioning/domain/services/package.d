@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Pure domain services (business-only operations).
-module uim.platform.identity_provisioning.domain.services;
+module neko.provisioning.domain.services;
 
 public {
-  import uim.platform.identity_provisioning.domain.services.catalog;
-  import uim.platform.identity_provisioning.domain.services.lifecycle;
-  import uim.platform.identity_provisioning.domain.services.names;
-  import uim.platform.identity_provisioning.domain.services.planner;
-  import uim.platform.identity_provisioning.domain.services.systems;
-  import uim.platform.identity_provisioning.domain.services.transformer;
+  import neko.provisioning.domain.services.catalog;
+  import neko.provisioning.domain.services.lifecycle;
+  import neko.provisioning.domain.services.names;
+  import neko.provisioning.domain.services.planner;
+  import neko.provisioning.domain.services.systems;
+  import neko.provisioning.domain.services.transformer;
 }

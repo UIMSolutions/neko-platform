@@ -59,7 +59,7 @@ management/
 └── approuter/                @sap/approuter, xs-app.json, xs-security.json
 ```
 
-The module namespace follows the platform convention (`uim.platform.management`);
+The module namespace follows the platform convention (`neko.management`);
 the skill's `uim/myfiori` placeholder maps to it.
 
 ## Build & run

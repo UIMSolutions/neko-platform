@@ -14,3 +14,8 @@ public:
     import neko.database.domain.entities.procedure;
     import neko.database.domain.entities.tenant;
     import neko.database.domain.entities.user;
+    import neko.database.domain.entities.binding;
+    import neko.database.domain.entities.calcview;
+    import neko.database.domain.entities.dataproduct;
+    import neko.database.domain.entities.instance;
+    import neko.database.domain.entities.workload;

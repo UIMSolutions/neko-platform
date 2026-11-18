@@ -6,10 +6,10 @@
 /// The resource catalogue of the provisioning service: which kinds exist, how
 /// they are named per protocol, their table columns and actions — plus the
 /// non-resource operations (run due jobs, preview a transformation, purge logs).
-module uim.platform.identity_provisioning.presentation.resources.registry;
+module neko.provisioning.presentation.resources.registry;
 
-import uim.platform.identity_provisioning;
-import uim.platform.identity_provisioning.presentation.resources.adapter;
+import neko.provisioning;
+import neko.provisioning.presentation.resources.adapter;
 
 mixin(ShowModule!());
 

@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Infrastructure layer (cross-cutting concerns).
-module uim.platform.identity_provisioning.infrastructure;
+module neko.provisioning.infrastructure;
 
 public {
-  import uim.platform.identity_provisioning.infrastructure.clients;
-  import uim.platform.identity_provisioning.infrastructure.configuration;
-  import uim.platform.identity_provisioning.infrastructure.container;
-  import uim.platform.identity_provisioning.infrastructure.logging;
-  import uim.platform.identity_provisioning.infrastructure.security;
-  import uim.platform.identity_provisioning.infrastructure.workers;
+  import neko.provisioning.infrastructure.clients;
+  import neko.provisioning.infrastructure.configuration;
+  import neko.provisioning.infrastructure.container;
+  import neko.provisioning.infrastructure.logging;
+  import neko.provisioning.infrastructure.security;
+  import neko.provisioning.infrastructure.workers;
 }

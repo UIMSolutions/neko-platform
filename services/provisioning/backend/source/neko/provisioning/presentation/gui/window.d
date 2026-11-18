@@ -8,13 +8,13 @@
 /// and the CLI through the configured snapshot storage.
 ///
 /// Only compiled when gtk-d is a dependency (dub --config=gui).
-module uim.platform.identity_provisioning.presentation.gui.window;
+module neko.provisioning.presentation.gui.window;
 
 version (Have_gtk_d):
 
-import uim.platform.identity_provisioning;
-import uim.platform.identity_provisioning.presentation.resources;
-import uim.platform.identity_provisioning.presentation.tabular;
+import neko.provisioning;
+import neko.provisioning.presentation.resources;
+import neko.provisioning.presentation.tabular;
 
 import std.typecons : tuple;
 import gtk.Main;

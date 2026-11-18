@@ -10,9 +10,9 @@
 /// enums by name, key/value lists as [{key, value}] (objects and "k=v" are
 /// accepted). Secret fields are masked on output; a masked value sent back in a
 /// PATCH keeps the stored secret.
-module uim.platform.identity_provisioning.presentation.resources.adapter;
+module neko.provisioning.presentation.resources.adapter;
 
-import uim.platform.identity_provisioning;
+import neko.provisioning;
 
 mixin(ShowModule!());
 

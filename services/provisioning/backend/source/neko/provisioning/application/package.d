@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Application layer: use cases, application services, DTOs.
-module uim.platform.identity_provisioning.application;
+module neko.provisioning.application;
 
 public {
-  import uim.platform.identity_provisioning.application.dtos;
-  import uim.platform.identity_provisioning.application.services;
-  import uim.platform.identity_provisioning.application.usecases;
+  import neko.provisioning.application.dtos;
+  import neko.provisioning.application.services;
+  import neko.provisioning.application.usecases;
 }

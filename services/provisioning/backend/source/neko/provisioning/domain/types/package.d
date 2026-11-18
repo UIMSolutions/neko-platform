@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Value objects and strongly typed identifiers.
-module uim.platform.identity_provisioning.domain.types;
+module neko.provisioning.domain.types;
 
 public {
-  import uim.platform.identity_provisioning.domain.types.ids;
-  import uim.platform.identity_provisioning.domain.types.values;
+  import neko.provisioning.domain.types.ids;
+  import neko.provisioning.domain.types.values;
 }

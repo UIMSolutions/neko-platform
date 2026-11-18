@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Protocol-neutral resource adapters shared by all driving adapters.
-module uim.platform.identity_provisioning.presentation.resources;
+module neko.provisioning.presentation.resources;
 
 public {
-  import uim.platform.identity_provisioning.presentation.resources.adapter;
-  import uim.platform.identity_provisioning.presentation.resources.registry;
+  import neko.provisioning.presentation.resources.adapter;
+  import neko.provisioning.presentation.resources.registry;
 }

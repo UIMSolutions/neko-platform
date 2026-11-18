@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Background tasks & task queues.
-module uim.platform.identity_provisioning.infrastructure.workers;
+module neko.provisioning.infrastructure.workers;
 
 public {
-  import uim.platform.identity_provisioning.infrastructure.workers.scheduler;
+  import neko.provisioning.infrastructure.workers.scheduler;
 }

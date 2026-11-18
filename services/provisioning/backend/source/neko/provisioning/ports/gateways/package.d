@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driven ports for external APIs & third-party systems.
-module uim.platform.identity_provisioning.ports.gateways;
+module neko.provisioning.ports.gateways;
 
 public {
-  import uim.platform.identity_provisioning.ports.gateways.connector;
+  import neko.provisioning.ports.gateways.connector;
 }

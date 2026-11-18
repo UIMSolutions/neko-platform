@@ -37,6 +37,13 @@ enum Permission {
     manageLogs, /// Einstellungen der Protokolle des Bereichs ändern
     execute, /// gespeicherte Prozeduren aufrufen (CALL) und ansehen (SHOW PROCEDURE); jede Anweisung darin prüft die eigenen Rechte
     manageProcedures, /// gespeicherte Prozeduren anlegen, ersetzen und löschen
+    viewInstances, /// Datenbankinstanzen mit Größe und Zustand lesen (nur Bereich system)
+    manageInstances, /// Instanzen anlegen, skalieren, starten, stoppen, löschen (nur Bereich system)
+    monitor, /// Überwachung, Traces, Problemzusammenfassungen und Advisor des Mandanten lesen
+    manageWorkloads, /// Workload-Klassen, Zuordnungen und Trace-Einstellungen ändern
+    manageViews, /// Calculation Views anlegen, ändern und löschen (Abfragen prüfen die Tabellenrechte)
+    manageBindings, /// Anwendungen binden und Bindungen lösen (legt technische Benutzer an)
+    manageDataProducts, /// Datenprodukte installieren und entfernen
 }
 
 /// Name eines Rechts in APIs und Dateien.
@@ -60,13 +67,15 @@ enum PermissionSet tablePermissions = PermissionSet.of(Permission.select, Permis
 
 /// Rechte, die im Bereich system gelten.
 enum PermissionSet serverPermissions = PermissionSet.of(Permission.viewTenants, Permission.manageTenants,
-        Permission.manageAccess, Permission.viewLogs, Permission.manageLogs);
+        Permission.manageAccess, Permission.viewLogs, Permission.manageLogs, Permission.viewInstances,
+        Permission.manageInstances, Permission.monitor);
 
 /// Rechte, die in einem Mandanten gelten.
 enum PermissionSet tenantPermissions = PermissionSet.of(Permission.select, Permission.insert, Permission.update,
         Permission.delete_, Permission.drop, Permission.create, Permission.transact, Permission.maintain,
         Permission.manageBackups, Permission.replicate, Permission.manageReplication, Permission.manageAccess,
-        Permission.viewLogs, Permission.manageLogs, Permission.execute, Permission.manageProcedures);
+        Permission.viewLogs, Permission.manageLogs, Permission.execute, Permission.manageProcedures, Permission.monitor,
+        Permission.manageWorkloads, Permission.manageViews, Permission.manageBindings, Permission.manageDataProducts);
 
 /// Menge von Rechten.
 struct PermissionSet {
@@ -180,7 +189,8 @@ string normalizeInstant(string text) {
 RoleDef[] builtinRoles(string tenant) {
     if (tenant == systemTenant)
         return [
-            RoleDef(tenant, "viewer", "Reads the tenant list", PermissionSet.of(Permission.viewTenants), true),
+            RoleDef(tenant, "viewer", "Reads the tenant and instance lists",
+                PermissionSet.of(Permission.viewTenants, Permission.viewInstances, Permission.monitor), true),
             RoleDef(tenant, "admin", "Manages tenants and system users", serverPermissions, true),
         ];
     auto viewer = PermissionSet.of(Permission.select, Permission.replicate, Permission.execute);

@@ -5,10 +5,10 @@
 *****************************************************************************************************************/
 /// Transformation engine: evaluates filter conditions and attribute mappings.
 /// Pure functions — no repositories, no I/O.
-module uim.platform.identity_provisioning.domain.services.transformer;
+module neko.provisioning.domain.services.transformer;
 
 import std.uni : toLower, toUpper;
-import uim.platform.identity_provisioning;
+import neko.provisioning;
 
 mixin(ShowModule!());
 

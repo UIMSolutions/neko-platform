@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Concrete use cases / interactors.
-module uim.platform.identity_provisioning.application.usecases;
+module neko.provisioning.application.usecases;
 
 public {
-  import uim.platform.identity_provisioning.application.usecases.base;
-  import uim.platform.identity_provisioning.application.usecases.manage;
-  import uim.platform.identity_provisioning.application.usecases.monitoring;
+  import neko.provisioning.application.usecases.base;
+  import neko.provisioning.application.usecases.manage;
+  import neko.provisioning.application.usecases.monitoring;
 }

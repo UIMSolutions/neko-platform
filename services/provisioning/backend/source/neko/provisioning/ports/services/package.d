@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driving ports for application services.
-module uim.platform.identity_provisioning.ports.services;
+module neko.provisioning.ports.services;
 
 public {
-  import uim.platform.identity_provisioning.ports.services.catalog;
-  import uim.platform.identity_provisioning.ports.services.statistics;
+  import neko.provisioning.ports.services.catalog;
+  import neko.provisioning.ports.services.statistics;
 }

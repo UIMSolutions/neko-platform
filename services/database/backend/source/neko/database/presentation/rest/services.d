@@ -639,7 +639,7 @@ unittest {
         assert(tables.insert("t", [Json(1), Json("it's; DROP TABLE t"), Json(1234567.891)]).affected == 1);
         assert(tables.insert("t", [Json(2), Json(null), Json(2)]).affected == 1);
         auto page = tables.rows("t", "id >= 1", "id", true, 1, 0);
-        assert(page.total == 2 && page.rows.length == 1 && page.rows[0][0].get!long == 2 && page.rows[0][1].type.isNull);
+        assert(page.total == 2 && page.rows.length == 1 && page.rows[0][0].get!long == 2 && page.rows[0][1].type == Json.Type.null_);
         assert(tables.rows("t", "", "", false, 100, 0).rows[0][1].get!string == "it's; DROP TABLE t");
 
         auto tx = sql.execute("BEGIN", "", "").transaction;
@@ -718,7 +718,7 @@ unittest {
         assert(statusOf({ client!ISqlRestApi(tinaToken).execute("SELECT * FROM t JOIN hidden h ON t.id = h.x", "", ""); }) == 403);
         assert(statusOf({ client!ISqlRestApi(tinaToken).execute("DELETE FROM t", "", ""); }) == 403);
         assert(statusOf({ client!IUserRestApi(tinaToken).roles(); }) == 403);
-        assert(client!IAuthRestApi(token).me().permissions.length == 16); // admin: alle Mandantenrechte
+        assert(client!IAuthRestApi(token).me().permissions.length == 21); // admin: alle Mandantenrechte
         assert(statusOf({ users.removeRole("clerk"); }) == 400); // noch verwendet
         users.setGrants("tina", []);
         assert(tinaTables.list().length == 0); // ohne Freigaben sieht sie nichts

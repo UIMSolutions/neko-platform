@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Technical helpers shared by all layers (no business logic).
-module uim.platform.identity_provisioning.helpers;
+module neko.provisioning.helpers;
 
 public {
-  import uim.platform.identity_provisioning.helpers.codec;
-  import uim.platform.identity_provisioning.helpers.enums;
-  import uim.platform.identity_provisioning.helpers.json;
-  import uim.platform.identity_provisioning.helpers.time;
+  import neko.provisioning.helpers.codec;
+  import neko.provisioning.helpers.enums;
+  import neko.provisioning.helpers.json;
+  import neko.provisioning.helpers.time;
 }

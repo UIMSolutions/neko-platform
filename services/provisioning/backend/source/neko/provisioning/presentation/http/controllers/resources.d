@@ -23,12 +23,12 @@
 /// Tenant / user come from the XSUAA token or the X-Tenant-Id / X-User-Id headers.
 /// References (sourceSystemId, targetSystemId, systemId, jobId) accept an id or a unique name.
 /// Passwords and client secrets are never returned ("********").
-module uim.platform.identity_provisioning.presentation.http.controllers.resources;
+module neko.provisioning.presentation.http.controllers.resources;
 
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
-import uim.platform.identity_provisioning;
-import uim.platform.identity_provisioning.presentation.resources;
+import neko.provisioning;
+import neko.provisioning.presentation.resources;
 
 mixin(ShowModule!());
 

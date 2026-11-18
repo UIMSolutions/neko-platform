@@ -6,9 +6,9 @@
 /// Provisioning planner: compares the (transformed) source identities with the
 /// entities already provisioned to a target and plans create / update /
 /// delete / skip operations. Pure — the application layer executes the plan.
-module uim.platform.identity_provisioning.domain.services.planner;
+module neko.provisioning.domain.services.planner;
 
-import uim.platform.identity_provisioning;
+import neko.provisioning;
 
 mixin(ShowModule!());
 

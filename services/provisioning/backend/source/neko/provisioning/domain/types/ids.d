@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Strongly typed identifiers of the provisioning aggregates.
 /// (TenantId and UserId come from uim-framework.)
-module uim.platform.identity_provisioning.domain.types.ids;
+module neko.provisioning.domain.types.ids;
 
-import uim.platform.identity_provisioning;
+import neko.provisioning;
 
 mixin(ShowModule!());
 

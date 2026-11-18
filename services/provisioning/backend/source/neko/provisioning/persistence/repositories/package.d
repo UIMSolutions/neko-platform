@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Concrete repository implementations (implementing the output ports).
-module uim.platform.identity_provisioning.persistence.repositories;
+module neko.provisioning.persistence.repositories;
 
 public {
-  import uim.platform.identity_provisioning.persistence.repositories.base;
-  import uim.platform.identity_provisioning.persistence.repositories.repositories;
+  import neko.provisioning.persistence.repositories.base;
+  import neko.provisioning.persistence.repositories.repositories;
 }

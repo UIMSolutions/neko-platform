@@ -6,7 +6,7 @@
 /// HTTP server entry point (composition root): REST, OData v4, Fiori app, scheduler.
 module app;
 
-import uim.platform.identity_provisioning;
+import neko.provisioning;
 
 @safe:
 

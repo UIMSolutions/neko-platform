@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driving ports for use cases.
-module uim.platform.identity_provisioning.ports.usecases;
+module neko.provisioning.ports.usecases;
 
 public {
-  import uim.platform.identity_provisioning.ports.usecases.resource;
-  import uim.platform.identity_provisioning.ports.usecases.systems;
-  import uim.platform.identity_provisioning.ports.usecases.transformations;
-  import uim.platform.identity_provisioning.ports.usecases.jobs;
-  import uim.platform.identity_provisioning.ports.usecases.monitoring;
+  import neko.provisioning.ports.usecases.resource;
+  import neko.provisioning.ports.usecases.systems;
+  import neko.provisioning.ports.usecases.transformations;
+  import neko.provisioning.ports.usecases.jobs;
+  import neko.provisioning.ports.usecases.monitoring;
 }

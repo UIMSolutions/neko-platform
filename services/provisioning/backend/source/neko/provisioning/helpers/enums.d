@@ -8,7 +8,7 @@
 /// Member names ending in "_" (D keywords such as `auto_`) are written without
 /// the underscore; string based enums (`enum ModuleType : string`) are written
 /// with their value ("api-gateway").
-module uim.platform.identity_provisioning.helpers.enums;
+module neko.provisioning.helpers.enums;
 
 import std.traits : EnumMembers, OriginalType, Unqual;
 import std.conv : to;

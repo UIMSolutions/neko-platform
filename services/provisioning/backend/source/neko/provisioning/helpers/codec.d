@@ -19,7 +19,7 @@
 ///
 /// `decode` starts from a base value and only overwrites the fields present in
 /// the JSON — this gives PATCH semantics for free.
-module uim.platform.identity_provisioning.helpers.codec;
+module neko.provisioning.helpers.codec;
 
 import std.traits : FieldNameTuple, Unqual, isIntegral, isFloatingPoint, isSomeString;
 import std.meta : AliasSeq;
@@ -27,9 +27,9 @@ import std.string : endsWith, split, strip, indexOf, toUpper;
 import std.array : array, appender;
 import std.ascii : isUpper;
 import vibe.data.json : Json, parseJsonString;
-import uim.platform.identity_provisioning.helpers.enums;
-import uim.platform.identity_provisioning.helpers.json;
-import uim.platform.identity_provisioning.helpers.time;
+import neko.provisioning.helpers.enums;
+import neko.provisioning.helpers.json;
+import neko.provisioning.helpers.time;
 
 @safe:
 

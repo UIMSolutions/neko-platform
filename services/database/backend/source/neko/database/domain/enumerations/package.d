@@ -11,3 +11,4 @@ public:
     import neko.database.domain.enumerations.role;
     import neko.database.domain.enumerations.servermode;
     import neko.database.domain.enumerations.tablestorage;
+    import neko.database.domain.enumerations.cloud;

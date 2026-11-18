@@ -8,8 +8,8 @@
 ///   dub run --config=gui -- [--tenant=<id>] [--data-dir=<dir>]
 module gui;
 
-import uim.platform.identity_provisioning;
-import uim.platform.identity_provisioning.presentation.gui;
+import neko.provisioning;
+import neko.provisioning.presentation.gui;
 
 version (unittest) {
 } else {

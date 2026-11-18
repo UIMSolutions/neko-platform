@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// State rules of systems and jobs.
-module uim.platform.identity_provisioning.domain.services.lifecycle;
+module neko.provisioning.domain.services.lifecycle;
 
-import uim.platform.identity_provisioning;
+import neko.provisioning;
 
 mixin(ShowModule!());
 

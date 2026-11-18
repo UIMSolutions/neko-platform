@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Domain layer (core logic) of the Identity Provisioning service.
-module uim.platform.identity_provisioning.domain;
+module neko.provisioning.domain;
 
 public {
-  import uim.platform.identity_provisioning.domain.entities;
-  import uim.platform.identity_provisioning.domain.enumerations;
-  import uim.platform.identity_provisioning.domain.exceptions;
-  import uim.platform.identity_provisioning.domain.services;
-  import uim.platform.identity_provisioning.domain.types;
+  import neko.provisioning.domain.entities;
+  import neko.provisioning.domain.enumerations;
+  import neko.provisioning.domain.exceptions;
+  import neko.provisioning.domain.services;
+  import neko.provisioning.domain.types;
 }

@@ -10,11 +10,11 @@
 ///   functions   contains startswith endswith (bool), tolower toupper (string)
 ///   literals    'string' (with '' escape), integers, decimals, true false null,
 ///               unquoted date/time values (2026-11-09T10:00:00Z) compared as strings
-module uim.platform.identity_provisioning.presentation.odata.query;
+module neko.provisioning.presentation.odata.query;
 
 import std.ascii : isAlphaNum, isDigit, isWhite;
 import std.uni : toLower, toUpper;
-import uim.platform.identity_provisioning;
+import neko.provisioning;
 
 mixin(ShowModule!());
 

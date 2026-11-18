@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Value objects embedded in the aggregates (exchanged as OData complex types)
 /// and the reference data of the service.
-module uim.platform.identity_provisioning.domain.types.values;
+module neko.provisioning.domain.types.values;
 
-import uim.platform.identity_provisioning;
+import neko.provisioning;
 
 mixin(ShowModule!());
 

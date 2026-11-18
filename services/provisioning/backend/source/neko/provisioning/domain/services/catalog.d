@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// The connector catalogue: which system types exist and which roles they support.
-module uim.platform.identity_provisioning.domain.services.catalog;
+module neko.provisioning.domain.services.catalog;
 
-import uim.platform.identity_provisioning;
+import neko.provisioning;
 
 mixin(ShowModule!());
 

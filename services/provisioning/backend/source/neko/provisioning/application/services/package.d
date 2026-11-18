@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Application-wide services.
-module uim.platform.identity_provisioning.application.services;
+module neko.provisioning.application.services;
 
 public {
-  import uim.platform.identity_provisioning.application.services.catalog;
-  import uim.platform.identity_provisioning.application.services.demo;
-  import uim.platform.identity_provisioning.application.services.events;
-  import uim.platform.identity_provisioning.application.services.runner;
-  import uim.platform.identity_provisioning.application.services.statistics;
+  import neko.provisioning.application.services.catalog;
+  import neko.provisioning.application.services.demo;
+  import neko.provisioning.application.services.events;
+  import neko.provisioning.application.services.runner;
+  import neko.provisioning.application.services.statistics;
 }

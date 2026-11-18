@@ -18,3 +18,4 @@ public:
     import neko.database.domain.types.tablestats;
     import neko.database.domain.types.typespec;
     import neko.database.domain.types.userinfo;
+    import neko.database.domain.types.monitoring;

@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Technical HTTP / API clients for external services.
-module uim.platform.identity_provisioning.infrastructure.clients;
+module neko.provisioning.infrastructure.clients;
 
 public {
-  import uim.platform.identity_provisioning.infrastructure.clients.simulated_connector;
+  import neko.provisioning.infrastructure.clients.simulated_connector;
 }

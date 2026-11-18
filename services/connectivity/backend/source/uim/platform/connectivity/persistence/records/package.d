@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Technical record models / collection schemas.
-module uim.platform.connectivity.persistence.records;
+module neko.connectivity.persistence.records;
 
 public {
-  import uim.platform.connectivity.persistence.records.collections;
+  import neko.connectivity.persistence.records.collections;
 }

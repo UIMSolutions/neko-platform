@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// REST controllers.
-module uim.platform.connectivity.presentation.http.controllers;
+module neko.connectivity.presentation.http.controllers;
 
 public {
-  import uim.platform.connectivity.presentation.http.controllers.resources;
+  import neko.connectivity.presentation.http.controllers.resources;
 }

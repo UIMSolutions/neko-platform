@@ -10,7 +10,7 @@
 module cli;
 
 import std.stdio : stdout;
-import uim.platform.connectivity;
+import neko.connectivity;
 
 version (unittest) {
 } else {

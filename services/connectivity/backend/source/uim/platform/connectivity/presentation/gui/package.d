@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Desktop GUI integration (GtkD 3). Only available in the "gui" dub configuration.
-module uim.platform.connectivity.presentation.gui;
+module neko.connectivity.presentation.gui;
 
 version (Have_gtk_d) {
-  public import uim.platform.connectivity.presentation.gui.window;
+  public import neko.connectivity.presentation.gui.window;
 }

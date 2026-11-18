@@ -5,7 +5,7 @@
 *****************************************************************************************************************/
 /// Defensive accessors for JSON objects: missing or mistyped fields fall back
 /// to defaults, scalar values are coerced leniently (CLI options are strings).
-module uim.platform.connectivity.helpers.json;
+module neko.connectivity.helpers.json;
 
 import std.conv : to;
 import std.string : toLower, strip, split;

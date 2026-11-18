@@ -6,7 +6,7 @@
 /// HTTP server entry point (composition root): REST /api/v1, OData v4, Fiori app.
 module app;
 
-import uim.platform.connectivity;
+import neko.connectivity;
 
 @safe:
 

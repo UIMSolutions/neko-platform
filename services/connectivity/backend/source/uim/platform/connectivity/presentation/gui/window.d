@@ -8,13 +8,13 @@
 /// and the CLI through the configured snapshot storage.
 ///
 /// Only compiled when gtk-d is a dependency (dub --config=gui).
-module uim.platform.connectivity.presentation.gui.window;
+module neko.connectivity.presentation.gui.window;
 
 version (Have_gtk_d):
 
-import uim.platform.connectivity;
-import uim.platform.connectivity.presentation.resources;
-import uim.platform.connectivity.presentation.tabular;
+import neko.connectivity;
+import neko.connectivity.presentation.resources;
+import neko.connectivity.presentation.tabular;
 
 import gtk.Main;
 import gtk.MainWindow;

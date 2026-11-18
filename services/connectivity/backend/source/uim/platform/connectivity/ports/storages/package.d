@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driven ports for low-level data stores.
-module uim.platform.connectivity.ports.storages;
+module neko.connectivity.ports.storages;
 
 public {
-  import uim.platform.connectivity.ports.storages.snapshot;
+  import neko.connectivity.ports.storages.snapshot;
 }

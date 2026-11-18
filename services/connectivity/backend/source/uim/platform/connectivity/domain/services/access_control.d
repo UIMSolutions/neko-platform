@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Access control of the Cloud Connector: a request to a virtual host, port
 /// and path is allowed only if an enabled rule exposes it.
-module uim.platform.connectivity.domain.services.access_control;
+module neko.connectivity.domain.services.access_control;
 
-import uim.platform.connectivity;
+import neko.connectivity;
 
 mixin(ShowModule!());
 

@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Naming rules of destinations, connectors, channels, hosts and ports.
-module uim.platform.connectivity.domain.services.names;
+module neko.connectivity.domain.services.names;
 
 import std.ascii : isAlphaNum, isHexDigit;
-import uim.platform.connectivity;
+import neko.connectivity;
 
 mixin(ShowModule!());
 

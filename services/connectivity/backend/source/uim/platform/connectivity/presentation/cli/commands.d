@@ -5,13 +5,13 @@
 *****************************************************************************************************************/
 /// Command line driving adapter. Generic over the resource registry, so every
 /// resource supports the same verbs — exactly like the REST/OData/GUI adapters.
-module uim.platform.connectivity.presentation.cli.commands;
+module neko.connectivity.presentation.cli.commands;
 
 import std.file : readText, exists;
-import uim.platform.connectivity;
-import uim.platform.connectivity.presentation.cli.args;
-import uim.platform.connectivity.presentation.resources;
-import uim.platform.connectivity.presentation.tabular;
+import neko.connectivity;
+import neko.connectivity.presentation.cli.args;
+import neko.connectivity.presentation.resources;
+import neko.connectivity.presentation.tabular;
 
 mixin(ShowModule!());
 

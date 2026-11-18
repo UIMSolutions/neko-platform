@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driven ports for external systems.
-module uim.platform.connectivity.ports.gateways;
+module neko.connectivity.ports.gateways;
 
 public {
-  import uim.platform.connectivity.ports.gateways.probe;
+  import neko.connectivity.ports.gateways.probe;
 }

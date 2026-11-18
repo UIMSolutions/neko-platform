@@ -5,10 +5,10 @@
 *****************************************************************************************************************/
 /// The resource catalogue of the connectivity service: which kinds exist, how
 /// they are named per protocol, their table columns, actions and secrets.
-module uim.platform.connectivity.presentation.resources.registry;
+module neko.connectivity.presentation.resources.registry;
 
-import uim.platform.connectivity;
-import uim.platform.connectivity.presentation.resources.adapter;
+import neko.connectivity;
+import neko.connectivity.presentation.resources.adapter;
 
 mixin(ShowModule!());
 

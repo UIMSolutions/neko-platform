@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Serves the Fiori app for local development.
-module uim.platform.connectivity.presentation.web;
+module neko.connectivity.presentation.web;
 
 public {
-  import uim.platform.connectivity.presentation.web.frontend;
+  import neko.connectivity.presentation.web.frontend;
 }

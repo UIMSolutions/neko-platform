@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Minimal, dependency-free command line parser:
 ///   positional arguments, --key=value, --key value and boolean --flag.
-module uim.platform.connectivity.presentation.cli.args;
+module neko.connectivity.presentation.cli.args;
 
-import uim.platform.connectivity;
+import neko.connectivity;
 
 mixin(ShowModule!());
 

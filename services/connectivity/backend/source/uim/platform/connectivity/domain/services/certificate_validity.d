@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Validity of certificates over time.
-module uim.platform.connectivity.domain.services.certificate_validity;
+module neko.connectivity.domain.services.certificate_validity;
 
-import uim.platform.connectivity;
+import neko.connectivity;
 
 mixin(ShowModule!());
 

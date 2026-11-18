@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Technical helpers shared by all layers (no business logic).
-module uim.platform.connectivity.helpers;
+module neko.connectivity.helpers;
 
 public {
-  import uim.platform.connectivity.helpers.codec;
-  import uim.platform.connectivity.helpers.enums;
-  import uim.platform.connectivity.helpers.json;
-  import uim.platform.connectivity.helpers.time;
+  import neko.connectivity.helpers.codec;
+  import neko.connectivity.helpers.enums;
+  import neko.connectivity.helpers.json;
+  import neko.connectivity.helpers.time;
 }

@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Persistence layer.
-module uim.platform.connectivity.persistence;
+module neko.connectivity.persistence;
 
 public {
-  import uim.platform.connectivity.persistence.mappers;
-  import uim.platform.connectivity.persistence.records;
-  import uim.platform.connectivity.persistence.repositories;
-  import uim.platform.connectivity.persistence.storages;
+  import neko.connectivity.persistence.mappers;
+  import neko.connectivity.persistence.records;
+  import neko.connectivity.persistence.repositories;
+  import neko.connectivity.persistence.storages;
 }

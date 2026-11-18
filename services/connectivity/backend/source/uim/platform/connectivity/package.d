@@ -5,16 +5,16 @@
 *****************************************************************************************************************/
 /// ABAP environment service — hexagonal architecture:
 ///   domain ← ports ← application ← persistence / infrastructure ← presentation
-module uim.platform.connectivity;
+module neko.connectivity;
 
 public {
   import uim.service;
 
-  import uim.platform.connectivity.helpers;
-  import uim.platform.connectivity.domain;
-  import uim.platform.connectivity.ports;
-  import uim.platform.connectivity.application;
-  import uim.platform.connectivity.persistence;
-  import uim.platform.connectivity.infrastructure;
-  import uim.platform.connectivity.presentation;
+  import neko.connectivity.helpers;
+  import neko.connectivity.domain;
+  import neko.connectivity.ports;
+  import neko.connectivity.application;
+  import neko.connectivity.persistence;
+  import neko.connectivity.infrastructure;
+  import neko.connectivity.presentation;
 }

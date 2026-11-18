@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Interactors of the aggregates.
-module uim.platform.connectivity.application.usecases.manage;
+module neko.connectivity.application.usecases.manage;
 
 public {
-  import uim.platform.connectivity.application.usecases.manage.access_rules;
-  import uim.platform.connectivity.application.usecases.manage.certificates;
-  import uim.platform.connectivity.application.usecases.manage.channels;
-  import uim.platform.connectivity.application.usecases.manage.connectors;
-  import uim.platform.connectivity.application.usecases.manage.destinations;
-  import uim.platform.connectivity.application.usecases.manage.logs;
+  import neko.connectivity.application.usecases.manage.access_rules;
+  import neko.connectivity.application.usecases.manage.certificates;
+  import neko.connectivity.application.usecases.manage.channels;
+  import neko.connectivity.application.usecases.manage.connectors;
+  import neko.connectivity.application.usecases.manage.destinations;
+  import neko.connectivity.application.usecases.manage.logs;
 }

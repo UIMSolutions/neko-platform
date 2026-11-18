@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Parsing and validation of destination URLs.
-module uim.platform.connectivity.domain.services.endpoints;
+module neko.connectivity.domain.services.endpoints;
 
 import std.ascii : isDigit;
-import uim.platform.connectivity;
+import neko.connectivity;
 
 mixin(ShowModule!());
 

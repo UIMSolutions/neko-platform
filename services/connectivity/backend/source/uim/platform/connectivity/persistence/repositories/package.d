@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Concrete repository implementations (driven adapters).
-module uim.platform.connectivity.persistence.repositories;
+module neko.connectivity.persistence.repositories;
 
 public {
-  import uim.platform.connectivity.persistence.repositories.base;
-  import uim.platform.connectivity.persistence.repositories.repositories;
+  import neko.connectivity.persistence.repositories.base;
+  import neko.connectivity.persistence.repositories.repositories;
 }

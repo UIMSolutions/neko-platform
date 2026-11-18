@@ -3,10 +3,10 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.platform.connectivity.presentation.odata.model;
+module neko.connectivity.presentation.odata.model;
 
-import uim.platform.connectivity;
-import uim.platform.connectivity.presentation.resources;
+import neko.connectivity;
+import neko.connectivity.presentation.resources;
 
 mixin(ShowModule!());
 

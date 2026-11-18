@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Allowed status transitions of Cloud Connectors and service channels.
-module uim.platform.connectivity.domain.services.lifecycle;
+module neko.connectivity.domain.services.lifecycle;
 
-import uim.platform.connectivity;
+import neko.connectivity;
 
 mixin(ShowModule!());
 

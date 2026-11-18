@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Domain layer (core logic) of the connectivity service.
-module uim.platform.connectivity.domain;
+module neko.connectivity.domain;
 
 public {
-  import uim.platform.connectivity.domain.entities;
-  import uim.platform.connectivity.domain.enumerations;
-  import uim.platform.connectivity.domain.exceptions;
-  import uim.platform.connectivity.domain.services;
-  import uim.platform.connectivity.domain.types;
+  import neko.connectivity.domain.entities;
+  import neko.connectivity.domain.enumerations;
+  import neko.connectivity.domain.exceptions;
+  import neko.connectivity.domain.services;
+  import neko.connectivity.domain.types;
 }

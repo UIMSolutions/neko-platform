@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Value objects embedded in the aggregates (exchanged as OData complex types).
-module uim.platform.connectivity.domain.types.values;
+module neko.connectivity.domain.types.values;
 
-import uim.platform.connectivity;
+import neko.connectivity;
 
 mixin(ShowModule!());
 

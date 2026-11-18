@@ -5,12 +5,12 @@
 *****************************************************************************************************************/
 /// Business enumerations & status values. Text conversion is generic
 /// (helpers.enums: case-insensitive, trailing "_" dropped).
-module uim.platform.connectivity.domain.enumerations;
+module neko.connectivity.domain.enumerations;
 
 public {
-  import uim.platform.connectivity.domain.enumerations.access;
-  import uim.platform.connectivity.domain.enumerations.certificates;
-  import uim.platform.connectivity.domain.enumerations.connectors;
-  import uim.platform.connectivity.domain.enumerations.destinations;
-  import uim.platform.connectivity.domain.enumerations.events;
+  import neko.connectivity.domain.enumerations.access;
+  import neko.connectivity.domain.enumerations.certificates;
+  import neko.connectivity.domain.enumerations.connectors;
+  import neko.connectivity.domain.enumerations.destinations;
+  import neko.connectivity.domain.enumerations.events;
 }

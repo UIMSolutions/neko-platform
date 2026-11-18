@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driven ports for business data access.
-module uim.platform.connectivity.ports.repositories;
+module neko.connectivity.ports.repositories;
 
 public {
-  import uim.platform.connectivity.ports.repositories.bundle;
-  import uim.platform.connectivity.ports.repositories.repositories;
+  import neko.connectivity.ports.repositories.bundle;
+  import neko.connectivity.ports.repositories.repositories;
 }

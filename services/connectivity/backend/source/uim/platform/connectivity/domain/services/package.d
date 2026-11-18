@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Pure domain services (business-only operations, no I/O).
-module uim.platform.connectivity.domain.services;
+module neko.connectivity.domain.services;
 
 public {
-  import uim.platform.connectivity.domain.services.access_control;
-  import uim.platform.connectivity.domain.services.auth_flow;
-  import uim.platform.connectivity.domain.services.certificate_validity;
-  import uim.platform.connectivity.domain.services.endpoints;
-  import uim.platform.connectivity.domain.services.lifecycle;
-  import uim.platform.connectivity.domain.services.names;
+  import neko.connectivity.domain.services.access_control;
+  import neko.connectivity.domain.services.auth_flow;
+  import neko.connectivity.domain.services.certificate_validity;
+  import neko.connectivity.domain.services.endpoints;
+  import neko.connectivity.domain.services.lifecycle;
+  import neko.connectivity.domain.services.names;
 }

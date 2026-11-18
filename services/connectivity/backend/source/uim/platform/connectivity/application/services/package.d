@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Application-wide services.
-module uim.platform.connectivity.application.services;
+module neko.connectivity.application.services;
 
 public {
-  import uim.platform.connectivity.application.services.cascade;
-  import uim.platform.connectivity.application.services.destination_checker;
-  import uim.platform.connectivity.application.services.events;
-  import uim.platform.connectivity.application.services.statistics;
+  import neko.connectivity.application.services.cascade;
+  import neko.connectivity.application.services.destination_checker;
+  import neko.connectivity.application.services.events;
+  import neko.connectivity.application.services.statistics;
 }

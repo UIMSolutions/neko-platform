@@ -3,11 +3,11 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.platform.connectivity.persistence.storages.json_file;
+module neko.connectivity.persistence.storages.json_file;
 
 import std.file : exists, mkdirRecurse, readText, rename, timeLastModified, write;
 import std.path : buildPath;
-import uim.platform.connectivity;
+import neko.connectivity;
 
 mixin(ShowModule!());
 

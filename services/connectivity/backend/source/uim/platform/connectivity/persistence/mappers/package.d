@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Converters between records and entities.
-module uim.platform.connectivity.persistence.mappers;
+module neko.connectivity.persistence.mappers;
 
 public {
-  import uim.platform.connectivity.persistence.mappers.record;
+  import neko.connectivity.persistence.mappers.record;
 }

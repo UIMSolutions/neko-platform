@@ -17,12 +17,12 @@
 /// Errors: { "error": { "code": "...", "message": "..." } } with 400/404/409/422/500.
 /// Tenant / user come from the XSUAA token or the X-Tenant-Id / X-User-Id headers.
 /// Connector references (connectorId) accept an id or a unique connector name.
-module uim.platform.connectivity.presentation.http.controllers.resources;
+module neko.connectivity.presentation.http.controllers.resources;
 
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
-import uim.platform.connectivity;
-import uim.platform.connectivity.presentation.resources;
+import neko.connectivity;
+import neko.connectivity.presentation.resources;
 
 mixin(ShowModule!());
 

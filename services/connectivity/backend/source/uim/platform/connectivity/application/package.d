@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Application layer: use cases, application services and DTOs.
-module uim.platform.connectivity.application;
+module neko.connectivity.application;
 
 public {
-  import uim.platform.connectivity.application.dtos;
-  import uim.platform.connectivity.application.services;
-  import uim.platform.connectivity.application.usecases;
+  import neko.connectivity.application.dtos;
+  import neko.connectivity.application.services;
+  import neko.connectivity.application.usecases;
 }

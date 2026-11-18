@@ -3,12 +3,12 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.platform.connectivity.infrastructure.configuration.config;
+module neko.connectivity.infrastructure.configuration.config;
 
 import std.file : exists, readText, thisExePath;
 import std.path : buildPath, dirName;
 import std.process : environment;
-import uim.platform.connectivity;
+import neko.connectivity;
 
 mixin(ShowModule!());
 

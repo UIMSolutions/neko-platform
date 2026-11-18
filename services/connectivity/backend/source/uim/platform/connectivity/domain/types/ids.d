@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Strongly typed identifiers of the connectivity aggregates.
 /// (TenantId, SubaccountId and UserId come from uim-framework.)
-module uim.platform.connectivity.domain.types.ids;
+module neko.connectivity.domain.types.ids;
 
-import uim.platform.connectivity;
+import neko.connectivity;
 
 mixin(ShowModule!());
 

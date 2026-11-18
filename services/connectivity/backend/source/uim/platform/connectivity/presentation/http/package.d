@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// General REST and HTTP listeners (vibe.d HTTP).
-module uim.platform.connectivity.presentation.http;
+module neko.connectivity.presentation.http;
 
 public {
-  import uim.platform.connectivity.presentation.http.controllers;
+  import neko.connectivity.presentation.http.controllers;
 }

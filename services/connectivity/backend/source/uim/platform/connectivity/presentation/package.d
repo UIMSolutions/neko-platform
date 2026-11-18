@@ -4,14 +4,14 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Presentation layer (driving adapters).
-module uim.platform.connectivity.presentation;
+module neko.connectivity.presentation;
 
 public {
-  import uim.platform.connectivity.presentation.resources;
-  import uim.platform.connectivity.presentation.tabular;
-  import uim.platform.connectivity.presentation.http;
-  import uim.platform.connectivity.presentation.odata;
-  import uim.platform.connectivity.presentation.cli;
-  import uim.platform.connectivity.presentation.web;
+  import neko.connectivity.presentation.resources;
+  import neko.connectivity.presentation.tabular;
+  import neko.connectivity.presentation.http;
+  import neko.connectivity.presentation.odata;
+  import neko.connectivity.presentation.cli;
+  import neko.connectivity.presentation.web;
   // GtkD GUI: imported explicitly by source/gui.d (only built with --config=gui)
 }

@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Technical storage drivers.
-module uim.platform.connectivity.persistence.storages;
+module neko.connectivity.persistence.storages;
 
 public {
-  import uim.platform.connectivity.persistence.storages.json_file;
-  import uim.platform.connectivity.persistence.storages.memory;
-  import uim.platform.connectivity.persistence.storages.snapshot_store;
+  import neko.connectivity.persistence.storages.json_file;
+  import neko.connectivity.persistence.storages.memory;
+  import neko.connectivity.persistence.storages.snapshot_store;
 }

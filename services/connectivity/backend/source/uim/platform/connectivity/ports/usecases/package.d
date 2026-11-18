@@ -4,15 +4,15 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driving ports for use cases.
-module uim.platform.connectivity.ports.usecases;
+module neko.connectivity.ports.usecases;
 
 public {
-  import uim.platform.connectivity.ports.usecases.access_rules;
-  import uim.platform.connectivity.ports.usecases.certificates;
-  import uim.platform.connectivity.ports.usecases.channels;
-  import uim.platform.connectivity.ports.usecases.connectors;
-  import uim.platform.connectivity.ports.usecases.destinations;
-  import uim.platform.connectivity.ports.usecases.health_check;
-  import uim.platform.connectivity.ports.usecases.logs;
-  import uim.platform.connectivity.ports.usecases.resource;
+  import neko.connectivity.ports.usecases.access_rules;
+  import neko.connectivity.ports.usecases.certificates;
+  import neko.connectivity.ports.usecases.channels;
+  import neko.connectivity.ports.usecases.connectors;
+  import neko.connectivity.ports.usecases.destinations;
+  import neko.connectivity.ports.usecases.health_check;
+  import neko.connectivity.ports.usecases.logs;
+  import neko.connectivity.ports.usecases.resource;
 }

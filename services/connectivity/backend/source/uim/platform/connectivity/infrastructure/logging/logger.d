@@ -3,10 +3,10 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.platform.connectivity.infrastructure.logging.logger;
+module neko.connectivity.infrastructure.logging.logger;
 
 import vibe.core.log : LogLevel, setLogLevel;
-import uim.platform.connectivity;
+import neko.connectivity;
 
 mixin(ShowModule!());
 

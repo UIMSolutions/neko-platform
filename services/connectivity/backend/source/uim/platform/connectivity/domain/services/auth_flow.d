@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Which settings each authentication type of a destination requires.
-module uim.platform.connectivity.domain.services.auth_flow;
+module neko.connectivity.domain.services.auth_flow;
 
-import uim.platform.connectivity;
+import neko.connectivity;
 
 mixin(ShowModule!());
 

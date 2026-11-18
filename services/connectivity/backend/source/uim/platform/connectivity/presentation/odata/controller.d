@@ -19,17 +19,17 @@
 ///   POST   <base>/<Action><Type>           unbound actions, e.g. OpenServiceChannel {"id": "..."}
 ///
 /// $batch is not supported — configure the UI5 model with groupId "$direct".
-module uim.platform.connectivity.presentation.odata.controller;
+module neko.connectivity.presentation.odata.controller;
 
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.http.common : HTTPMethod;
 import vibe.textfilter.urlencode : urlDecode;
-import uim.platform.connectivity;
-import uim.platform.connectivity.presentation.resources;
-import uim.platform.connectivity.presentation.odata.model;
-import uim.platform.connectivity.presentation.odata.metadata;
-import uim.platform.connectivity.presentation.odata.query;
+import neko.connectivity;
+import neko.connectivity.presentation.resources;
+import neko.connectivity.presentation.odata.model;
+import neko.connectivity.presentation.odata.metadata;
+import neko.connectivity.presentation.odata.query;
 
 mixin(ShowModule!());
 

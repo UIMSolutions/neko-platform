@@ -5,7 +5,7 @@
 *****************************************************************************************************************/
 /// Timestamps are stored as std time (hnsecs since 0001-01-01, UTC) and exchanged
 /// as ISO 8601 / Edm.DateTimeOffset strings ("2026-11-10T10:00:00Z").
-module uim.platform.connectivity.helpers.time;
+module neko.connectivity.helpers.time;
 
 import core.time : Duration;
 import std.datetime.systime : Clock, SysTime;

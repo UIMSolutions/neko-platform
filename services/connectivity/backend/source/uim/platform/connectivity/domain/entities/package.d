@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Aggregate roots. Plain structs: no serialization code (see helpers.codec).
-module uim.platform.connectivity.domain.entities;
+module neko.connectivity.domain.entities;
 
 public {
-  import uim.platform.connectivity.domain.entities.access_rule;
-  import uim.platform.connectivity.domain.entities.certificate;
-  import uim.platform.connectivity.domain.entities.cloud_connector;
-  import uim.platform.connectivity.domain.entities.connectivity_log;
-  import uim.platform.connectivity.domain.entities.destination;
-  import uim.platform.connectivity.domain.entities.service_channel;
+  import neko.connectivity.domain.entities.access_rule;
+  import neko.connectivity.domain.entities.certificate;
+  import neko.connectivity.domain.entities.cloud_connector;
+  import neko.connectivity.domain.entities.connectivity_log;
+  import neko.connectivity.domain.entities.destination;
+  import neko.connectivity.domain.entities.service_channel;
 }

@@ -11,6 +11,9 @@ import std.string : toStringz;
 import vibe.core.concurrency : async;
 import vibe.core.task : Task;
 
+import uim.core.mixins.version_ : ShowModule;
+mixin(ShowModule!());
+
 @safe:
 
 // libcrypto ist über vibe.d bereits gelinkt.

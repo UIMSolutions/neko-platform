@@ -105,6 +105,8 @@ final class FileBackupStore : IBackupStore {
             loaded.intervalHours = j["intervalHours"].get!int;
             loaded.keepScheduled = j["keepScheduled"].get!int;
             loaded.keepSafety = j["keepSafety"].get!int;
+            // ältere Dateien kennen keine Aufbewahrung: dann wie bisher nur nach Anzahl
+            loaded.retentionDays = j["retentionDays"].opt!int(0);
             loaded.lastRun = j["lastRun"].get!string;
             SysTime.fromISOExtString(loaded.lastRun.length ? loaded.lastRun : "2000-01-01T00:00:00Z");
             loaded.lastError = j["lastError"].get!string;
@@ -124,6 +126,7 @@ final class FileBackupStore : IBackupStore {
         j["intervalHours"] = s.intervalHours;
         j["keepScheduled"] = s.keepScheduled;
         j["keepSafety"] = s.keepSafety;
+        j["retentionDays"] = s.retentionDays;
         j["lastRun"] = s.lastRun;
         j["lastError"] = s.lastError;
         auto path = buildPath(directory, scheduleFile);
@@ -613,6 +616,7 @@ unittest {
     size_t count(string kind) {
         return store.list().filter!(b => b.kind == kind).array.length;
     }
+    backups.updateRetention(0); // nur nach Anzahl: die Uhr dieses Tests liegt Jahre nach den Zeitstempeln
 
     // Erster Lauf sofort, danach erst nach Ablauf der Frist
     assert(backups.schedule().enabled && backups.schedule().intervalHours == 24 && backups.schedule().nextRun == "");
@@ -724,5 +728,46 @@ unittest {
     assert(kindOf("20300101-000000Z-scheduled-work.hdbbak") == "manual");
     assert(kindOf("20300101-000000Z-my-backup.hdbbak") == "manual");
     assert(kindOf("anything.hdbbak") == "manual");
+}
+
+unittest {
+    // Aufbewahrung nach Tagen: automatische Sicherungen älter als die Frist werden gelöscht, die neueste geplante,
+    // manuelle und hochgeladene bleiben.
+    import neko.database;
+    import std.exception : assertThrown;
+    import std.file : exists, rmdirRecurse, tempDir;
+    import std.path : buildPath;
+    import std.uuid : randomUUID;
+    import std.datetime.systime : Clock, SysTime;
+    import std.datetime.timezone : UTC;
+    import core.time : days;
+
+    static class Database : IDatabaseSnapshots {
+        TableSnapshot[] snapshot() {
+            return [TableSnapshot("t", TableStorage.memory, [ColumnDef("a", ColumnType.integer)])];
+        }
+
+        void restore(TableSnapshot[] tables) {
+        }
+    }
+
+    auto root = buildPath(tempDir, "hdb-retention-" ~ randomUUID().toString);
+    scope (exit)
+        if (exists(root))
+            rmdirRecurse(root);
+    auto store = new FileBackupStore(root);
+    auto clock = Clock.currTime(UTC());
+    Principal who = Principal("a", HdbRole.admin, true);
+    auto backups = new BackupService(new Database, store, () => who, () => clock);
+    assert(backups.schedule().retentionDays == 15); // Vorgabe für neue Mandanten
+    store.save("nightly-scheduled", backups.tick() is null ? null : null); // tick legt die erste geplante an
+    backups.create("manual");
+    clock += 20.days;
+    assertThrown(backups.updateRetention(216));
+    auto s = backups.updateRetention(10);
+    assert(s.retentionDays == 10);
+    // die einzige geplante ist die neueste und bleibt; die manuelle sowieso
+    assert(store.list().length >= 2);
+    assert(new FileBackupStore(root).loadSchedule().retentionDays == 10);
 }
 

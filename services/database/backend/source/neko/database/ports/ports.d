@@ -227,6 +227,9 @@ struct BackupSchedule {
     int intervalHours = 24;
     int keepScheduled = 7;
     int keepSafety = 5;
+    /// Aufbewahrung automatischer Sicherungen (scheduled, safety) in Tagen, höchstens 215 (gut 7 Monate);
+    /// 0: nur nach Anzahl. Manuelle und hochgeladene Sicherungen bleiben, bis sie jemand löscht.
+    int retentionDays = 15;
     string lastRun, lastError; // ISO-Zeit in UTC; leer, wenn es das noch nicht gab
     string nextRun; // berechnet, wird nicht gespeichert
 }
@@ -251,7 +254,12 @@ interface IBackupUseCase {
     BackupInfo upload(string content);
     BackupSchedule schedule();
     BackupSchedule updateSchedule(bool enabled, int intervalHours, int keepScheduled, int keepSafety);
+    /// Setzt die Aufbewahrung in Tagen (0 bis maxBackupRetentionDays) und löscht sofort, was älter ist.
+    BackupSchedule updateRetention(int retentionDays);
 }
+
+/// Höchste Aufbewahrung automatischer Sicherungen: 7 Monate.
+enum int maxBackupRetentionDays = 215;
 
 /// Für den Zeitgeber der Anwendung. Läuft ohne Anfrage und damit ohne Identität, deshalb getrennt von IBackupUseCase:
 /// kein eingehender Adapter bekommt diesen Weg an der Rollenprüfung vorbei zu sehen.

@@ -12,3 +12,5 @@ public:
     import neko.database.persistence.storages.tenant_storage;
     import neko.database.persistence.storages.tenant_store;
     import neko.database.persistence.storages.user_store;
+    import neko.database.persistence.storages.cloud_store;
+    import neko.database.persistence.storages.monitoring_store;

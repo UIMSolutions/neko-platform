@@ -1,7 +1,7 @@
 module neko.database.application.services.backup;
 
 import neko.database;
-import core.time : Duration, hours, minutes;
+import core.time : Duration, days, hours, minutes;
 import std.algorithm : canFind, filter;
 import std.array : array, replace;
 import std.conv : to;
@@ -109,6 +109,40 @@ final class BackupService : IBackupUseCase, IBackupScheduler {
         return withNextRun(s);
     }
 
+    BackupSchedule updateRetention(int retentionDays) {
+        requirePermission(current(), Permission.manageBackups);
+        enforce(retentionDays >= 0 && retentionDays <= maxBackupRetentionDays,
+            "The retention must be between 0 and 215 days (7 months)");
+        auto s = store.loadSchedule();
+        s.retentionDays = retentionDays;
+        store.saveSchedule(s);
+        expire(s.retentionDays);
+        return withNextRun(s);
+    }
+
+    /// Löscht automatische Sicherungen, die älter als die Aufbewahrung sind; die neueste geplante bleibt immer.
+    private void expire(int days) {
+        if (days <= 0)
+            return;
+        auto limit = now() - days.days;
+        bool newestScheduled = true;
+        foreach (b; store.list()) { // neueste zuerst
+            if (b.kind != "scheduled" && b.kind != "safety")
+                continue;
+            if (b.kind == "scheduled" && newestScheduled) {
+                newestScheduled = false;
+                continue;
+            }
+            SysTime created;
+            try
+                created = SysTime.fromISOExtString(b.created);
+            catch (Exception)
+                continue;
+            if (created < limit)
+                store.remove(b.name);
+        }
+    }
+
     /// Gelöscht wird erst nach einer erfolgreichen neuen Sicherung: ein voller Datenträger kostet keine alten Stände.
     string tick() {
         auto s = store.loadSchedule();
@@ -125,6 +159,7 @@ final class BackupService : IBackupUseCase, IBackupScheduler {
             s.lastError = "";
             store.saveSchedule(s);
             prune("scheduled", s.keepScheduled);
+            expire(s.retentionDays);
             return null;
         } catch (Exception e) {
             retryAfter = time + retryDelay;

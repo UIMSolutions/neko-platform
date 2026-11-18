@@ -198,6 +198,11 @@ interface IBackupRestApi {
     @bodyParam("keepScheduled", "keepScheduled") @bodyParam("keepSafety", "keepSafety")
     RestBackupSchedule updateSchedule(bool enabled, int intervalHours, int keepScheduled, int keepSafety);
 
+    /// Aufbewahrung automatischer Sicherungen in Tagen: 0 (nur nach Anzahl) bis 215 (7 Monate).
+    @method(HTTPMethod.PUT) @path("/backups/retention")
+    @bodyParam("retentionDays", "retentionDays")
+    RestBackupSchedule updateRetention(int retentionDays);
+
     /// Ersetzt alle Tabellen; vorher wird automatisch eine Sicherheitskopie angelegt.
     @method(HTTPMethod.POST) @path("/backups/:name/restore")
     RestRestore restore(string _name);

@@ -2,6 +2,7 @@ module neko.database.domain.types.queryresult;
 
 import neko.database;
 
+import uim.core.mixins.version_ : ShowModule;
 mixin(ShowModule!());
 
 @safe:

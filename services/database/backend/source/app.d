@@ -8,6 +8,9 @@ module app;
 import neko.database;
 import neko.database.infrastructure.gateway : GatewayConfigFile, GatewayProxy;
 
+import uim.core.mixins.version_ : ShowModule;
+mixin(ShowModule!());
+
 /// Composition Root: einziger Ort, an dem Adapter und Kern verdrahtet werden.
 /// HDB_MODE wählt die Betriebsart: multi (Standard), single oder gateway. Eingebettet ist keine Betriebsart des
 /// Servers, sondern die Bibliothek (dub build --config=library, Modul neko.database.embedded).

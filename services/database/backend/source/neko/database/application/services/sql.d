@@ -203,14 +203,27 @@ final class SqlService : ISqlUseCase, IDatabaseSnapshots {
         }
     }
 
+    /// Ab so vielen Tabellen werden die Statistiken parallel auf allen Kernen berechnet.
+    enum parallelStatsFrom = 8;
+
     TableStats[] stats() {
         synchronized (this) {
             requireIdle();
-            TableStats[] result;
+            ColumnTable[] tables;
             foreach (name; repo.list())
-                result ~= repo.get(name).stats();
-            return result;
+                tables ~= repo.get(name);
+            return tables.length >= parallelStatsFrom ? parallelStats(tables) : tables.map!(t => t.stats()).array;
         }
+    }
+
+    /// Unter der Sperre lesen nur die Arbeiter des Pools; niemand schreibt, solange sie laufen.
+    private static TableStats[] parallelStats(ColumnTable[] tables) @trusted {
+        import std.parallelism : taskPool;
+
+        auto result = new TableStats[tables.length];
+        foreach (i, t; taskPool.parallel(tables, 1))
+            result[i] = t.stats();
+        return result;
     }
 
     /// Schreibt den aktuellen Stand als kompaktes Protokoll neu.

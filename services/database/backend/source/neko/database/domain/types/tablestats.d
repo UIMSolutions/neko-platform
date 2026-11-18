@@ -4,6 +4,7 @@ import neko.database;
 import neko.database.domain.types.columnstats;
 import neko.database.domain.enumerations.tablestorage;
 
+import uim.core.mixins.version_ : ShowModule;
 mixin(ShowModule!());
 
 @safe:

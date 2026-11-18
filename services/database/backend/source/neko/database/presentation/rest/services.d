@@ -286,6 +286,10 @@ final class BackupRestApi : IBackupRestApi {
         return toRest(backups.updateSchedule(enabled, intervalHours, keepScheduled, keepSafety));
     }
 
+    RestBackupSchedule updateRetention(int retentionDays) {
+        return toRest(backups.updateRetention(retentionDays));
+    }
+
     RestRestore restore(string _name) {
         return RestRestore("RESTORED", toRest(backups.restore(_name)));
     }

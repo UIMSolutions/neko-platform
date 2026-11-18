@@ -27,6 +27,9 @@ import vibe.inet.webform : FormFields, formEncode, parseURLEncodedForm;
 import vibe.internal.interfaceproxy : InterfaceProxy;
 import vibe.stream.operations : readAll;
 
+import uim.core.mixins.version_ : ShowModule;
+mixin(ShowModule!());
+
 @safe:
 
 /// Name des Sitzungscookies der Admin-Oberfläche, wie im Server (neko.database.infrastructure.security.gate).

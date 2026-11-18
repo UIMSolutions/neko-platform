@@ -1,6 +1,6 @@
 applications:
-  - name: hana-lite
-    memory: 256M
-    buildpacks:
-      - binary_buildpack
-    command: ./hdb
+- name: neko.database
+  memory: 256M
+  buildpacks:
+  - binary_buildpack
+  command: ./hdb

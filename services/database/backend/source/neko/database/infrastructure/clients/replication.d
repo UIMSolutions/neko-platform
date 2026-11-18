@@ -16,6 +16,9 @@ import vibe.inet.url : URL;
 import vibe.stream.operations : readAllUTF8;
 import vibe.textfilter.urlencode : urlEncode;
 
+import uim.core.mixins.version_ : ShowModule;
+mixin(ShowModule!());
+
 @safe:
 
 /// Ausgehender Adapter: ein Ziel ruft seine Quelle über deren REST-API ab, wie jeder andere Client.

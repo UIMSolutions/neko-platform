@@ -9,3 +9,5 @@ module neko.database.persistence;
 public:
     import neko.database.persistence.repositories;
     import neko.database.persistence.storages;
+    import neko.database.persistence.records;
+    import neko.database.persistence.mappers;

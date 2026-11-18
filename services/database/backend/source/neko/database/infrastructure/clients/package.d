@@ -8,3 +8,4 @@ module neko.database.infrastructure.clients;
 
 public:
     import neko.database.infrastructure.clients.replication;
+    import neko.database.infrastructure.clients.dataproducts;

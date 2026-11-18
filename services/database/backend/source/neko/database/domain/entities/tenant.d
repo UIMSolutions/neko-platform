@@ -8,6 +8,7 @@ module neko.database.domain.entities.tenant;
 import neko.database;
 import std.ascii : isDigit, isLower;
 
+import uim.core.mixins.version_ : ShowModule;
 mixin(ShowModule!());
 
 @safe:

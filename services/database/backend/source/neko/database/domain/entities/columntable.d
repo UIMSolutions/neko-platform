@@ -7,6 +7,7 @@ module neko.database.domain.entities.columntable;
 
 import neko.database;
 
+import uim.core.mixins.version_ : ShowModule;
 mixin(ShowModule!());
 
 @safe:

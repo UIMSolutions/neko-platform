@@ -1,4 +1,4 @@
-# hana-lite
+# neko.database
 
 In-Memory-Spaltendatenbank mit vibe.d, aufgebaut als Hexagonale Architektur.
 

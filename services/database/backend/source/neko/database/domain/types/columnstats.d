@@ -10,6 +10,7 @@ import neko.database;
 import neko.database.domain.enumerations.columntype;
 import vibe.d;
 
+import uim.core.mixins.version_ : ShowModule;
 mixin(ShowModule!());
 
 @safe:

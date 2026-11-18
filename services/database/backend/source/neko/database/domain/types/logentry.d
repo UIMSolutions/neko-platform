@@ -14,6 +14,7 @@ import std.exception : enforce;
 import std.format : format;
 import std.string : strip, toLower;
 
+import uim.core.mixins.version_ : ShowModule;
 mixin(ShowModule!());
 
 @safe:

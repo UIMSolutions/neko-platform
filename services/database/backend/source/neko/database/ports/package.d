@@ -9,3 +9,8 @@ module neko.database.ports;
 public:
     import neko.database.ports.ports;
     import neko.database.ports.usecases;
+    import neko.database.ports.repositories;
+    import neko.database.ports.storages;
+    import neko.database.ports.gateways;
+    import neko.database.ports.messaging;
+    import neko.database.ports.services;

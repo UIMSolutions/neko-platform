@@ -314,6 +314,11 @@ final class AuditedDatabases : ISqlUseCase, IBackupUseCase, IReplicationUseCase 
             () => backups.updateSchedule(enabled, intervalHours, keepScheduled, keepSafety));
     }
 
+    BackupSchedule updateRetention(int retentionDays) {
+        auto r = record("backups", "updateRetention", "", format("retentionDays=%s", retentionDays));
+        return recorded!BackupSchedule(trail, r, () => backups.updateRetention(retentionDays));
+    }
+
     // IReplicationUseCase
 
     /// Der vollständige Stand enthält alle Daten. Der Änderungsstrom wird nicht aufgezeichnet: Ziele fragen ihn
@@ -563,6 +568,10 @@ unittest {
         }
 
         BackupSchedule updateSchedule(bool, int, int, int) {
+            return BackupSchedule.init;
+        }
+
+        BackupSchedule updateRetention(int) {
             return BackupSchedule.init;
         }
 

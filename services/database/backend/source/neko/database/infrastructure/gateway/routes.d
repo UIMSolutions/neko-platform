@@ -18,6 +18,9 @@ import std.exception : enforce;
 import std.json : JSONType, JSONValue, parseJSON;
 import std.string : indexOf, startsWith, strip, toLower;
 
+import uim.core.mixins.version_ : ShowModule;
+mixin(ShowModule!());
+
 @safe:
 
 /// Bereich der Systemadministratoren, wie im Server (neko.database.domain.entities.tenant).

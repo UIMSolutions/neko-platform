@@ -82,9 +82,10 @@ final class TenantRegistry {
 /// Getrennt sind Tabellen, Protokoll, Sicherungen, Zeitplan und die offene Transaktion. Systemadministratoren
 /// haben keine Datenbank und werden abgelehnt, ebenso Anfragen ohne Anmeldung.
 /// Jeder Mandant kann Quelle und Ziel einer Replikation sein; ein Ziel nimmt keine Schreibzugriffe an.
-final class TenantDatabases : ISqlUseCase, IBackupUseCase, IBackupScheduler, IReplicationUseCase {
+final class TenantDatabases : ISqlUseCase, IBackupUseCase, IBackupScheduler, IReplicationUseCase, IStatisticsSource {
     private struct Engine {
         SecuredSqlUseCase sql;
+        SqlService core; // ohne Rechteprüfung: nur für Messpunkte (IStatisticsSource)
         BackupService backups;
         TenantReplication replication;
         IBackupStore backupStore; // für das Ereignisprotokoll: wann lief die letzte geplante Sicherung
@@ -119,12 +120,22 @@ final class TenantDatabases : ISqlUseCase, IBackupUseCase, IBackupScheduler, IRe
         auto feed = new ChangeFeed(retain);
         core.changeSink(feed); // erst nach dem Einspielen: der Strom beginnt mit dem geladenen Stand
         auto configs = parts.replication !is null ? parts.replication : new MemoryReplicationConfigStore;
-        engines[tenant] = Engine(new SecuredSqlUseCase(core, current), new BackupService(core, parts.backups, current),
+        engines[tenant] = Engine(new SecuredSqlUseCase(core, current), core, new BackupService(core, parts.backups, current),
             new TenantReplication(core, feed, configs, client), parts.backups);
     }
 
     bool isOpen(string tenant) {
         return (tenant in engines) !is null;
+    }
+
+    // IStatisticsSource: für Zeitgeber ohne Anfrage. Liefert nur Größen, keine Zeilen.
+    string[] openTenants() {
+        return engines.keys;
+    }
+
+    TableStats[] statsOf(string tenant) {
+        auto e = tenant in engines;
+        return e is null ? null : e.core.stats();
     }
 
     /// Entfernt die Datenbank aus dem Speicher und löscht ihre Daten und Sicherungen endgültig.
@@ -225,6 +236,10 @@ final class TenantDatabases : ISqlUseCase, IBackupUseCase, IBackupScheduler, IRe
     }
 
     // IReplicationUseCase: lesen darf jeder Benutzer des Mandanten, er sieht über SELECT ohnehin alle Daten
+    BackupSchedule updateRetention(int retentionDays) {
+        return engine().backups.updateRetention(retentionDays);
+    }
+
     ReplicationSnapshot replicationSnapshot() {
         auto e = engine();
         requirePermission(current(), Permission.replicate);

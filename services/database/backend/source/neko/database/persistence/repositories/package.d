@@ -14,3 +14,4 @@ public:
     import neko.database.persistence.repositories.memory;
     import neko.database.persistence.repositories.routing;
     import neko.database.persistence.repositories.snapshot;
+    import neko.database.persistence.repositories.cloud;

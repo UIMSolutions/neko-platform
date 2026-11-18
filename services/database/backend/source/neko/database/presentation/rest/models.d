@@ -85,6 +85,7 @@ struct RestBackupSchedule {
     bool enabled;
     int intervalHours, keepScheduled, keepSafety;
     string lastRun, lastError, nextRun;
+    int retentionDays;
 }
 
 struct RestRestore {
@@ -138,7 +139,7 @@ RestBackup toRest(BackupInfo b) {
 }
 
 RestBackupSchedule toRest(BackupSchedule s) {
-    return RestBackupSchedule(s.enabled, s.intervalHours, s.keepScheduled, s.keepSafety, s.lastRun, s.lastError, s.nextRun);
+    return RestBackupSchedule(s.enabled, s.intervalHours, s.keepScheduled, s.keepSafety, s.lastRun, s.lastError, s.nextRun, s.retentionDays);
 }
 
 RestTenant toRest(TenantInfo t) {

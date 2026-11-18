@@ -8,3 +8,4 @@ module neko.database.ports.usecases;
 
 public:
     import neko.database.ports.usecases.sql;
+    import neko.database.ports.usecases.cloud;

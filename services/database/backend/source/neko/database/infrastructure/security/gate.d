@@ -12,6 +12,9 @@ import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.http.status : HTTPStatus;
 
+import uim.core.mixins.version_ : ShowModule;
+mixin(ShowModule!());
+
 @safe:
 
 enum sessionCookie = "hdb_session";

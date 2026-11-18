@@ -1,6 +1,6 @@
-module neko.service.management.presentation.rest.tests.subscription;
+module neko.management.presentation.rest.tests.subscription;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

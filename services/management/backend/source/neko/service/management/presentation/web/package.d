@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Server-side web adapters (Fiori app for local development).
-module neko.service.management.presentation.web;
+module neko.management.presentation.web;
 
 public {
-  import neko.service.management.presentation.web.frontend;
+  import neko.management.presentation.web.frontend;
 }

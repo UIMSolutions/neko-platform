@@ -1,6 +1,6 @@
-module neko.service.management.presentation.rest.tests.subaccount;
+module neko.management.presentation.rest.tests.subaccount;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

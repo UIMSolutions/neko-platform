@@ -1,6 +1,6 @@
-module neko.service.management.presentation.rest.tests.entitlement;
+module neko.management.presentation.rest.tests.entitlement;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

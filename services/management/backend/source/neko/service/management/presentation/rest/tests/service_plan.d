@@ -1,6 +1,6 @@
-module neko.service.management.presentation.rest.tests.service_plan;
+module neko.management.presentation.rest.tests.service_plan;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

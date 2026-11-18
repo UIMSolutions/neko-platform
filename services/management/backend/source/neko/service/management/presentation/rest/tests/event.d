@@ -1,6 +1,6 @@
-module neko.service.management.presentation.rest.tests.event;
+module neko.management.presentation.rest.tests.event;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

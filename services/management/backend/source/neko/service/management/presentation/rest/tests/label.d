@@ -1,6 +1,6 @@
-module neko.service.management.presentation.rest.tests.label;
+module neko.management.presentation.rest.tests.label;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

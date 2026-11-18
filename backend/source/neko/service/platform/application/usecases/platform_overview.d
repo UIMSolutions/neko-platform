@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Key figures of this platform instance (cockpit header, status page).
-module neko.service.platform.application.usecases.platform_overview;
+module neko.platform.application.usecases.platform_overview;
 
 import std.algorithm : map;
 import std.array : array;
-import neko.service.platform.domain;
-import neko.service.platform.application.dtos;
-import neko.service.platform.ports;
+import neko.platform.domain;
+import neko.platform.application.dtos;
+import neko.platform.ports;
 
 @safe:
 

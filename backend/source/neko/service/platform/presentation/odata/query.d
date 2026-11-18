@@ -11,7 +11,7 @@
 ///   $top / $skip / $count=true
 /// Data sets here are small (catalogue, audit trail), so options are applied
 /// in memory after loading.
-module neko.service.platform.presentation.odata.query;
+module neko.platform.presentation.odata.query;
 
 import std.algorithm : all, any, canFind, map, sort, splitter, startsWith, endsWith;
 import std.array : array, split;
@@ -19,7 +19,7 @@ import std.conv : to;
 import std.string : indexOf, strip, toLower;
 import std.uni : asLowerCase;
 import vibe.data.json;
-import neko.service.platform.domain.exceptions : ValidationException;
+import neko.platform.domain.exceptions : ValidationException;
 
 @safe:
 

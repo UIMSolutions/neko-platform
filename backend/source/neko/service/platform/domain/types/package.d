@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Value objects: identifiers, names and service endpoints.
-module neko.service.platform.domain.types;
+module neko.platform.domain.types;
 
 public:
-  import neko.service.platform.domain.types.servicename;
-  import neko.service.platform.domain.types.serviceendpoint;
-  import neko.service.platform.domain.types.id;
+  import neko.platform.domain.types.servicename;
+  import neko.platform.domain.types.serviceendpoint;
+  import neko.platform.domain.types.id;

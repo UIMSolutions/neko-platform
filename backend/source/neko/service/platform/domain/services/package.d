@@ -1,4 +1,4 @@
-module neko.service.platform.domain.services;
+module neko.platform.domain.services;
 
 public:
-  import neko.service.platform.domain.services.policies;
+  import neko.platform.domain.services.policies;

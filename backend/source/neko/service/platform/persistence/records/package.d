@@ -5,7 +5,7 @@
 *****************************************************************************************************************/
 /// Technical storage models (schema of the stored JSON documents). Changing
 /// a field here is a data migration — keep names stable.
-module neko.service.platform.persistence.records;
+module neko.platform.persistence.records;
 
 import vibe.data.serialization : optional;
 

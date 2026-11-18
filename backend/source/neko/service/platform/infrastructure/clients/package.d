@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// HTTP client adapter for the health gateway port.
-module neko.service.platform.infrastructure.clients;
+module neko.platform.infrastructure.clients;
 
 import core.time : seconds;
 import vibe.core.log : logDebug;
 import vibe.http.client;
-import neko.service.platform.domain.enumerations : HealthState;
-import neko.service.platform.ports.gateways;
+import neko.platform.domain.enumerations : HealthState;
+import neko.platform.ports.gateways;
 
 @safe:
 

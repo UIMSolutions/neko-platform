@@ -12,7 +12,7 @@ import vibe.core.core : runApplication;
 import vibe.core.log;
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerSettings, listenHTTP;
-import neko.service.platform;
+import neko.platform;
 
 version (DomainOpen)
   enum selfDomain = SecurityDomain.open;

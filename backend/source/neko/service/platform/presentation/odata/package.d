@@ -17,10 +17,10 @@
 ///                                          CheckServiceHealth, ExportPackage, ImportPackage
 ///
 /// $batch is not supported: configure the UI5 model with groupId "$direct".
-module neko.service.platform.presentation.odata;
+module neko.platform.presentation.odata;
 
-public import neko.service.platform.presentation.odata.model;
-public import neko.service.platform.presentation.odata.query;
+public import neko.platform.presentation.odata.model;
+public import neko.platform.presentation.odata.query;
 
 import std.algorithm : endsWith, startsWith;
 import std.array : replace;
@@ -32,10 +32,10 @@ import vibe.http.common : HTTPMethod;
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.core.log : logError;
-import neko.service.platform.domain;
-import neko.service.platform.application.dtos;
-import neko.service.platform.ports.usecases;
-import neko.service.platform.presentation.http : actorOf, writeError;
+import neko.platform.domain;
+import neko.platform.application.dtos;
+import neko.platform.ports.usecases;
+import neko.platform.presentation.http : actorOf, writeError;
 
 @safe:
 

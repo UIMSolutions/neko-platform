@@ -5,12 +5,12 @@
 *****************************************************************************************************************/
 /// The exchange format of a transfer package ("neko-transfer/1"): the file
 /// that is carried from one domain to the next (e.g. via a data diode).
-module neko.service.platform.application.dtos.transfer_document;
+module neko.platform.application.dtos.transfer_document;
 
 import std.datetime.systime : SysTime;
 import vibe.data.json;
-import neko.service.platform.domain;
-import neko.service.platform.application.dtos.responses : isoTime;
+import neko.platform.domain;
+import neko.platform.application.dtos.responses : isoTime;
 
 @safe:
 

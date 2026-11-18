@@ -8,12 +8,12 @@
 ///   presentation ──▶ ports.usecases ◀── application ──▶ domain
 ///                                          │
 ///   persistence / infrastructure ──▶ ports (repositories, storages, gateways, messaging)
-module neko.service.platform;
+module neko.platform;
 
 public:
-  import neko.service.platform.domain;
-  import neko.service.platform.ports;
-  import neko.service.platform.application;
-  import neko.service.platform.persistence;
-  import neko.service.platform.infrastructure;
-  import neko.service.platform.presentation;
+  import neko.platform.domain;
+  import neko.platform.ports;
+  import neko.platform.application;
+  import neko.platform.persistence;
+  import neko.platform.infrastructure;
+  import neko.platform.presentation;

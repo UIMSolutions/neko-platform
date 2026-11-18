@@ -5,13 +5,13 @@
 *****************************************************************************************************************/
 /// Application-wide services: default implementations of the clock and the
 /// id generator, plus a fixed clock / sequential ids for tests.
-module neko.service.platform.application.services;
+module neko.platform.application.services;
 
 import std.conv : to;
 import std.datetime.systime : Clock, SysTime;
 import std.datetime.timezone : UTC;
 import std.uuid : randomUUID;
-import neko.service.platform.ports.services;
+import neko.platform.ports.services;
 
 @safe:
 

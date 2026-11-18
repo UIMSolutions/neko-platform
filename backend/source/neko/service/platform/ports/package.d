@@ -5,12 +5,12 @@
 *****************************************************************************************************************/
 /// Ports (hexagon boundary): driving ports (usecases) and driven ports
 /// (repositories, storages, messaging, gateways, application services).
-module neko.service.platform.ports;
+module neko.platform.ports;
 
 public:
-  import neko.service.platform.ports.gateways;
-  import neko.service.platform.ports.messaging;
-  import neko.service.platform.ports.repositories;
-  import neko.service.platform.ports.services;
-  import neko.service.platform.ports.storages;
-  import neko.service.platform.ports.usecases;
+  import neko.platform.ports.gateways;
+  import neko.platform.ports.messaging;
+  import neko.platform.ports.repositories;
+  import neko.platform.ports.services;
+  import neko.platform.ports.storages;
+  import neko.platform.ports.usecases;

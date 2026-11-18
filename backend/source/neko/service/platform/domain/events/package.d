@@ -1,2 +1,2 @@
-module neko.service.platform.domain.events;
+module neko.platform.domain.events;
 

@@ -5,7 +5,7 @@
 *****************************************************************************************************************/
 /// Ports for application-wide services (time, identifiers). Use cases depend
 /// on these abstractions so tests can supply deterministic implementations.
-module neko.service.platform.ports.services;
+module neko.platform.ports.services;
 
 import std.datetime.systime : SysTime;
 

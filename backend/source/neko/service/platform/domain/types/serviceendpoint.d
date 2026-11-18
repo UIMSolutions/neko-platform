@@ -3,12 +3,12 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.platform.domain.types.serviceendpoint;
+module neko.platform.domain.types.serviceendpoint;
 
 import std.algorithm : all, canFind, startsWith;
 import std.ascii : isAlphaNum;
 import std.string : strip;
-import neko.service.platform.domain.exceptions;
+import neko.platform.domain.exceptions;
 
 @safe:
 
@@ -47,7 +47,7 @@ struct ServiceEndpoint {
 }
 ///
 unittest {
-    import neko.service.platform.domain.types.servicename;
+    import neko.platform.domain.types.servicename;
 
     assert(ServiceName("management").value == "management");
     bool failed;

@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Data transfer objects: what crosses the boundary between use cases and
 /// driving adapters. Plain data, serialisable by vibe.d (camelCase names).
-module neko.service.platform.application.dtos;
+module neko.platform.application.dtos;
 
 public:
-  import neko.service.platform.application.dtos.requests;
-  import neko.service.platform.application.dtos.responses;
-  import neko.service.platform.application.dtos.transfer_document;
+  import neko.platform.application.dtos.requests;
+  import neko.platform.application.dtos.responses;
+  import neko.platform.application.dtos.transfer_document;

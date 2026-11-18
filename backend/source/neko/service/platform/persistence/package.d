@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Persistence layer: driven adapters for the repository and storage ports.
-module neko.service.platform.persistence;
+module neko.platform.persistence;
 
 public:
-  import neko.service.platform.persistence.mappers;
-  import neko.service.platform.persistence.records;
-  import neko.service.platform.persistence.repositories;
-  import neko.service.platform.persistence.storages;
+  import neko.platform.persistence.mappers;
+  import neko.platform.persistence.records;
+  import neko.platform.persistence.repositories;
+  import neko.platform.persistence.storages;

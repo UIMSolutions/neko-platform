@@ -4,7 +4,7 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driven port for domain events (audit trail, event broker integration).
-module neko.service.platform.ports.messaging;
+module neko.platform.ports.messaging;
 
 import std.datetime.systime : SysTime;
 

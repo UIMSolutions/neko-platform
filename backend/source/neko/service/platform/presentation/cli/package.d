@@ -11,11 +11,11 @@
 ///   commands   runCli, usage, general commands
 ///   services   services …
 ///   transfers  transfers …
-module neko.service.platform.presentation.cli;
+module neko.platform.presentation.cli;
 
 public:
-  import neko.service.platform.presentation.cli.args;
-  import neko.service.platform.presentation.cli.commands;
-  import neko.service.platform.presentation.cli.output;
-  import neko.service.platform.presentation.cli.services;
-  import neko.service.platform.presentation.cli.transfers;
+  import neko.platform.presentation.cli.args;
+  import neko.platform.presentation.cli.commands;
+  import neko.platform.presentation.cli.output;
+  import neko.platform.presentation.cli.services;
+  import neko.platform.presentation.cli.transfers;

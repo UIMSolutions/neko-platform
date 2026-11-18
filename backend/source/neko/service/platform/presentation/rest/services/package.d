@@ -4,17 +4,17 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Server-side implementations of the REST interfaces.
-module neko.service.platform.presentation.rest.services;
+module neko.platform.presentation.rest.services;
 
 import vibe.http.router : URLRouter;
 import vibe.web.rest : registerRestInterface;
-import neko.service.platform.ports.usecases;
+import neko.platform.ports.usecases;
 
 public:
-  import neko.service.platform.presentation.rest.services.overview;
-  import neko.service.platform.presentation.rest.services.services;
-  import neko.service.platform.presentation.rest.services.support;
-  import neko.service.platform.presentation.rest.services.transfers;
+  import neko.platform.presentation.rest.services.overview;
+  import neko.platform.presentation.rest.services.services;
+  import neko.platform.presentation.rest.services.support;
+  import neko.platform.presentation.rest.services.transfers;
 
 @safe:
 

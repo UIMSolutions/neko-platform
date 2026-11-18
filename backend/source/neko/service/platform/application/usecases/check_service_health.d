@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Probe the health endpoints of active services.
-module neko.service.platform.application.usecases.check_service_health;
+module neko.platform.application.usecases.check_service_health;
 
 import std.conv : to;
-import neko.service.platform.domain;
-import neko.service.platform.application.dtos;
-import neko.service.platform.ports;
+import neko.platform.domain;
+import neko.platform.application.dtos;
+import neko.platform.ports;
 
 @safe:
 
@@ -61,8 +61,8 @@ class CheckServiceHealthUseCase : ICheckServiceHealthUseCase {
 ///
 unittest {
   import std.datetime.systime : SysTime;
-  import neko.service.platform.application.services : FixedClock;
-  import neko.service.platform.application.usecases.manage_services : FakeServices, RecordingEvents;
+  import neko.platform.application.services : FixedClock;
+  import neko.platform.application.usecases.manage_services : FakeServices, RecordingEvents;
 
   class DownGateway : IServiceHealthGateway {
     HealthState probe(string url) {

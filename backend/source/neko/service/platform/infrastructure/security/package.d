@@ -4,7 +4,7 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// XSUAA / JWT identity and browser security policies.
-module neko.service.platform.infrastructure.security;
+module neko.platform.infrastructure.security;
 
 import std.algorithm : any, endsWith, startsWith;
 import std.base64 : Base64URLNoPadding;

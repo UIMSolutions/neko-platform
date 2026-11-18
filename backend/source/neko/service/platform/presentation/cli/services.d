@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// `services …` commands: registry and lifecycle.
-module neko.service.platform.presentation.cli.services;
+module neko.platform.presentation.cli.services;
 
-import neko.service.platform.domain : ValidationException;
-import neko.service.platform.application.dtos;
-import neko.service.platform.infrastructure.container : PlatformContainer;
-import neko.service.platform.presentation.cli.args;
-import neko.service.platform.presentation.cli.output;
+import neko.platform.domain : ValidationException;
+import neko.platform.application.dtos;
+import neko.platform.infrastructure.container : PlatformContainer;
+import neko.platform.presentation.cli.args;
+import neko.platform.presentation.cli.output;
 
 int servicesCommand(PlatformContainer c, CliArgs a, string actor, CliOutput output) {
   auto sub = a.wordOr(1, "list");

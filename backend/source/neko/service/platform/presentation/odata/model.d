@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// OData v4 entity model (CSDL) and DTO → entity serialisation.
-module neko.service.platform.presentation.odata.model;
+module neko.platform.presentation.odata.model;
 
 import std.array : appender;
 import vibe.data.json;
-import neko.service.platform.application.dtos;
+import neko.platform.application.dtos;
 
 @safe:
 

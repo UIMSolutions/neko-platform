@@ -12,13 +12,13 @@
 ///   auto svc = client.services.postService(RegisterServiceRequest("billing"));
 ///
 ///   auto local = PlatformRestClient.overUnixSocket("/tmp/neko-platform-secret.sock");
-module neko.service.platform.presentation.rest.clients.platform;
+module neko.platform.presentation.rest.clients.platform;
 
 import vibe.http.client : HTTPClientRequest;
 import vibe.inet.url : URL;
 import vibe.textfilter.urlencode : urlEncode;
 import vibe.web.rest : RestInterfaceClient, RestInterfaceSettings;
-import neko.service.platform.presentation.rest.interfaces;
+import neko.platform.presentation.rest.interfaces;
 
 @safe:
 

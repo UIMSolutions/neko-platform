@@ -8,9 +8,9 @@
 ///
 /// The `actor` parameters are filled server-side by `@before!actorOf` from the
 /// Authorization / X-User-Id headers; they are never sent over the wire.
-module neko.service.platform.presentation.rest.interfaces;
+module neko.platform.presentation.rest.interfaces;
 
 public:
-  import neko.service.platform.presentation.rest.interfaces.overview;
-  import neko.service.platform.presentation.rest.interfaces.services;
-  import neko.service.platform.presentation.rest.interfaces.transfers;
+  import neko.platform.presentation.rest.interfaces.overview;
+  import neko.platform.presentation.rest.interfaces.services;
+  import neko.platform.presentation.rest.interfaces.transfers;

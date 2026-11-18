@@ -7,7 +7,7 @@
 ///
 /// Every platform instance runs in exactly one domain. Data may only flow
 /// upwards (open → restricted → confidential → secret), never downwards.
-module neko.service.platform.domain.enumerations.security;
+module neko.platform.domain.enumerations.security;
 
 import std.conv : to;
 import std.string : toLower, strip;

@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// A data package moved between two security domains (one-way, upwards).
-module neko.service.platform.domain.entities.transfer;
+module neko.platform.domain.entities.transfer;
 
 import std.datetime.systime : SysTime;
-import neko.service.platform.domain.enumerations;
-import neko.service.platform.domain.types;
+import neko.platform.domain.enumerations;
+import neko.platform.domain.types;
 
 @safe:
 

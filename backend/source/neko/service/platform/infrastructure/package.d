@@ -5,12 +5,12 @@
 *****************************************************************************************************************/
 /// Infrastructure layer: configuration, logging, security, clients, workers
 /// and the composition root.
-module neko.service.platform.infrastructure;
+module neko.platform.infrastructure;
 
 public:
-  import neko.service.platform.infrastructure.clients;
-  import neko.service.platform.infrastructure.configuration;
-  import neko.service.platform.infrastructure.container;
-  import neko.service.platform.infrastructure.logging;
-  import neko.service.platform.infrastructure.security;
-  import neko.service.platform.infrastructure.workers;
+  import neko.platform.infrastructure.clients;
+  import neko.platform.infrastructure.configuration;
+  import neko.platform.infrastructure.container;
+  import neko.platform.infrastructure.logging;
+  import neko.platform.infrastructure.security;
+  import neko.platform.infrastructure.workers;

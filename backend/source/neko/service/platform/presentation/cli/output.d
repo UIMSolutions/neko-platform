@@ -5,7 +5,7 @@
 *****************************************************************************************************************/
 /// CLI rendering: aligned tables and detail views for humans, or JSON
 /// (same field names as the REST API) with --json.
-module neko.service.platform.presentation.cli.output;
+module neko.platform.presentation.cli.output;
 
 import std.algorithm : map, max;
 import std.array : array, join;
@@ -13,7 +13,7 @@ import std.conv : to;
 import std.stdio : File;
 import std.string : leftJustify;
 import vibe.data.json : Json, serializeToJson;
-import neko.service.platform.application.dtos;
+import neko.platform.application.dtos;
 
 class CliOutput {
   File file;

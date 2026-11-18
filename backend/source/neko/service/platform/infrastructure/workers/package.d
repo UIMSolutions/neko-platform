@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Background workers (vibe.d timers in the event loop).
-module neko.service.platform.infrastructure.workers;
+module neko.platform.infrastructure.workers;
 
 import core.time : seconds;
 import vibe.core.core : setTimer, Timer;
 import vibe.core.log : logInfo, logWarn;
-import neko.service.platform.ports.usecases;
+import neko.platform.ports.usecases;
 
 @safe:
 

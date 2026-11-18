@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Technical logging and the log-based event publisher (audit trail).
-module neko.service.platform.infrastructure.logging;
+module neko.platform.infrastructure.logging;
 
 import vibe.core.log;
-import neko.service.platform.ports.messaging;
+import neko.platform.ports.messaging;
 
 @safe:
 

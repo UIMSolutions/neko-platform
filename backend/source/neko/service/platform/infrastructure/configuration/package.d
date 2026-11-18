@@ -1,4 +1,4 @@
-module neko.service.platform.infrastructure.configuration;
+module neko.platform.infrastructure.configuration;
 
 public:
-  import neko.service.platform.infrastructure.configuration.config;
+  import neko.platform.infrastructure.configuration.config;

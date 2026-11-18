@@ -4,14 +4,14 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Repository implementations of the driven ports, on top of a document store.
-module neko.service.platform.persistence.repositories;
+module neko.platform.persistence.repositories;
 
 import vibe.data.json;
-import neko.service.platform.domain;
-import neko.service.platform.ports.repositories;
-import neko.service.platform.ports.storages;
-import neko.service.platform.persistence.mappers;
-import neko.service.platform.persistence.records;
+import neko.platform.domain;
+import neko.platform.ports.repositories;
+import neko.platform.ports.storages;
+import neko.platform.persistence.mappers;
+import neko.platform.persistence.records;
 
 @safe:
 
@@ -98,7 +98,7 @@ class DocumentTransferRepository : ITransferRepository {
 
 ///
 unittest {
-  import neko.service.platform.persistence.storages : MemoryDocumentStore;
+  import neko.platform.persistence.storages : MemoryDocumentStore;
 
   auto repo = new DocumentServiceRepository(new MemoryDocumentStore);
   PlatformService s;

@@ -3,13 +3,13 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.platform.presentation.rest.interfaces.services;
+module neko.platform.presentation.rest.interfaces.services;
 
 import vibe.http.common : HTTPMethod;
 import vibe.web.rest;
 import vibe.web.common : viaBody, viaQuery;
-import neko.service.platform.application.dtos;
-import neko.service.platform.presentation.http : actorOf;
+import neko.platform.application.dtos;
+import neko.platform.presentation.http : actorOf;
 
 @safe:
 

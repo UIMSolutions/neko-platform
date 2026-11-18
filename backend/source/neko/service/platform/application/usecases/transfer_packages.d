@@ -4,15 +4,15 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// One-way, integrity-protected transfers between security domains.
-module neko.service.platform.application.usecases.transfer_packages;
+module neko.platform.application.usecases.transfer_packages;
 
 import std.algorithm : map, sort;
 import std.array : array;
 import std.conv : to;
 import std.string : strip;
-import neko.service.platform.domain;
-import neko.service.platform.application.dtos;
-import neko.service.platform.ports;
+import neko.platform.domain;
+import neko.platform.application.dtos;
+import neko.platform.ports;
 
 @safe:
 
@@ -152,8 +152,8 @@ version (unittest) {
 unittest {
   import std.datetime.systime : SysTime;
   import std.string : replace;
-  import neko.service.platform.application.services : FixedClock, SequentialIds;
-  import neko.service.platform.application.usecases.manage_services : RecordingEvents;
+  import neko.platform.application.services : FixedClock, SequentialIds;
+  import neko.platform.application.usecases.manage_services : RecordingEvents;
 
   auto clock = new FixedClock(SysTime(0));
   auto openSide = new TransferPackagesUseCase(new FakeTransfers, new RecordingEvents, clock,

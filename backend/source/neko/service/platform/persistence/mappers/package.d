@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Converters between stored records and domain entities.
-module neko.service.platform.persistence.mappers;
+module neko.platform.persistence.mappers;
 
 import std.conv : to;
 import std.datetime.systime : SysTime;
-import neko.service.platform.domain;
-import neko.service.platform.persistence.records;
+import neko.platform.domain;
+import neko.platform.persistence.records;
 
 @safe:
 

@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// A service registered in the platform catalogue of one security domain.
-module neko.service.platform.domain.entities.service;
+module neko.platform.domain.entities.service;
 
 import std.conv : to;
 import std.datetime.systime : SysTime;
-import neko.service.platform.domain.enumerations;
-import neko.service.platform.domain.exceptions;
-import neko.service.platform.domain.types;
+import neko.platform.domain.enumerations;
+import neko.platform.domain.exceptions;
+import neko.platform.domain.types;
 
 @safe:
 

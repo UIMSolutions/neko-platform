@@ -4,7 +4,7 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driven port for low-level data stores: named collections of JSON documents.
-module neko.service.platform.ports.storages;
+module neko.platform.ports.storages;
 
 import vibe.data.json : Json;
 

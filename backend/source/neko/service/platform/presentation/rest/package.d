@@ -17,9 +17,9 @@
 ///   GET    transfers       GET transfers/:id     GET transfers/:id/package
 ///   POST   transfers/export {name,targetDomain,payload}
 ///   POST   transfers/import <transfer document>
-module neko.service.platform.presentation.rest;
+module neko.platform.presentation.rest;
 
 public:
-  import neko.service.platform.presentation.rest.clients;
-  import neko.service.platform.presentation.rest.interfaces;
-  import neko.service.platform.presentation.rest.services;
+  import neko.platform.presentation.rest.clients;
+  import neko.platform.presentation.rest.interfaces;
+  import neko.platform.presentation.rest.services;

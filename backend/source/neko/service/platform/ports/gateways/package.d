@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driven ports for external systems: the registered services themselves.
-module neko.service.platform.ports.gateways;
+module neko.platform.ports.gateways;
 
-import neko.service.platform.domain.enumerations : HealthState;
+import neko.platform.domain.enumerations : HealthState;
 
 @safe:
 

@@ -3,11 +3,11 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.platform.presentation.rest.services.overview;
+module neko.platform.presentation.rest.services.overview;
 
-import neko.service.platform.application.dtos;
-import neko.service.platform.ports.usecases;
-import neko.service.platform.presentation.rest.interfaces.overview;
+import neko.platform.application.dtos;
+import neko.platform.ports.usecases;
+import neko.platform.presentation.rest.interfaces.overview;
 
 @safe:
 

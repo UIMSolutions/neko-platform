@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Document stores: volatile memory and JSON files (one file per collection).
-module neko.service.platform.persistence.storages;
+module neko.platform.persistence.storages;
 
 import std.file : exists, mkdirRecurse, readText, rename, write;
 import std.path : buildPath;
 import vibe.data.json;
-import neko.service.platform.ports.storages;
+import neko.platform.ports.storages;
 
 @safe:
 

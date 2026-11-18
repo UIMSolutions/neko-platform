@@ -3,9 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.platform.domain.exceptions.validation;
+module neko.platform.domain.exceptions.validation;
 
-import neko.service.platform.domain.exceptions.platform;
+import neko.platform.domain.exceptions.platform;
 
 @safe:
 

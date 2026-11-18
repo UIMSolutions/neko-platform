@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driven ports for business data access, expressed in domain terms.
-module neko.service.platform.ports.repositories;
+module neko.platform.ports.repositories;
 
-import neko.service.platform.domain;
+import neko.platform.domain;
 
 @safe:
 

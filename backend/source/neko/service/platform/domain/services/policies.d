@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Pure domain services: the security-domain rules of the platform.
-module neko.service.platform.domain.services.policies;
+module neko.platform.domain.services.policies;
 
 import std.digest : toHexString, LetterCase;
 import std.digest.sha : sha256Of;
-import neko.service.platform.domain.entities;
-import neko.service.platform.domain.enumerations;
-import neko.service.platform.domain.exceptions;
+import neko.platform.domain.entities;
+import neko.platform.domain.enumerations;
+import neko.platform.domain.exceptions;
 
 @safe:
 

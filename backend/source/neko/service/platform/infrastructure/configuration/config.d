@@ -13,7 +13,7 @@
 ///   3. environment variables (NEKO_*, PORT on Cloud Foundry)
 ///   4. VCAP_SERVICES: credentials of the bound service named / tagged
 ///      "neko-platform-config" (same keys, including "domains")
-module neko.service.platform.infrastructure.configuration.config;
+module neko.platform.infrastructure.configuration.config;
 
 import std.algorithm : canFind, map, splitter;
 import std.array : array;
@@ -24,7 +24,7 @@ import std.process : environment;
 import std.string : strip, toLower;
 import vibe.core.log : logWarn;
 import vibe.data.json;
-import neko.service.platform.domain.enumerations;
+import neko.platform.domain.enumerations;
 
 @safe:
 

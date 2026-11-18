@@ -4,15 +4,15 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Service catalogue: register, change, run through the life cycle, remove.
-module neko.service.platform.application.usecases.manage_services;
+module neko.platform.application.usecases.manage_services;
 
 import std.algorithm : canFind, filter, map, sort;
 import std.array : array;
 import std.conv : to;
 import std.string : toLower;
-import neko.service.platform.domain;
-import neko.service.platform.application.dtos;
-import neko.service.platform.ports;
+import neko.platform.domain;
+import neko.platform.application.dtos;
+import neko.platform.ports;
 
 @safe:
 
@@ -132,7 +132,7 @@ class ManageServicesUseCase : IManageServicesUseCase {
 }
 
 version (unittest) {
-  import neko.service.platform.application.services : FixedClock, SequentialIds;
+  import neko.platform.application.services : FixedClock, SequentialIds;
   import std.datetime.systime : SysTime;
 
   /// In-memory test doubles (the real adapters live in persistence/).

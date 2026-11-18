@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Driving ports: what presentation adapters (REST, OData, CLI, web) may call.
 /// Implementations throw PlatformException subclasses on business errors.
-module neko.service.platform.ports.usecases;
+module neko.platform.ports.usecases;
 
-import neko.service.platform.application.dtos;
+import neko.platform.application.dtos;
 
 @safe:
 

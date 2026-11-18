@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Shared helpers of the REST services.
-module neko.service.platform.presentation.rest.services.support;
+module neko.platform.presentation.rest.services.support;
 
 import vibe.http.common : HTTPStatusException;
-import neko.service.platform.domain : PlatformException;
+import neko.platform.domain : PlatformException;
 
 @safe:
 

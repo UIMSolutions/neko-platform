@@ -3,11 +3,11 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.platform.presentation.rest.interfaces.overview;
+module neko.platform.presentation.rest.interfaces.overview;
 
 import vibe.http.common : HTTPMethod;
 import vibe.web.rest;
-import neko.service.platform.application.dtos;
+import neko.platform.application.dtos;
 
 @safe:
 

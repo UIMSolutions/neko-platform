@@ -4,7 +4,7 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Life-cycle and health states of platform services and transfer packages.
-module neko.service.platform.domain.enumerations.status;
+module neko.platform.domain.enumerations.status;
 
 import std.conv : to;
 import std.traits : EnumMembers;

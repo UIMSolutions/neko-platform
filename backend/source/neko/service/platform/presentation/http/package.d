@@ -5,15 +5,15 @@
 *****************************************************************************************************************/
 /// General HTTP adapters: security headers, authorization guard, health and
 /// info endpoints, error rendering.
-module neko.service.platform.presentation.http;
+module neko.platform.presentation.http;
 
 import std.algorithm : among, startsWith;
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.http.common : HTTPMethod;
 import vibe.data.json;
-import neko.service.platform.domain;
-import neko.service.platform.infrastructure;
+import neko.platform.domain;
+import neko.platform.infrastructure;
 
 @safe:
 

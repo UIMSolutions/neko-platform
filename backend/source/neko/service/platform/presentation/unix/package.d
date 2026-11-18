@@ -8,8 +8,8 @@
 /// (e.g. behind a local reverse proxy, or in an air-gapped domain).
 ///
 ///   curl --unix-socket /tmp/neko-platform-secret.sock http://localhost/health
-module neko.service.platform.presentation.unix;
+module neko.platform.presentation.unix;
 
 public:
-  import neko.service.platform.presentation.unix.controller;
-  import neko.service.platform.presentation.unix.listener;
+  import neko.platform.presentation.unix.controller;
+  import neko.platform.presentation.unix.listener;

@@ -5,17 +5,17 @@
 *****************************************************************************************************************/
 /// Web adapters: a server-rendered status page (Diet, daisyUI class names)
 /// and the SAP Fiori app served from frontend/ for local development.
-module neko.service.platform.presentation.web;
+module neko.platform.presentation.web;
 
 import std.file : exists, isDir;
 import std.path : buildPath, dirName;
 import vibe.http.fileserver : serveStaticFiles;
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse, render;
-import neko.service.platform.domain;
-import neko.service.platform.application.dtos;
-import neko.service.platform.ports;
-import neko.service.platform.infrastructure.logging : LoggingEventPublisher;
+import neko.platform.domain;
+import neko.platform.application.dtos;
+import neko.platform.ports;
+import neko.platform.infrastructure.logging : LoggingEventPublisher;
 
 @safe:
 

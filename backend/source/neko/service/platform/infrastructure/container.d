@@ -5,15 +5,15 @@
 *****************************************************************************************************************/
 /// Composition root: wires adapters to ports. The only place that knows all
 /// concrete classes; everything else depends on interfaces.
-module neko.service.platform.infrastructure.container;
+module neko.platform.infrastructure.container;
 
-import neko.service.platform.domain;
-import neko.service.platform.application;
-import neko.service.platform.ports;
-import neko.service.platform.persistence;
-import neko.service.platform.infrastructure.clients;
-import neko.service.platform.infrastructure.configuration;
-import neko.service.platform.infrastructure.logging;
+import neko.platform.domain;
+import neko.platform.application;
+import neko.platform.ports;
+import neko.platform.persistence;
+import neko.platform.infrastructure.clients;
+import neko.platform.infrastructure.configuration;
+import neko.platform.infrastructure.logging;
 
 @safe:
 

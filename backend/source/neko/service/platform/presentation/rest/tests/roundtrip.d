@@ -4,7 +4,7 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Round trip: PlatformRestClient → HTTP → REST services → use cases (memory store).
-module neko.service.platform.presentation.rest.tests.roundtrip;
+module neko.platform.presentation.rest.tests.roundtrip;
 
 version (unittest):
 
@@ -13,12 +13,12 @@ import vibe.core.core : runTask;
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerSettings, listenHTTP;
 import vibe.web.rest : RestException;
-import neko.service.platform.application.dtos;
-import neko.service.platform.domain : SecurityDomain;
-import neko.service.platform.infrastructure.configuration : PlatformConfig;
-import neko.service.platform.infrastructure.container : buildContainer;
-import neko.service.platform.presentation.rest.clients;
-import neko.service.platform.presentation.rest.services : registerPlatformRestApi;
+import neko.platform.application.dtos;
+import neko.platform.domain : SecurityDomain;
+import neko.platform.infrastructure.configuration : PlatformConfig;
+import neko.platform.infrastructure.container : buildContainer;
+import neko.platform.presentation.rest.clients;
+import neko.platform.presentation.rest.services : registerPlatformRestApi;
 
 unittest {
   PlatformConfig config;

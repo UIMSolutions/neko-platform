@@ -4,17 +4,17 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// runCli end to end against an in-memory container.
-module neko.service.platform.presentation.cli.tests.commands;
+module neko.platform.presentation.cli.tests.commands;
 
 version (unittest):
 
 import std.algorithm : canFind;
 import std.stdio : File;
 import vibe.data.json : parseJsonString;
-import neko.service.platform.domain : SecurityDomain;
-import neko.service.platform.infrastructure.configuration : PlatformConfig;
-import neko.service.platform.infrastructure.container : buildContainer, PlatformContainer;
-import neko.service.platform.presentation.cli.commands : runCli;
+import neko.platform.domain : SecurityDomain;
+import neko.platform.infrastructure.configuration : PlatformConfig;
+import neko.platform.infrastructure.container : buildContainer, PlatformContainer;
+import neko.platform.presentation.cli.commands : runCli;
 
 private struct Run {
   int code;

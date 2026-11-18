@@ -5,15 +5,15 @@
 *****************************************************************************************************************/
 /// Business exceptions. Each carries an HTTP-like status code so driving
 /// adapters can translate it without knowing the concrete type.
-module neko.service.platform.domain.exceptions;
+module neko.platform.domain.exceptions;
 
 @safe:
 
 public:
-  import neko.service.platform.domain.exceptions.conflict;
-  import neko.service.platform.domain.exceptions.integrity;
-  import neko.service.platform.domain.exceptions.invalidstatetransition;
-  import neko.service.platform.domain.exceptions.notfound;
-  import neko.service.platform.domain.exceptions.platform;
-  import neko.service.platform.domain.exceptions.policyviolation;
-  import neko.service.platform.domain.exceptions.validation;
+  import neko.platform.domain.exceptions.conflict;
+  import neko.platform.domain.exceptions.integrity;
+  import neko.platform.domain.exceptions.invalidstatetransition;
+  import neko.platform.domain.exceptions.notfound;
+  import neko.platform.domain.exceptions.platform;
+  import neko.platform.domain.exceptions.policyviolation;
+  import neko.platform.domain.exceptions.validation;

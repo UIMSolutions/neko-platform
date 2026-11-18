@@ -4,7 +4,7 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// REST clients for the platform API (RestInterfaceClient over TCP or unix socket).
-module neko.service.platform.presentation.rest.clients;
+module neko.platform.presentation.rest.clients;
 
 public:
-  import neko.service.platform.presentation.rest.clients.platform;
+  import neko.platform.presentation.rest.clients.platform;

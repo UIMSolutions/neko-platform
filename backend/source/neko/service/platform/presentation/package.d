@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Presentation layer: driving adapters (HTTP, REST, OData, web, CLI, unix socket).
-module neko.service.platform.presentation;
+module neko.platform.presentation;
 
 public:
-  import neko.service.platform.presentation.cli;
-  import neko.service.platform.presentation.http;
-  import neko.service.platform.presentation.odata;
-  import neko.service.platform.presentation.rest;
-  import neko.service.platform.presentation.unix;
-  import neko.service.platform.presentation.web;
+  import neko.platform.presentation.cli;
+  import neko.platform.presentation.http;
+  import neko.platform.presentation.odata;
+  import neko.platform.presentation.rest;
+  import neko.platform.presentation.unix;
+  import neko.platform.presentation.web;

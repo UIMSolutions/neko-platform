@@ -5,17 +5,17 @@
 *****************************************************************************************************************/
 /// CLI entry point: usage, dispatch and the general commands. Talks to the
 /// application only through the use case ports — like the HTTP adapters.
-module neko.service.platform.presentation.cli.commands;
+module neko.platform.presentation.cli.commands;
 
 import std.process : environment;
 import std.stdio : File, stderr, stdout;
 import vibe.data.json : Json;
-import neko.service.platform.domain : PlatformException;
-import neko.service.platform.infrastructure.container : PlatformContainer;
-import neko.service.platform.presentation.cli.args;
-import neko.service.platform.presentation.cli.output;
-import neko.service.platform.presentation.cli.services : servicesCommand;
-import neko.service.platform.presentation.cli.transfers : transfersCommand;
+import neko.platform.domain : PlatformException;
+import neko.platform.infrastructure.container : PlatformContainer;
+import neko.platform.presentation.cli.args;
+import neko.platform.presentation.cli.output;
+import neko.platform.presentation.cli.services : servicesCommand;
+import neko.platform.presentation.cli.transfers : transfersCommand;
 
 enum usage = `Usage: platform-<domain> [command] [arguments] [--option=value …]
 

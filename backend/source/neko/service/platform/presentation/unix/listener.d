@@ -8,7 +8,7 @@
 /// (e.g. behind a local reverse proxy, or in an air-gapped domain).
 ///
 ///   curl --unix-socket /tmp/neko-platform-secret.sock http://localhost/health
-module neko.service.platform.presentation.unix.listener;
+module neko.platform.presentation.unix.listener;
 
 import std.file : exists, getAttributes, remove, mkdirRecurse;
 import std.path : dirName;

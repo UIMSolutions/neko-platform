@@ -4,15 +4,15 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// `transfers …` commands: cross-domain export and import packages.
-module neko.service.platform.presentation.cli.transfers;
+module neko.platform.presentation.cli.transfers;
 
 import std.file : readText, write;
 import vibe.data.json : parseJsonString;
-import neko.service.platform.domain : ValidationException;
-import neko.service.platform.application.dtos;
-import neko.service.platform.infrastructure.container : PlatformContainer;
-import neko.service.platform.presentation.cli.args;
-import neko.service.platform.presentation.cli.output;
+import neko.platform.domain : ValidationException;
+import neko.platform.application.dtos;
+import neko.platform.infrastructure.container : PlatformContainer;
+import neko.platform.presentation.cli.args;
+import neko.platform.presentation.cli.output;
 
 int transfersCommand(PlatformContainer c, CliArgs a, string actor, CliOutput output) {
   auto sub = a.wordOr(1, "list");

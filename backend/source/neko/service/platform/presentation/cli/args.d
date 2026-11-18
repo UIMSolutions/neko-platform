@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Command line parsing: positional words and --key[=value] options.
-module neko.service.platform.presentation.cli.args;
+module neko.platform.presentation.cli.args;
 
 import std.algorithm : startsWith;
 import std.string : indexOf;
 import std.typecons : Nullable;
-import neko.service.platform.domain : ValidationException;
+import neko.platform.domain : ValidationException;
 
 @safe:
 

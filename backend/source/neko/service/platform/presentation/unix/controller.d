@@ -12,7 +12,7 @@
 ///   socket.registerRoutes(router);   // before the static catch-all
 ///   socket.start(router);
 ///   scope (exit) socket.stop();
-module neko.service.platform.presentation.unix.controller;
+module neko.platform.presentation.unix.controller;
 
 import std.conv : octal;
 import std.datetime.systime : Clock, SysTime;
@@ -23,7 +23,7 @@ import vibe.core.log : logInfo, logWarn;
 import vibe.data.json;
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPListener, HTTPServerRequest, HTTPServerResponse;
-import neko.service.platform.presentation.unix.listener : listenOnUnixSocket;
+import neko.platform.presentation.unix.listener : listenOnUnixSocket;
 
 @safe:
 

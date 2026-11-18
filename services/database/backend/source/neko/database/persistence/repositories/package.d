@@ -3,14 +3,14 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.database.infrastructure.repositories;
+module neko.database.persistence.repositories;
 
 public:
-    import neko.database.infrastructure.repositories.backups;
-    import neko.database.infrastructure.repositories.binary;
-    import neko.database.infrastructure.repositories.bson;
-    import neko.database.infrastructure.repositories.files;
-    import neko.database.infrastructure.repositories.json;
-    import neko.database.infrastructure.repositories.memory;
-    import neko.database.infrastructure.repositories.routing;
-    import neko.database.infrastructure.repositories.snapshot;
+    import neko.database.persistence.repositories.backups;
+    import neko.database.persistence.repositories.binary;
+    import neko.database.persistence.repositories.bson;
+    import neko.database.persistence.repositories.files;
+    import neko.database.persistence.repositories.json;
+    import neko.database.persistence.repositories.memory;
+    import neko.database.persistence.repositories.routing;
+    import neko.database.persistence.repositories.snapshot;

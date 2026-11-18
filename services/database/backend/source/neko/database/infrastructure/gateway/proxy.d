@@ -29,7 +29,7 @@ import vibe.stream.operations : readAll;
 
 @safe:
 
-/// Name des Sitzungscookies der Admin-Oberfläche, wie im Server (neko.database.adapters.inbound.security).
+/// Name des Sitzungscookies der Admin-Oberfläche, wie im Server (neko.database.infrastructure.security.gate).
 enum gatewaySessionCookie = "hdb_session";
 
 /// Konfigurationsdatei des Gateways. Änderungen gelten ohne Neustart: die Datei wird höchstens einmal je Sekunde

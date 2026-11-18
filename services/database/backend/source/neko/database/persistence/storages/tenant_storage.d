@@ -1,4 +1,4 @@
-module neko.database.adapters.outbound.file_tenant_storage;
+module neko.database.persistence.storages.tenant_storage;
 
 import neko.database;
 import std.exception : enforce;

@@ -3,12 +3,12 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.database.infrastructure.repositories.bson;
+module neko.database.persistence.repositories.bson;
 
 import neko.database;
-import neko.database.domain.value : SqlNull = Null;
+import neko.database.domain.types.value : SqlNull = Null;
 import std.sumtype : match;
-import neko.database.infrastructure.repositories.binary : LittleEndianReader;
+import neko.database.persistence.repositories.binary : LittleEndianReader;
 import std.algorithm : canFind;
 import std.bitmanip : nativeToLittleEndian;
 import std.conv : to;

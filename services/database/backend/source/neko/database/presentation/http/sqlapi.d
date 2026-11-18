@@ -1,4 +1,4 @@
-module neko.database.adapters.inbound.rest_api;
+module neko.database.presentation.http.sqlapi;
 
 import neko.database;
 import std.algorithm : map;

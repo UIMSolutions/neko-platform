@@ -8,6 +8,6 @@ module neko.database.domain;
 public:
     import neko.database.domain.entities;
     import neko.database.domain.types;
-    import neko.database.domain.value;
+    import neko.database.domain.types.value;
     import neko.database.domain.enumerations;
     import neko.database.domain.exceptions;

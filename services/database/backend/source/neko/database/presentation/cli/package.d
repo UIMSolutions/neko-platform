@@ -6,7 +6,7 @@
 /// Kommandozeile: SQL-Shell und Skripte (Programm hdb-cli, dub run --config=cli), entweder gegen eine Datenbank
 /// im eigenen Prozess oder als Client über den Unix-Socket eines laufenden Servers. Die Shell kennt nur
 /// ISqlUseCase; RemoteSqlClient ist dessen Umsetzung über den Socket.
-module source.neko.database.presentation.cli;
+module neko.database.presentation.cli;
 
 public:
     import neko.database.presentation.cli.console;

@@ -1,4 +1,4 @@
-module neko.database.adapters.outbound.replication_http;
+module neko.database.infrastructure.clients.replication;
 
 import neko.database;
 import core.time : seconds;

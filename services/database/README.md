@@ -171,7 +171,7 @@ Die Oberfläche blendet aus, was die Rolle nicht darf; entschieden wird aber imm
 
 ## Admin-Client (GTK)
 
-Ein eigenes Desktop-Programm `hdb-admin` auf Basis von GtkD (GTK 3), Quellen in `source/uim/hdb/presentation/gui`.
+Ein eigenes Desktop-Programm `hdb-admin` auf Basis von GtkD (GTK 3), Quellen in `source/neko/database/presentation/gui`.
 Es spricht den Server nur über die REST-API an, mit derselben Anmeldung und denselben Rechten wie jeder andere
 Client, und enthält keinen Server-Code (kein vibe.d, kein OpenSSL).
 

@@ -1,50 +1,60 @@
-name "hdb"
-description "In-Memory-Spaltendatenbank (HANA-ähnlich) mit vibe.d und hexagonaler Architektur"
-targetType "executable"
-targetPath "build"
+name "database"
+description "HANA-Cloud-ähnliche In-Memory-Spaltendatenbank: vibe.d-Backend (REST, OData v4, SQL), Fiori-3-Frontend, CLI und GtkD-GUI in hexagonaler Architektur"
+authors "Ozan Nurettin Süel" "UI Manufaktur (R.I.P)"
+copyright "Copyright © 2018-2026, Ozan Nurettin Süel"
+license "Apache-2.0"
 
-// Server (Standard): dub build, dub run, dub test
+targetPath "build"
+sourcePaths "source"
+importPaths "source"
+stringImportPaths "views"
+
+buildRequirements "allowWarnings" "silenceDeprecations"
+
+// ── Server: REST (/api/v1), OData v4 (/odata/v4, /odata/v4/cloud), Admin-Web (/admin), Fiori (/ui5)
+// dub build          ./build/hdb
 configuration "application" {
+    targetType "executable"
     targetName "hdb"
     mainSourceFile "source/app.d"
     dependency "vibe-d" version="~>0.10.3"
     dependency "uim-framework:oop" version="~>26.11.1"
-    // Der Admin-Client ist ein eigenes Programm und spricht den Server nur über HTTP an
-    excludedSourceFiles "source/hdbadmin.d" "source/hdbcli.d" "source/uim/hdb/presentation/gui/*"
+    excludedSourceFiles "source/gui.d" "source/cli.d" "source/neko/database/presentation/gui/*"
 }
 
-// Admin-Client mit GTK: dub build --config=gui, dub run --config=gui
-// Er enthält keine Server-Module und braucht weder vibe.d noch OpenSSL.
+// ── Kommandozeile: SQL-Shell (eingebettet oder über den Unix-Socket) und Cloud-Verwaltung über REST
+// dub build --config=cli     ./build/hdb-cli --help
+configuration "cli" {
+    targetType "executable"
+    targetName "hdb-cli"
+    mainSourceFile "source/cli.d"
+    dependency "vibe-d" version="~>0.10.3"
+    dependency "uim-framework:oop" version="~>26.11.1"
+    excludedSourceFiles "source/app.d" "source/gui.d" "source/neko/database/presentation/gui/*"
+}
+
+// ── Desktop-Admin-Client mit GtkD (GTK 3). Spricht den Server nur über REST an; kein Server-Code, kein vibe.d.
+// dub build --config=gui     ./build/hdb-admin --server=http://localhost:8080
 configuration "gui" {
+    targetType "executable"
     targetName "hdb-admin"
-    mainSourceFile "source/hdbadmin.d"
+    mainSourceFile "source/gui.d"
     dependency "gtk-d:gtkd" version="~>3.11.0"
-    excludedSourceFiles "source/app.d" "source/hdbcli.d" "source/uim/hdb/package.d" "source/uim/hdb/adapters/*" \
-        "source/uim/hdb/application/*" "source/uim/hdb/domain/*" "source/uim/hdb/infrastructure/*" \
-        "source/uim/hdb/testing.d" "source/uim/hdb/embedded.d" "source/uim/hdb/gateway/*" \
-        "source/uim/hdb/presentation/package.d" "source/uim/hdb/presentation/cli/*" \
-        "source/uim/hdb/presentation/http/*" "source/uim/hdb/presentation/odata/*" \
-        "source/uim/hdb/presentation/rest/*" "source/uim/hdb/presentation/tcp/*" \
-        "source/uim/hdb/presentation/ui5/*" "source/uim/hdb/presentation/unix/*"
+    excludedSourceFiles "source/app.d" "source/cli.d" "source/neko/database/package.d" "source/neko/database/embedded.d" \
+        "source/neko/database/testing.d" "source/neko/database/application/*" "source/neko/database/domain/*" \
+        "source/neko/database/infrastructure/*" "source/neko/database/persistence/*" "source/neko/database/ports/*" \
+        "source/neko/database/presentation/package.d" "source/neko/database/presentation/cli/*" \
+        "source/neko/database/presentation/http/*" "source/neko/database/presentation/odata/*" \
+        "source/neko/database/presentation/rest/*" "source/neko/database/presentation/unix/*" \
+        "source/neko/database/presentation/web/*"
 }
 
-// Eingebettet: die Datenbank als Bibliothek im eigenen Programm, ohne Server (neko.database.embedded).
-// dub build --config=library, oder als Abhängigkeit: dependency "hdb" version="*" path="..." mit
-// subConfiguration "hdb" "library"
+// ── Eingebettet: die Datenbank als Bibliothek (neko.database.embedded), ohne Server
+// dub build --config=library
 configuration "library" {
     targetType "library"
     targetName "hdb"
     dependency "vibe-d" version="~>0.10.3"
     dependency "uim-framework:oop" version="~>26.11.1"
-    excludedSourceFiles "source/app.d" "source/hdbadmin.d" "source/hdbcli.d" "source/uim/hdb/presentation/gui/*"
-}
-
-// Kommandozeile: SQL-Shell ohne Server auf einem Datenbankverzeichnis oder im Speicher (neko.database.presentation.cli).
-// dub build --config=cli, dub run --config=cli -- data/mydb, dub run --config=cli -- --help
-configuration "cli" {
-    targetName "hdb-cli"
-    mainSourceFile "source/hdbcli.d"
-    dependency "vibe-d" version="~>0.10.3"
-    dependency "uim-framework:oop" version="~>26.11.1"
-    excludedSourceFiles "source/app.d" "source/hdbadmin.d" "source/uim/hdb/presentation/gui/*"
+    excludedSourceFiles "source/app.d" "source/gui.d" "source/cli.d" "source/neko/database/presentation/gui/*"
 }

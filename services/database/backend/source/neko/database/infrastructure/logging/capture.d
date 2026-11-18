@@ -3,7 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.database.adapters.inbound.application_log;
+module neko.database.infrastructure.logging.capture;
 
 import neko.database;
 import core.sync.mutex : Mutex;
@@ -174,7 +174,7 @@ unittest {
     auto entries = logs.read(sys, LogQuery(LogKind.application)).entries;
     assert(entries.map!(e => e.message).array == ["Careful", "Captured 1"]);
     assert(entries[0].severity == LogSeverity.warning);
-    assert(entries[1].category == "neko.database.adapters.inbound.application_log", entries[1].category);
+    assert(entries[1].category == "neko.database.infrastructure.logging.capture", entries[1].category);
     assert(sourceOf("../../.dub/packages/vibe-http/1.5.1/vibe-http/source/vibe/http/server.d") == "vibe.http.server");
     assert(sourceOf("app.d") == "app");
 

@@ -148,10 +148,11 @@ final class RemoteSqlClient : ISqlUseCase {
             foreach (c; r["columns"].toArray)
                 result.columns ~= c.isString ? c.get!string : c.toString;
         if (r["rows"].isArray)
-            foreach (row; r["rows"]) {
+            foreach (row; r["rows"].toArray) {
                 Value[] values;
                 if (row.isArray)
-                    values = row.toArray.map!(cell => valueOf(cell)).array;
+                    foreach (cell; row.toArray)
+                        values ~= valueOf(cell);
                 result.rows ~= values;
             }
         result.affected = longOf(r["affected"]);
@@ -194,7 +195,7 @@ final class RemoteSqlClient : ISqlUseCase {
         auto r = call("GET", "/stats").json;
         enforce(r.isArray, "Invalid statistics from the server");
         TableStats[] result;
-        foreach (t; r) {
+        foreach (t; r.toArray) {
             TableStats s;
             s.table = textOf(t, "table");
             s.storage = parseStorage(textOf(t, "storage"));
@@ -251,7 +252,7 @@ Value valueOf(Json cell) {
     case Json.Type.bool_:
         return Value(cell.get!bool);
     default:
-        return Value(neko.database.domain.value.Null());
+        return Value(neko.database.domain.types.value.Null());
     }
 }
 

@@ -4,7 +4,7 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Einstieg des Admin-Clients: dub run --config=gui -- --server=http://localhost:8080
-module hdbadmin;
+module gui;
 
 import neko.database.presentation.gui;
 

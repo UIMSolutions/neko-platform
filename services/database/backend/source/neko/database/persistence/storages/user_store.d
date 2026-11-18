@@ -1,4 +1,4 @@
-module neko.database.adapters.outbound.file_user_store;
+module neko.database.persistence.storages.user_store;
 
 import neko.database;
 import std.conv : octal;

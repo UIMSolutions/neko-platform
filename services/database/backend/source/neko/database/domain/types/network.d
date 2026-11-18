@@ -11,6 +11,7 @@ import std.conv : to;
 import std.exception : enforce;
 import std.string : indexOf, split, strip, toLower;
 
+import uim.core.mixins.version_ : ShowModule;
 mixin(ShowModule!());
 
 @safe:

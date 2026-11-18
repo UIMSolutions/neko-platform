@@ -85,7 +85,7 @@ string geoJsonToWkt(Json geo) {
 }
 ///
 unittest {
-    import neko.database.domain.value : normalizeGeo;
+    import neko.database.domain.types.value : normalizeGeo;
     import std.exception : assertThrown;
     import vibe.data.json : parseJsonString;
 

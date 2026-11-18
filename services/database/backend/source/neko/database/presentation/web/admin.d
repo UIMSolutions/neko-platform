@@ -1,10 +1,10 @@
-module neko.database.adapters.inbound.admin_web;
+module neko.database.presentation.web.admin;
 
-import neko.database.application.ports;
+import neko.database.ports;
 import neko.database;
-import neko.database.adapters.inbound.security : currentClientAddress, currentPrincipal, sessionCookie;
+import neko.database.infrastructure.security.gate : currentClientAddress, currentPrincipal, sessionCookie;
 import neko.database.domain.entities.user;
-import neko.database.domain.value;
+import neko.database.domain.types.value;
 import core.time : MonoTime;
 import std.datetime.systime : Clock;
 import std.datetime.timezone : UTC;

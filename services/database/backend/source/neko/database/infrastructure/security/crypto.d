@@ -1,6 +1,6 @@
-module neko.database.adapters.outbound.openssl_credential_crypto;
+module neko.database.infrastructure.security.crypto;
 
-import neko.database.application.ports;
+import neko.database.ports;
 import std.algorithm : min;
 import std.array : split;
 import std.base64 : Base64, Base64URLNoPadding;

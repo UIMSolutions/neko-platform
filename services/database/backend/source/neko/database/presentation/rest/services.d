@@ -1,14 +1,14 @@
 module neko.database.presentation.rest.services;
 
-import neko.database.adapters.inbound.admin_web : createTableSql, isIdentifier, selectSql;
-import neko.database.adapters.inbound.security : bearerToken, currentClientAddress;
-import neko.database.application.ports : BackupNotFound, IAccessUseCase, IBackupUseCase, ILogUseCase, IReplicationUseCase,
+import neko.database.presentation.web.admin : createTableSql, isIdentifier, selectSql;
+import neko.database.infrastructure.security.gate : bearerToken, currentClientAddress;
+import neko.database.ports : BackupNotFound, IAccessUseCase, IBackupUseCase, ILogUseCase, IReplicationUseCase,
     ISqlUseCase, ITenantUseCase, LogQuery, ReplicationConfig;
-import neko.database.adapters.outbound.replication_http : changeBatchJson;
-import neko.database.infrastructure.repositories.backups : encodeSnapshot;
+import neko.database.infrastructure.clients.replication : changeBatchJson;
+import neko.database.persistence.repositories.backups : encodeSnapshot;
 import neko.database.domain.entities.user;
 import neko.database;
-import neko.database.domain.value;
+import neko.database.domain.types.value;
 import neko.database.presentation.rest.interfaces;
 import neko.database.presentation.rest.models;
 import std.algorithm : any, map;

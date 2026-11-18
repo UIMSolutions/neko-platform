@@ -163,7 +163,7 @@ struct Transaction {
 }
 
 unittest {
-    import neko.database.domain.value : get;
+    import neko.database.domain.types.value : get;
     import std.exception : assertThrown;
     import std.file : exists, rmdirRecurse, tempDir;
     import std.path : buildPath;

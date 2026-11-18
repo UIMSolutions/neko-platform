@@ -1,6 +1,8 @@
-module neko.database.application.ports.usecases.sql;
+module neko.database.ports.usecases.sql;
 
 import neko.database;
+
+@safe:
 
 /// Eingehender Port: was die Anwendung anbietet.
 interface ISqlUseCase {

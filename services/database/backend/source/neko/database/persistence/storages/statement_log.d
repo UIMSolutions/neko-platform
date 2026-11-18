@@ -1,4 +1,4 @@
-module neko.database.adapters.outbound.file_statement_log;
+module neko.database.persistence.storages.statement_log;
 
 import neko.database;
 

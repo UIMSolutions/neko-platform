@@ -186,10 +186,10 @@ unittest {
 
     assertThrown(parseCliFormat("xml"));
 
-    assert(cellText(Value(neko.database.domain.value.Null())) == "NULL" && cellText(Value(neko.database.domain.value.Null()), "") == "");
+    assert(cellText(Value(neko.database.domain.types.value.Null())) == "NULL" && cellText(Value(neko.database.domain.types.value.Null()), "") == "");
     assert(cellText(Value(Exact("1.50"))) == "1.50" && cellText(Value(true)) == "TRUE");
 
-    auto r = QueryResult(["id", "name"], [[Value(1L), Value("äb")], [Value(10L), Value(neko.database.domain.value.Null())]]);
+    auto r = QueryResult(["id", "name"], [[Value(1L), Value("äb")], [Value(10L), Value(neko.database.domain.types.value.Null())]]);
     assert(formatResult(r, CliFormat.table) ==
         "+----+------+\n"
         ~ "| id | name |\n"

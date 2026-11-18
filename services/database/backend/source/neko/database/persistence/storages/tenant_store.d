@@ -1,4 +1,4 @@
-module neko.database.adapters.outbound.file_tenant_store;
+module neko.database.persistence.storages.tenant_store;
 
 import neko.database;
 import std.file : exists, mkdirRecurse, readText, rename;

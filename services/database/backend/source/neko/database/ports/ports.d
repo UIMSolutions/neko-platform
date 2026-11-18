@@ -1,4 +1,4 @@
-module neko.database.application.ports.ports;
+module neko.database.ports.ports;
 
 import neko.database;
 

@@ -1,6 +1,6 @@
-module neko.database.adapters.inbound.security;
+module neko.database.infrastructure.security.gate;
 
-import neko.database.application.ports;
+import neko.database.ports;
 import neko.database.domain.entities.user;
 import neko.database.domain.types.network : IpNetwork, isAllowed;
 import std.algorithm : canFind, startsWith;

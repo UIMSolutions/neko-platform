@@ -5,7 +5,7 @@
 *****************************************************************************************************************/
 /// hdb-cli: SQL-Shell. Lokal läuft die Datenbank wie in neko.database.embedded im eigenen Prozess, ohne Anmeldung und
 /// Rollen; mit --socket ist hdb-cli Client eines laufenden Servers. dub run --config=cli -- --help
-module hdbcli;
+module cli;
 
 import neko.database;
 import neko.database.presentation.cli;

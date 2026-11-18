@@ -5,11 +5,11 @@
 *****************************************************************************************************************/
 /// Command line driving adapter. Talks to the application exclusively via the
 /// driving ports (ManagementPorts) — exactly like the HTTP/OData/GUI adapters.
-module neko.service.management.presentation.cli.commands;
+module neko.management.presentation.cli.commands;
 
-import neko.service.management;
-import neko.service.management.presentation.cli.args;
-import neko.service.management.presentation.tabular;
+import neko.management;
+import neko.management.presentation.cli.args;
+import neko.management.presentation.tabular;
 
 mixin(ShowModule!());
 

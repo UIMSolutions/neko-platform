@@ -17,17 +17,17 @@
 ///   POST   <base>/<Action>                 unbound actions, e.g. SuspendSubaccount {"id": "…"}
 ///
 /// $batch is not supported — configure the UI5 model with groupId "$direct".
-module neko.service.management.presentation.odata.controller;
+module neko.management.presentation.odata.controller;
 
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.http.common : HTTPMethod;
 import vibe.textfilter.urlencode : urlDecode;
-import neko.service.management;
-import neko.service.management.presentation.odata.model;
-import neko.service.management.presentation.odata.metadata;
-import neko.service.management.presentation.odata.query;
-import neko.service.management.presentation.odata.serializers;
+import neko.management;
+import neko.management.presentation.odata.model;
+import neko.management.presentation.odata.metadata;
+import neko.management.presentation.odata.query;
+import neko.management.presentation.odata.serializers;
 
 mixin(ShowModule!());
 

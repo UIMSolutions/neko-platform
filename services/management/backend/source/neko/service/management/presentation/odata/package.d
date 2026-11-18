@@ -4,12 +4,12 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// OData v4 endpoints & $metadata generation for SAP Fiori.
-module neko.service.management.presentation.odata;
+module neko.management.presentation.odata;
 
 public {
-  import neko.service.management.presentation.odata.controller;
-  import neko.service.management.presentation.odata.metadata;
-  import neko.service.management.presentation.odata.model;
-  import neko.service.management.presentation.odata.query;
-  import neko.service.management.presentation.odata.serializers;
+  import neko.management.presentation.odata.controller;
+  import neko.management.presentation.odata.metadata;
+  import neko.management.presentation.odata.model;
+  import neko.management.presentation.odata.query;
+  import neko.management.presentation.odata.serializers;
 }

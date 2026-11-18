@@ -1,6 +1,6 @@
-module neko.service.management.presentation.rest;
+module neko.management.presentation.rest;
 
 public:
-    import neko.service.management.presentation.rest.interfaces;
-    import neko.service.management.presentation.rest.services;
+    import neko.management.presentation.rest.interfaces;
+    import neko.management.presentation.rest.services;
     

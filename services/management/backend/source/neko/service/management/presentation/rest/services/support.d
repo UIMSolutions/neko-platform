@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Shared helpers of the REST services.
-module neko.service.management.presentation.rest.services.support;
+module neko.management.presentation.rest.services.support;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

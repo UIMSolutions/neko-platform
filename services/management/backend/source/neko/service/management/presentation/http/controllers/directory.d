@@ -3,11 +3,11 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file. 
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.management.presentation.http.controllers.directory;
+module neko.management.presentation.http.controllers.directory;
 
 // 
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 
@@ -152,7 +152,7 @@ class DirectoryController : ManageHttpController {
 }
 ///
 unittest {
-  import neko.service.service.tests;
+  import uim.service.tests;
 
   @safe class DirectoryControllerTest : ControllerTestBase {
     void runTests() {

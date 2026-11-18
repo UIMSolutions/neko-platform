@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Tabular projections of the domain entities, shared by the text based
 /// presentation adapters (CLI tables and GtkD list views).
-module neko.service.management.presentation.tabular;
+module neko.management.presentation.tabular;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

@@ -7,12 +7,12 @@
 ///
 /// PATCH payloads only contain the changed properties; the update requests are
 /// therefore always built from the current entity, overlaid with the payload.
-module neko.service.management.presentation.odata.serializers;
+module neko.management.presentation.odata.serializers;
 
 import core.time : Duration;
 import std.datetime.systime : SysTime;
 import std.datetime.timezone : UTC;
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

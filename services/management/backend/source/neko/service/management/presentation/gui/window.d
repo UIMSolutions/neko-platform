@@ -8,12 +8,12 @@
 /// through the configured snapshot storage.
 ///
 /// Only compiled when gtk-d is a dependency (dub --config=gui).
-module neko.service.management.presentation.gui.window;
+module neko.management.presentation.gui.window;
 
 version (Have_gtk_d):
 
-import neko.service.management;
-import neko.service.management.presentation.tabular;
+import neko.management;
+import neko.management.presentation.tabular;
 
 import gtk.Main;
 import gtk.MainWindow;

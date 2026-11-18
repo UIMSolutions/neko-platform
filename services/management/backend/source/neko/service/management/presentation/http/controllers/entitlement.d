@@ -3,11 +3,11 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file. 
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.management.presentation.http.controllers.entitlement;
+module neko.management.presentation.http.controllers.entitlement;
 
 // 
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 @safe:
@@ -170,7 +170,7 @@ class EntitlementController : ManageHttpController {
 }
 
 unittest {
-  import neko.service.service.tests;
+  import uim.service.tests;
 
   @safe class EntitlementControllerTest : ControllerTestBase {
     void runTests() {

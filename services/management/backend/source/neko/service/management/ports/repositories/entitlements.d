@@ -3,10 +3,10 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file. 
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.management.ports.repositories.entitlements;
-// import neko.service.management.domain.entities.entitlement;
+module neko.management.ports.repositories.entitlements;
+// import neko.management.domain.entities.entitlement;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Minimal, dependency-free command line parser:
 ///   positional arguments, --key=value, --key value and boolean --flag.
-module neko.service.management.presentation.cli.args;
+module neko.management.presentation.cli.args;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

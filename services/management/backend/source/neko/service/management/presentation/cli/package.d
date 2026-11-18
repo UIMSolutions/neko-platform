@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Command line adapter.
-module neko.service.management.presentation.cli;
+module neko.management.presentation.cli;
 
 public {
-  import neko.service.management.presentation.cli.args;
-  import neko.service.management.presentation.cli.commands;
+  import neko.management.presentation.cli.args;
+  import neko.management.presentation.cli.commands;
 }

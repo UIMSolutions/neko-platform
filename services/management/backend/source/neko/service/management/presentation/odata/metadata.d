@@ -3,11 +3,11 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.management.presentation.odata.metadata;
+module neko.management.presentation.odata.metadata;
 
 import std.array : appender;
-import neko.service.management;
-import neko.service.management.presentation.odata.model;
+import neko.management;
+import neko.management.presentation.odata.model;
 
 mixin(ShowModule!());
 

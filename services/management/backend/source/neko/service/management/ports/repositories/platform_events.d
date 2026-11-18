@@ -3,10 +3,10 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file. 
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.management.ports.repositories.platform_events;
-// import neko.service.management.domain.entities.platform_event;
+module neko.management.ports.repositories.platform_events;
+// import neko.management.domain.entities.platform_event;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

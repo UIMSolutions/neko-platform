@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Client-Betrieb der Kommandozeile: ISqlUseCase über den Unix Domain Socket eines laufenden Servers
-/// (UNIX_SOCKET, siehe uim.hdb.presentation.unix). Anmeldung, Rollen und Audit gelten wie über HTTP.
-module uim.hdb.presentation.cli.remote;
+/// (UNIX_SOCKET, siehe neko.database.presentation.unix). Anmeldung, Rollen und Audit gelten wie über HTTP.
+module neko.database.presentation.cli.remote;
 
-import uim.hdb;
+import neko.database;
 
 import core.time : msecs;
 import std.algorithm : map;
@@ -251,7 +251,7 @@ Value valueOf(Json cell) {
     case Json.Type.bool_:
         return Value(cell.get!bool);
     default:
-        return Value(uim.hdb.domain.value.Null());
+        return Value(neko.database.domain.value.Null());
     }
 }
 
@@ -421,8 +421,8 @@ unittest {
     import std.algorithm : canFind;
     import std.functional : toDelegate;
     import std.exception : assertThrown;
-    import uim.hdb.presentation.cli.format : CliFormat, formatResult, formatStats;
-    import uim.hdb.testing : runInEventLoop;
+    import neko.database.presentation.cli.format : CliFormat, formatResult, formatStats;
+    import neko.database.testing : runInEventLoop;
 
     static class MemStore : IUserStore {
         HdbUser[] saved;

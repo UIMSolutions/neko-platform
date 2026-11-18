@@ -3,9 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UIManufaktur)
 *****************************************************************************************************************/
-module uim.hdb.domain.entities.mergejob;
+module neko.database.domain.entities.mergejob;
 
-import uim.hdb;
+import neko.database;
 import std.algorithm : sort, uniq;
 import std.array : array;
 import std.exception : enforce;

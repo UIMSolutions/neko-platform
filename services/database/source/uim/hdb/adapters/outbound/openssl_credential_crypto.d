@@ -1,6 +1,6 @@
-module uim.hdb.adapters.outbound.openssl_credential_crypto;
+module neko.database.adapters.outbound.openssl_credential_crypto;
 
-import uim.hdb.application.ports;
+import neko.database.application.ports;
 import std.algorithm : min;
 import std.array : split;
 import std.base64 : Base64, Base64URLNoPadding;

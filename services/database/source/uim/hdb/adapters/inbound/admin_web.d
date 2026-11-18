@@ -1,10 +1,10 @@
-module uim.hdb.adapters.inbound.admin_web;
+module neko.database.adapters.inbound.admin_web;
 
-import uim.hdb.application.ports;
-import uim.hdb;
-import uim.hdb.adapters.inbound.security : currentClientAddress, currentPrincipal, sessionCookie;
-import uim.hdb.domain.entities.user;
-import uim.hdb.domain.value;
+import neko.database.application.ports;
+import neko.database;
+import neko.database.adapters.inbound.security : currentClientAddress, currentPrincipal, sessionCookie;
+import neko.database.domain.entities.user;
+import neko.database.domain.value;
 import core.time : MonoTime;
 import std.datetime.systime : Clock;
 import std.datetime.timezone : UTC;

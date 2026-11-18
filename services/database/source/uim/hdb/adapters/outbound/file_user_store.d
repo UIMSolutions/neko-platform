@@ -1,6 +1,6 @@
-module uim.hdb.adapters.outbound.file_user_store;
+module neko.database.adapters.outbound.file_user_store;
 
-import uim.hdb;
+import neko.database;
 import std.conv : octal;
 import std.file : exists, mkdirRecurse, readText, rename, setAttributes;
 import std.path : dirName;

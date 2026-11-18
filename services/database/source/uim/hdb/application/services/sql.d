@@ -1,6 +1,6 @@
-module uim.hdb.application.services.sql;
+module neko.database.application.services.sql;
 
-import uim.hdb;
+import neko.database;
 import std.algorithm : all, canFind, map, sort, startsWith, endsWith, SwapStrategy;
 import std.ascii : isDigit;
 import std.array : array, join, split;

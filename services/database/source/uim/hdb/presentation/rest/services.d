@@ -1,16 +1,16 @@
-module uim.hdb.presentation.rest.services;
+module neko.database.presentation.rest.services;
 
-import uim.hdb.adapters.inbound.admin_web : createTableSql, isIdentifier, selectSql;
-import uim.hdb.adapters.inbound.security : bearerToken, currentClientAddress;
-import uim.hdb.application.ports : BackupNotFound, IAccessUseCase, IBackupUseCase, ILogUseCase, IReplicationUseCase,
+import neko.database.adapters.inbound.admin_web : createTableSql, isIdentifier, selectSql;
+import neko.database.adapters.inbound.security : bearerToken, currentClientAddress;
+import neko.database.application.ports : BackupNotFound, IAccessUseCase, IBackupUseCase, ILogUseCase, IReplicationUseCase,
     ISqlUseCase, ITenantUseCase, LogQuery, ReplicationConfig;
-import uim.hdb.adapters.outbound.replication_http : changeBatchJson;
-import uim.hdb.infrastructure.repositories.backups : encodeSnapshot;
-import uim.hdb.domain.entities.user;
-import uim.hdb;
-import uim.hdb.domain.value;
-import uim.hdb.presentation.rest.interfaces;
-import uim.hdb.presentation.rest.models;
+import neko.database.adapters.outbound.replication_http : changeBatchJson;
+import neko.database.infrastructure.repositories.backups : encodeSnapshot;
+import neko.database.domain.entities.user;
+import neko.database;
+import neko.database.domain.value;
+import neko.database.presentation.rest.interfaces;
+import neko.database.presentation.rest.models;
 import std.algorithm : any, map;
 import std.array : array, join;
 import std.conv : to;
@@ -544,7 +544,7 @@ private void registerReplicationRoutes(URLRouter router, IReplicationUseCase rep
 ///
 /// Actual run over HTTP using the clients generated from the interfaces, including the gateway and roles.
 unittest {
-    import uim.hdb;
+    import neko.database;
     import std.exception : collectException;
     import std.file : exists, rmdirRecurse, tempDir;
     import std.functional : toDelegate;
@@ -600,7 +600,7 @@ unittest {
     auto listener = listenHTTP(http, router);
     auto base = "http://127.0.0.1:" ~ listener.bindAddresses[0].port.to!string ~ "/";
 
-    import uim.hdb.testing : runInEventLoop;
+    import neko.database.testing : runInEventLoop;
 
     auto failure = runInEventLoop({
         auto client(I)(string token) {
@@ -776,7 +776,7 @@ unittest {
 
 /// Replikation über echtes HTTP: zwei vollständige Server, das Ziel holt Stand und Änderungen über die REST-API.
 unittest {
-    import uim.hdb;
+    import neko.database;
     import std.exception : collectException;
     import std.file : exists, rmdirRecurse, tempDir;
     import std.functional : toDelegate;
@@ -847,7 +847,7 @@ unittest {
         replica.listener.stopListening();
     }
 
-    import uim.hdb.testing : runInEventLoop;
+    import neko.database.testing : runInEventLoop;
 
     auto failure = runInEventLoop({
         auto admin = Principal("root", HdbRole.admin, true, defaultTenant);

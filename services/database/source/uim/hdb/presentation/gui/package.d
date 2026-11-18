@@ -5,12 +5,12 @@
 *****************************************************************************************************************/
 /// Admin-Client mit GTK (GtkD). Ein eigenes Programm (dub build --config=gui), das den Server nur über seine
 /// REST-API anspricht: dieselben Rechte, dieselbe Anmeldung wie jeder andere Client.
-module uim.hdb.presentation.gui;
+module neko.database.presentation.gui;
 
 public:
-    import uim.hdb.presentation.gui.api;
-    import uim.hdb.presentation.gui.transport;
-    import uim.hdb.presentation.gui.login;
-    import uim.hdb.presentation.gui.pages;
-    import uim.hdb.presentation.gui.widgets;
-    import uim.hdb.presentation.gui.window;
+    import neko.database.presentation.gui.api;
+    import neko.database.presentation.gui.transport;
+    import neko.database.presentation.gui.login;
+    import neko.database.presentation.gui.pages;
+    import neko.database.presentation.gui.widgets;
+    import neko.database.presentation.gui.window;

@@ -1,5 +1,5 @@
-module uim.hdb.adapters;
+module neko.database.adapters;
 
 public:
-    import uim.hdb.adapters.inbound;
-    import uim.hdb.adapters.outbound;
+    import neko.database.adapters.inbound;
+    import neko.database.adapters.outbound;

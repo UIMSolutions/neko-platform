@@ -1,6 +1,6 @@
-module uim.hdb.application.ports.ports;
+module neko.database.application.ports.ports;
 
-import uim.hdb;
+import neko.database;
 
 @safe:
 

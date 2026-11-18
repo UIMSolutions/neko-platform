@@ -3,9 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.hdb.domain.types.exact;
+module neko.database.domain.types.exact;
 
-import uim.hdb;
+import neko.database;
 
 mixin(ShowModule!());
 

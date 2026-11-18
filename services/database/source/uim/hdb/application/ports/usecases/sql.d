@@ -1,6 +1,6 @@
-module uim.hdb.application.ports.usecases.sql;
+module neko.database.application.ports.usecases.sql;
 
-import uim.hdb;
+import neko.database;
 
 /// Eingehender Port: was die Anwendung anbietet.
 interface ISqlUseCase {

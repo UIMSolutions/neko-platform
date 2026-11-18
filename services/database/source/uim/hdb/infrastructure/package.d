@@ -1,4 +1,4 @@
-module uim.hdb.infrastructure;
+module neko.database.infrastructure;
 
 public:
-    import uim.hdb.infrastructure.repositories;
+    import neko.database.infrastructure.repositories;

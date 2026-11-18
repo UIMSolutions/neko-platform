@@ -1,5 +1,5 @@
-module uim.hdb.application.ports;
+module neko.database.application.ports;
 
 public:
-    import uim.hdb.application.ports.ports; 
-    import uim.hdb.application.ports.usecases;
+    import neko.database.application.ports.ports; 
+    import neko.database.application.ports.usecases;

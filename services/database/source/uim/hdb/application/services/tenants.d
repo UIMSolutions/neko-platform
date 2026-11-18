@@ -1,6 +1,6 @@
-module uim.hdb.application.services.tenants;
+module neko.database.application.services.tenants;
 
-import uim.hdb;
+import neko.database;
 import std.algorithm : map, sort;
 import std.array : array, join;
 import std.exception : enforce;

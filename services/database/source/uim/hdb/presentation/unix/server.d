@@ -3,9 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.hdb.presentation.unix.server;
+module neko.database.presentation.unix.server;
 
-import uim.hdb;
+import neko.database;
 import core.stdc.errno : ECONNREFUSED;
 import core.sys.posix.sys.stat : lstat, S_IFMT, S_IFSOCK, stat_t, umask;
 import core.sys.posix.sys.types : mode_t;
@@ -181,7 +181,7 @@ unittest {
         return data.idup ~ assumeUTF(content.idup);
     }
 
-    import uim.hdb.testing : runInEventLoop;
+    import neko.database.testing : runInEventLoop;
 
     auto failure = runInEventLoop({
         auto server = new UnixServer(path, [new Echo], 32);

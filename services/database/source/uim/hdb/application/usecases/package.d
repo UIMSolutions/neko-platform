@@ -1,4 +1,4 @@
-module uim.hdb.application.usecases;
+module neko.database.application.usecases;
 
 public:
-    import uim.hdb.application.usecases.secured_sql;
+    import neko.database.application.usecases.secured_sql;

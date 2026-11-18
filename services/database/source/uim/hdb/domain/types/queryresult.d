@@ -1,6 +1,6 @@
-module uim.hdb.domain.types.queryresult;
+module neko.database.domain.types.queryresult;
 
-import uim.hdb;
+import neko.database;
 
 mixin(ShowModule!());
 

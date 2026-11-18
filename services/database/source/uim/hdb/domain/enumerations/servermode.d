@@ -3,7 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.hdb.domain.enumerations.servermode;
+module neko.database.domain.enumerations.servermode;
 
 import std.exception : enforce;
 import std.string : strip, toLower;
@@ -11,7 +11,7 @@ import std.string : strip, toLower;
 @safe:
 
 /// Betriebsart des Servers (HDB_MODE). Die eingebettete Datenbank ist keine Betriebsart des Servers, sondern
-/// eine Bibliothek: siehe uim.hdb.embedded.
+/// eine Bibliothek: siehe neko.database.embedded.
 enum ServerMode {
     multi, // mehrere Mandanten mit Systembereich (Standard)
     single, // genau ein Mandant (default), ohne Mandantenfeld und Systembereich

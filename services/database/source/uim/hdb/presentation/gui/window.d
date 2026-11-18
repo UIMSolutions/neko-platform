@@ -3,12 +3,12 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.hdb.presentation.gui.window;
+module neko.database.presentation.gui.window;
 
-import uim.hdb.presentation.gui.api;
-import uim.hdb.presentation.gui.login : signIn;
-import uim.hdb.presentation.gui.pages;
-import uim.hdb.presentation.gui.widgets;
+import neko.database.presentation.gui.api;
+import neko.database.presentation.gui.login : signIn;
+import neko.database.presentation.gui.pages;
+import neko.database.presentation.gui.widgets;
 import gtk.Box;
 import gtk.Button;
 import gtk.HeaderBar;

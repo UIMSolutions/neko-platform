@@ -3,9 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.hdb.domain.enumerations.role;
+module neko.database.domain.enumerations.role;
 
-import uim.hdb;
+import neko.database;
 
 @safe:
 /// HdbRole is the role of a user in the HDB system, defining their permissions and access level.

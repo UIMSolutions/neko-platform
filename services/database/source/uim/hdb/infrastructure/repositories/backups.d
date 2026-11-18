@@ -3,9 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.hdb.infrastructure.repositories.backups;
+module neko.database.infrastructure.repositories.backups;
 
-import uim.hdb;
+import neko.database;
 import std.algorithm : all, canFind, filter, map, sort;
 import std.array : appender, array, join, split;
 import std.ascii : isAlphaNum;
@@ -353,7 +353,7 @@ private Decoded decode(string content) {
 }
 
 unittest {
-    import uim.hdb;
+    import neko.database;
     import std.exception : assertThrown, collectException;
     import std.file : getAttributes, rmdirRecurse, tempDir, write;
     import std.string : replace;
@@ -514,7 +514,7 @@ unittest {
 
 /// Scheitert das Ersetzen mittendrin, kommt der alte Stand zurück.
 unittest {
-    import uim.hdb;
+    import neko.database;
     import std.exception : collectException;
 
     static class Database : IDatabaseSnapshots {
@@ -582,7 +582,7 @@ unittest {
 
 /// Zeitplan und Aufbewahrung.
 unittest {
-    import uim.hdb;
+    import neko.database;
     import core.time : hours, minutes, seconds;
     import std.algorithm : reverse;
     import std.exception : assertThrown;

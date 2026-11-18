@@ -1,8 +1,8 @@
-module uim.hdb.domain.types.tablestats;
+module neko.database.domain.types.tablestats;
 
-import uim.hdb;
-import uim.hdb.domain.types.columnstats;
-import uim.hdb.domain.enumerations.tablestorage;
+import neko.database;
+import neko.database.domain.types.columnstats;
+import neko.database.domain.enumerations.tablestorage;
 
 mixin(ShowModule!());
 

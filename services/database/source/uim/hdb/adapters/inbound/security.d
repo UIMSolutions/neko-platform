@@ -1,8 +1,8 @@
-module uim.hdb.adapters.inbound.security;
+module neko.database.adapters.inbound.security;
 
-import uim.hdb.application.ports;
-import uim.hdb.domain.entities.user;
-import uim.hdb.domain.types.network : IpNetwork, isAllowed;
+import neko.database.application.ports;
+import neko.database.domain.entities.user;
+import neko.database.domain.types.network : IpNetwork, isAllowed;
 import std.algorithm : canFind, startsWith;
 import std.conv : to;
 import std.string : icmp, indexOf, strip;

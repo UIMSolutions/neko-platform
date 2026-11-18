@@ -5,12 +5,12 @@
 *****************************************************************************************************************/
 module app;
 
-import uim.hdb;
-import uim.hdb.infrastructure.gateway : GatewayConfigFile, GatewayProxy;
+import neko.database;
+import neko.database.infrastructure.gateway : GatewayConfigFile, GatewayProxy;
 
 /// Composition Root: einziger Ort, an dem Adapter und Kern verdrahtet werden.
 /// HDB_MODE wählt die Betriebsart: multi (Standard), single oder gateway. Eingebettet ist keine Betriebsart des
-/// Servers, sondern die Bibliothek (dub build --config=library, Modul uim.hdb.embedded).
+/// Servers, sondern die Bibliothek (dub build --config=library, Modul neko.database.embedded).
 int main() @safe {
     ServerMode mode;
     try
@@ -208,7 +208,7 @@ private HTTPServerSettings serverSettings() @safe {
 }
 
 /// Verteilter Betrieb: dieser Prozess hat keine Daten und keine Benutzer, er leitet jede Anfrage an den hdb-Server
-/// des Mandanten weiter (GATEWAY_CONFIG, siehe uim.hdb.infrastructure.gateway.routes). Die Backends sollten das Gateway in
+/// des Mandanten weiter (GATEWAY_CONFIG, siehe neko.database.infrastructure.gateway.routes). Die Backends sollten das Gateway in
 /// TRUSTED_PROXIES eintragen, sonst gelten deren erlaubte Netze für die Adresse des Gateways.
 private int runGateway() @safe {
     auto path = environment.get("GATEWAY_CONFIG", "data/hdb-gateway.json");

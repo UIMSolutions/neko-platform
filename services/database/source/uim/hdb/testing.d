@@ -4,7 +4,7 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Hilfen nur für Unittests.
-module uim.hdb.testing;
+module neko.database.testing;
 
 version (unittest):
 

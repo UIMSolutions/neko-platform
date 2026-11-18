@@ -3,12 +3,12 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.hdb.presentation.cli.shell;
+module neko.database.presentation.cli.shell;
 
-import uim.hdb;
-import uim.hdb.presentation.cli.format;
-import uim.hdb.presentation.cli.interfaces;
-import uim.hdb.presentation.cli.statements;
+import neko.database;
+import neko.database.presentation.cli.format;
+import neko.database.presentation.cli.interfaces;
+import neko.database.presentation.cli.statements;
 
 import core.time : MonoTime;
 import std.algorithm : among, startsWith;

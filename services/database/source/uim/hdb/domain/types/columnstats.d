@@ -4,10 +4,10 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.hdb.domain.types.columnstats;
+module neko.database.domain.types.columnstats;
 
-import uim.hdb;
-import uim.hdb.domain.enumerations.columntype;
+import neko.database;
+import neko.database.domain.enumerations.columntype;
 import vibe.d;
 
 mixin(ShowModule!());

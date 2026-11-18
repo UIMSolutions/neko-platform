@@ -1,6 +1,6 @@
-module uim.hdb.adapters.outbound.replication_http;
+module neko.database.adapters.outbound.replication_http;
 
-import uim.hdb;
+import neko.database;
 import core.time : seconds;
 import std.algorithm : canFind;
 import std.conv : octal, to;

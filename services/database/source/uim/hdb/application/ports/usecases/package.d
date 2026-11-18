@@ -1,4 +1,4 @@
-module uim.hdb.application.ports.usecases;
+module neko.database.application.ports.usecases;
 
 public:
-    import uim.hdb.application.ports.usecases.sql;
+    import neko.database.application.ports.usecases.sql;

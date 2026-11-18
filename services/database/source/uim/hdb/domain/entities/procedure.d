@@ -15,9 +15,9 @@
 /// Im Rumpf steht `:param` für einen Parameter; beim Aufruf wird dort der Wert als SQL-Literal eingesetzt, passend
 /// zum Typ geprüft. In 'Textliteralen' wird nichts ersetzt. Erlaubt sind SELECT, INSERT, UPDATE, DELETE sowie
 /// CREATE TABLE und DROP TABLE; Transaktionssteuerung und Prozeduraufrufe nicht.
-module uim.hdb.domain.entities.procedure;
+module neko.database.domain.entities.procedure;
 
-import uim.hdb;
+import neko.database;
 import std.algorithm : canFind, map;
 import std.array : array, join;
 import std.ascii : isAlpha, isAlphaNum, isWhite;

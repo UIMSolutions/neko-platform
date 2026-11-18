@@ -1,6 +1,6 @@
-module uim.hdb.adapters.inbound.rest_api;
+module neko.database.adapters.inbound.rest_api;
 
-import uim.hdb;
+import neko.database;
 import std.algorithm : map;
 import std.array : array;
 import vibe.d;

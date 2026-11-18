@@ -3,9 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.hdb.domain.value;
+module neko.database.domain.value;
 
-import uim.hdb;
+import neko.database;
 import core.checkedint : adds, muls;
 import std.algorithm : all, any, canFind, cmp, findSplit, startsWith;
 import std.array : join;

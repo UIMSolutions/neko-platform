@@ -6,7 +6,7 @@
 /// Einstieg des Admin-Clients: dub run --config=gui -- --server=http://localhost:8080
 module hdbadmin;
 
-import uim.hdb.presentation.gui;
+import neko.database.presentation.gui;
 
 int main(string[] args) {
     return runAdminClient(args);

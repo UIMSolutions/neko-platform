@@ -6,9 +6,9 @@
 /// Eingehender Adapter des Gateways: nimmt jede Anfrage an und reicht sie an das Backend des Mandanten weiter.
 /// Das Gateway prüft selbst keine Rechte: das tut das Backend, an das die Anfrage geht. Es sorgt nur dafür, dass
 /// ein Token nie an ein anderes Backend gelangt als das, das es ausgestellt hat.
-module uim.hdb.infrastructure.gateway.proxy;
+module neko.database.infrastructure.gateway.proxy;
 
-import uim.hdb;
+import neko.database;
 import core.time : Duration, MonoTime, seconds;
 import std.array : Appender;
 import std.conv : to;
@@ -29,7 +29,7 @@ import vibe.stream.operations : readAll;
 
 @safe:
 
-/// Name des Sitzungscookies der Admin-Oberfläche, wie im Server (uim.hdb.adapters.inbound.security).
+/// Name des Sitzungscookies der Admin-Oberfläche, wie im Server (neko.database.adapters.inbound.security).
 enum gatewaySessionCookie = "hdb_session";
 
 /// Konfigurationsdatei des Gateways. Änderungen gelten ohne Neustart: die Datei wird höchstens einmal je Sekunde

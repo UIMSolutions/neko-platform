@@ -3,12 +3,12 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// hdb-cli: SQL-Shell. Lokal läuft die Datenbank wie in uim.hdb.embedded im eigenen Prozess, ohne Anmeldung und
+/// hdb-cli: SQL-Shell. Lokal läuft die Datenbank wie in neko.database.embedded im eigenen Prozess, ohne Anmeldung und
 /// Rollen; mit --socket ist hdb-cli Client eines laufenden Servers. dub run --config=cli -- --help
 module hdbcli;
 
-import uim.hdb;
-import uim.hdb.presentation.cli;
+import neko.database;
+import neko.database.presentation.cli;
 
 int main(string[] args) @safe {
     auto program = args.length ? baseName(args[0]) : "hdb-cli";

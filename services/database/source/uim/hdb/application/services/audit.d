@@ -8,9 +8,9 @@
 /// Weg gleich aufgezeichnet wird. Lesende Aufrufe gehen unverändert durch.
 ///
 /// Was nie hineinkommt: Passwörter, Tokens, Werte aus Zeilen, das Passwort einer Replikationsquelle.
-module uim.hdb.application.services.audit;
+module neko.database.application.services.audit;
 
-import uim.hdb;
+import neko.database;
 import std.algorithm : map;
 import std.array : join;
 import std.format : format;

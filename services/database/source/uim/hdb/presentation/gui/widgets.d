@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Bausteine der Oberfläche. GtkD ist nicht @safe, deshalb bleiben die GTK-Module @system; alles, was sich prüfen
 /// lässt, steht im @safe-Modul api.
-module uim.hdb.presentation.gui.widgets;
+module neko.database.presentation.gui.widgets;
 
-import uim.hdb.presentation.gui.api : ApiError, Grid;
+import neko.database.presentation.gui.api : ApiError, Grid;
 import gobject.c.types : GType;
 import gtk.Box;
 import gtk.Button;

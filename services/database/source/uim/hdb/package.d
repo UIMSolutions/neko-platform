@@ -3,30 +3,30 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.hdb;
+module neko.database;
 
 @safe:
 
 public:
     import uim.oop;
 
-    import uim.hdb.application;
-    import uim.hdb.domain;
-    import uim.hdb.infrastructure;
-    import uim.hdb.presentation;
-    import uim.hdb.adapters;
+    import neko.database.application;
+    import neko.database.domain;
+    import neko.database.infrastructure;
+    import neko.database.presentation;
+    import neko.database.adapters;
 
-    import uim.hdb.adapters.inbound.admin_web;
-    import uim.hdb.adapters.inbound.application_log;
-    import uim.hdb.adapters.inbound.rest_api;
-    import uim.hdb.adapters.inbound.security;
-    import uim.hdb.adapters.outbound.file_tenant_storage;
-    import uim.hdb.adapters.outbound.file_tenant_store;
-    import uim.hdb.adapters.outbound.file_user_store;
-    import uim.hdb.adapters.outbound.file_log_store;
-    import uim.hdb.adapters.outbound.file_statement_log;
-    import uim.hdb.adapters.outbound.openssl_credential_crypto;
-    import uim.hdb.adapters.outbound.replication_http;
+    import neko.database.adapters.inbound.admin_web;
+    import neko.database.adapters.inbound.application_log;
+    import neko.database.adapters.inbound.rest_api;
+    import neko.database.adapters.inbound.security;
+    import neko.database.adapters.outbound.file_tenant_storage;
+    import neko.database.adapters.outbound.file_tenant_store;
+    import neko.database.adapters.outbound.file_user_store;
+    import neko.database.adapters.outbound.file_log_store;
+    import neko.database.adapters.outbound.file_statement_log;
+    import neko.database.adapters.outbound.openssl_credential_crypto;
+    import neko.database.adapters.outbound.replication_http;
 
     import std.algorithm;
     import std.array;

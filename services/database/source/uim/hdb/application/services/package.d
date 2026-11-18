@@ -1,10 +1,10 @@
-module uim.hdb.application.services;
+module neko.database.application.services;
 
 public:
-    import uim.hdb.application.services.access;
-    import uim.hdb.application.services.audit;
-    import uim.hdb.application.services.backup;
-    import uim.hdb.application.services.logging;
-    import uim.hdb.application.services.replication;
-    import uim.hdb.application.services.sql;
-    import uim.hdb.application.services.tenants;
+    import neko.database.application.services.access;
+    import neko.database.application.services.audit;
+    import neko.database.application.services.backup;
+    import neko.database.application.services.logging;
+    import neko.database.application.services.replication;
+    import neko.database.application.services.sql;
+    import neko.database.application.services.tenants;

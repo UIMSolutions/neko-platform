@@ -3,9 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.hdb.presentation.cli.format;
+module neko.database.presentation.cli.format;
 
-import uim.hdb;
+import neko.database;
 
 import std.algorithm : any, map, max;
 import std.array : appender, array, replicate;
@@ -186,10 +186,10 @@ unittest {
 
     assertThrown(parseCliFormat("xml"));
 
-    assert(cellText(Value(uim.hdb.domain.value.Null())) == "NULL" && cellText(Value(uim.hdb.domain.value.Null()), "") == "");
+    assert(cellText(Value(neko.database.domain.value.Null())) == "NULL" && cellText(Value(neko.database.domain.value.Null()), "") == "");
     assert(cellText(Value(Exact("1.50"))) == "1.50" && cellText(Value(true)) == "TRUE");
 
-    auto r = QueryResult(["id", "name"], [[Value(1L), Value("äb")], [Value(10L), Value(uim.hdb.domain.value.Null())]]);
+    auto r = QueryResult(["id", "name"], [[Value(1L), Value("äb")], [Value(10L), Value(neko.database.domain.value.Null())]]);
     assert(formatResult(r, CliFormat.table) ==
         "+----+------+\n"
         ~ "| id | name |\n"

@@ -1,6 +1,6 @@
-module uim.hdb.domain.types.typespec;
+module neko.database.domain.types.typespec;
 
-import uim.hdb;
+import neko.database;
 
 mixin(ShowModule!());
 

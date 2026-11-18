@@ -1,6 +1,6 @@
-module uim.hdb.adapters.outbound.file_tenant_storage;
+module neko.database.adapters.outbound.file_tenant_storage;
 
-import uim.hdb;
+import neko.database;
 import std.exception : enforce;
 import std.file : mkdirRecurse, rename, rmdirRecurse;
 static import std.file;

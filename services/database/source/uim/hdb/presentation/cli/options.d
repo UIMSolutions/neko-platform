@@ -3,9 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.hdb.presentation.cli.options;
+module neko.database.presentation.cli.options;
 
-import uim.hdb.presentation.cli.format;
+import neko.database.presentation.cli.format;
 
 import std.algorithm : findSplit, startsWith;
 import std.exception : enforce;

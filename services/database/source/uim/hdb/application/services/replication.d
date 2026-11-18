@@ -1,6 +1,6 @@
-module uim.hdb.application.services.replication;
+module neko.database.application.services.replication;
 
-import uim.hdb;
+import neko.database;
 import core.time : seconds;
 import std.algorithm : max, min;
 import std.datetime.systime : Clock, SysTime;

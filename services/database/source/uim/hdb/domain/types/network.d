@@ -3,7 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.hdb.domain.types.network;
+module neko.database.domain.types.network;
 
 import std.algorithm : all, canFind, count, findSplit;
 import std.ascii : isDigit;

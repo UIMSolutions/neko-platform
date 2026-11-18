@@ -1,6 +1,6 @@
-module uim.hdb.application.usecases.secured_sql;
+module neko.database.application.usecases.secured_sql;
 
-import uim.hdb;
+import neko.database;
 import std.algorithm : filter;
 import std.array : array;
 import std.string : chomp, split, strip, toUpper;
@@ -84,7 +84,7 @@ final class SecuredSqlUseCase : ISqlUseCase {
 }
 ///
 unittest {
-    import uim.hdb;
+    import neko.database;
     import std.exception : assertThrown;
 
     static class Repo : ITableRepository {

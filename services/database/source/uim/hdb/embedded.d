@@ -20,9 +20,9 @@
 /// Das Verzeichnis hat denselben Aufbau wie ein Mandant im Server (tables/, hdb.log, backups/). Es lässt sich
 /// deshalb als Mandant in einen Server übernehmen (nach TENANTS_DIR/<mandant> kopieren und den Mandanten anlegen)
 /// und umgekehrt. Ein Verzeichnis darf immer nur ein Prozess gleichzeitig öffnen.
-module uim.hdb.embedded;
+module neko.database.embedded;
 
-import uim.hdb;
+import neko.database;
 import std.exception : enforce;
 
 @safe:
@@ -163,7 +163,7 @@ struct Transaction {
 }
 
 unittest {
-    import uim.hdb.domain.value : get;
+    import neko.database.domain.value : get;
     import std.exception : assertThrown;
     import std.file : exists, rmdirRecurse, tempDir;
     import std.path : buildPath;

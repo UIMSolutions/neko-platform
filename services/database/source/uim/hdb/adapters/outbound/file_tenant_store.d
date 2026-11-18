@@ -1,6 +1,6 @@
-module uim.hdb.adapters.outbound.file_tenant_store;
+module neko.database.adapters.outbound.file_tenant_store;
 
-import uim.hdb;
+import neko.database;
 import std.file : exists, mkdirRecurse, readText, rename;
 import std.path : dirName;
 import std.stdio : File;

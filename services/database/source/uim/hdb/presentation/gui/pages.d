@@ -5,10 +5,10 @@
 *****************************************************************************************************************/
 /// Die Seiten des Admin-Clients. Jede zeigt nur, was die Rechte der Anmeldung erlauben; geprüft wird trotzdem
 /// immer auf dem Server.
-module uim.hdb.presentation.gui.pages;
+module neko.database.presentation.gui.pages;
 
-import uim.hdb.presentation.gui.api;
-import uim.hdb.presentation.gui.widgets;
+import neko.database.presentation.gui.api;
+import neko.database.presentation.gui.widgets;
 import std.algorithm : canFind, filter, map, sort;
 import std.array : array, join;
 import std.conv : to;

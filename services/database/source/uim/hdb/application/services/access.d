@@ -1,6 +1,6 @@
-module uim.hdb.application.services.access;
+module neko.database.application.services.access;
 
-import uim.hdb;
+import neko.database;
 import core.time : Duration, hours, minutes, MonoTime;
 import std.datetime.systime : Clock, SysTime;
 import std.datetime.timezone : UTC;

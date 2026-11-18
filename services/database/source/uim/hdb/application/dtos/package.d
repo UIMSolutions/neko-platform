@@ -1,1 +1,1 @@
-module uim.hdb.application.dtos;
+module neko.database.application.dtos;

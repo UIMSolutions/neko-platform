@@ -248,7 +248,7 @@ Es braucht keine Ereignisschleife von vibe.d; der Delta-Merge läuft wie im Serv
     subConfiguration "hdb" "library"
 
 ```d
-import uim.hdb.embedded;
+import neko.database.embedded;
 
 auto db = HdbDatabase.open("data/mydb");     // oder HdbDatabase.inMemory()
 scope (exit) db.close();                     // schreibt den Stand weg

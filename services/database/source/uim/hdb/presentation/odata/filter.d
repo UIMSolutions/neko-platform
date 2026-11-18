@@ -3,9 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.hdb.presentation.odata.filter;
+module neko.database.presentation.odata.filter;
 
-import uim.hdb;
+import neko.database;
 import std.algorithm : all, canFind;
 import std.array : array, join, replace, split;
 import std.ascii : isDigit;
@@ -387,7 +387,7 @@ private string renderCompare(Node node, bool negated) {
 }
 
 unittest {
-    import uim.hdb;
+    import neko.database;
     import std.algorithm : map, sort;
     import std.exception : collectException;
 
@@ -477,7 +477,7 @@ unittest {
 }
 
 unittest {
-    import uim.hdb;
+    import neko.database;
     import std.exception : collectException;
 
     auto sql = new SqlService(new MemoryTableRepository);

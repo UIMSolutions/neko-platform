@@ -28,7 +28,7 @@ configuration "gui" {
         "source/uim/hdb/presentation/ui5/*" "source/uim/hdb/presentation/unix/*"
 }
 
-// Eingebettet: die Datenbank als Bibliothek im eigenen Programm, ohne Server (uim.hdb.embedded).
+// Eingebettet: die Datenbank als Bibliothek im eigenen Programm, ohne Server (neko.database.embedded).
 // dub build --config=library, oder als Abhängigkeit: dependency "hdb" version="*" path="..." mit
 // subConfiguration "hdb" "library"
 configuration "library" {
@@ -39,7 +39,7 @@ configuration "library" {
     excludedSourceFiles "source/app.d" "source/hdbadmin.d" "source/hdbcli.d" "source/uim/hdb/presentation/gui/*"
 }
 
-// Kommandozeile: SQL-Shell ohne Server auf einem Datenbankverzeichnis oder im Speicher (uim.hdb.presentation.cli).
+// Kommandozeile: SQL-Shell ohne Server auf einem Datenbankverzeichnis oder im Speicher (neko.database.presentation.cli).
 // dub build --config=cli, dub run --config=cli -- data/mydb, dub run --config=cli -- --help
 configuration "cli" {
     targetName "hdb-cli"

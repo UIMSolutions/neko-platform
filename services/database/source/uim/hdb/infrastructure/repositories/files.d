@@ -3,9 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.hdb.infrastructure.repositories.files;
+module neko.database.infrastructure.repositories.files;
 
-import uim.hdb;
+import neko.database;
 import std.algorithm : findSplit, map;
 import std.array : appender, array, join, replace, split;
 import std.conv : to;

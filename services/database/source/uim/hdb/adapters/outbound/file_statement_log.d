@@ -1,6 +1,6 @@
-module uim.hdb.adapters.outbound.file_statement_log;
+module neko.database.adapters.outbound.file_statement_log;
 
-import uim.hdb;
+import neko.database;
 
 @safe:
 

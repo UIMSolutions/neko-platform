@@ -1,7 +1,7 @@
-module uim.hdb.adapters.inbound;
+module neko.database.adapters.inbound;
 
 public:
-    import uim.hdb.adapters.inbound.admin_web;
-    import uim.hdb.adapters.inbound.application_log;
-    import uim.hdb.adapters.inbound.rest_api;
-    import uim.hdb.adapters.inbound.security;
+    import neko.database.adapters.inbound.admin_web;
+    import neko.database.adapters.inbound.application_log;
+    import neko.database.adapters.inbound.rest_api;
+    import neko.database.adapters.inbound.security;

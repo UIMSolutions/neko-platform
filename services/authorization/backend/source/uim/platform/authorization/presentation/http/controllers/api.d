@@ -28,7 +28,7 @@ module neko.authorization.presentation.http.controllers.api;
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.stream.operations : readAllUTF8;
-import uim.platform.service.presentation.odata;
+import uim.service.presentation.odata;
 import neko.authorization;
 
 mixin(ShowModule!());

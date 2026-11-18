@@ -11,6 +11,9 @@
 module neko.platform;
 
 public:
+  import uim.oop;
+  import uim.service;
+
   import neko.platform.domain;
   import neko.platform.ports;
   import neko.platform.application;

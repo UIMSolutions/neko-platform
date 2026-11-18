@@ -11,7 +11,7 @@
 ///         Check (EvaluateAuthorization — runtime checks of applications).
 module neko.authorization.presentation.odata.model;
 
-import uim.platform.service.presentation.odata;
+import uim.service.presentation.odata;
 import neko.authorization;
 
 mixin(ShowModule!());

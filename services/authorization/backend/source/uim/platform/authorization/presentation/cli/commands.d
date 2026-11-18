@@ -10,8 +10,8 @@
 /// Exit codes: 0 ok / permitted · 1 error · 2 usage · 3 denied (check)
 module neko.authorization.presentation.cli.commands;
 
-import uim.platform.service.presentation.cli;
-import uim.platform.service.presentation.odata;
+import uim.service.presentation.cli;
+import uim.service.presentation.odata;
 import neko.authorization;
 
 mixin(ShowModule!());

@@ -8,7 +8,7 @@ module neko.authorization.infrastructure.container;
 
 import neko.authorization;
 import neko.authorization.presentation.odata.engine : authorizationEngine;
-import uim.platform.service.presentation.odata.engine : ODataEngine;
+import uim.service.presentation.odata.engine : ODataEngine;
 
 mixin(ShowModule!());
 

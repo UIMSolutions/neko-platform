@@ -8,7 +8,7 @@
 module uim.platform.connectivity;
 
 public {
-  import uim.platform.service;
+  import uim.service;
 
   import uim.platform.connectivity.helpers;
   import uim.platform.connectivity.domain;

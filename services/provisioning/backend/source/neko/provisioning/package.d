@@ -8,7 +8,7 @@
 module uim.platform.identity_provisioning;
 
 public {
-  import uim.platform.service;
+  import uim.service;
 
   import uim.platform.identity_provisioning.helpers;
   import uim.platform.identity_provisioning.domain;

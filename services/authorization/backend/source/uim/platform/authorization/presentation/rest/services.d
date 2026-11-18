@@ -6,7 +6,7 @@
 module neko.authorization.presentation.rest.services;
 
 import vibe.http.common : HTTPStatusException;
-import uim.platform.service.presentation.odata;
+import uim.service.presentation.odata;
 import neko.authorization;
 
 mixin(ShowModule!());

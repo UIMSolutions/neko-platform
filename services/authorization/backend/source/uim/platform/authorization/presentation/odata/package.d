@@ -7,7 +7,7 @@
 module neko.authorization.presentation.odata;
 
 public {
-  import uim.platform.service.presentation.odata;
+  import uim.service.presentation.odata;
   import neko.authorization.presentation.odata.model;
   import neko.authorization.presentation.odata.errors;
   import neko.authorization.presentation.odata.serializers;

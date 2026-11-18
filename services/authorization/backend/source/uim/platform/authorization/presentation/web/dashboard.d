@@ -10,7 +10,7 @@ module neko.authorization.presentation.web.dashboard;
 
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse, render;
-import uim.platform.service.presentation.odata;
+import uim.service.presentation.odata;
 import neko.authorization;
 
 mixin(ShowModule!());

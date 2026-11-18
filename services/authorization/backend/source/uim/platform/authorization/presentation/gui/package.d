@@ -12,7 +12,7 @@
 module neko.authorization.presentation.gui;
 
 version (Have_gtk_d) {
-  public import uim.platform.service.presentation.gui;
+  public import uim.service.presentation.gui;
   import neko.authorization;
 
   /// Run the GUI main loop (blocks). autoRefreshSeconds > 0 reloads the

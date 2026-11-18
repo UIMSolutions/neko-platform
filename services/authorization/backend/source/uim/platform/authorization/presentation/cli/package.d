@@ -7,6 +7,6 @@
 module neko.authorization.presentation.cli;
 
 public {
-  import uim.platform.service.presentation.cli;
+  import uim.service.presentation.cli;
   import neko.authorization.presentation.cli.commands;
 }

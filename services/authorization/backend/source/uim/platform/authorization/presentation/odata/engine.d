@@ -8,7 +8,7 @@
 /// the CLI and the GUI.
 module neko.authorization.presentation.odata.engine;
 
-import uim.platform.service.presentation.odata;
+import uim.service.presentation.odata;
 import neko.authorization;
 
 mixin(ShowModule!());

@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Driven ports: persistence of the authorization business objects.
-module neko.service.authorization.ports.repositories.authorization;
+module neko.authorization.ports.repositories.authorization;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

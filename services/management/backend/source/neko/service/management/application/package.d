@@ -3,10 +3,10 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.management.application;
+module neko.management.application;
 
 public {
-  import neko.service.management.application.dtos;
-  import neko.service.management.application.services;
-  import neko.service.management.application.usecases;
+  import neko.management.application.dtos;
+  import neko.management.application.services;
+  import neko.management.application.usecases;
 }

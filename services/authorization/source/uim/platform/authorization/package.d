@@ -1,10 +1,10 @@
-module neko.service.authorization;
+module neko.authorization;
 
 public {
   import uim.platform.service;
 
-  import neko.service.authorization.application;
-  import neko.service.authorization.domain;
-  import neko.service.authorization.infrastructure;
-  import neko.service.authorization.presentation;
+  import neko.authorization.application;
+  import neko.authorization.domain;
+  import neko.authorization.infrastructure;
+  import neko.authorization.presentation;
 }

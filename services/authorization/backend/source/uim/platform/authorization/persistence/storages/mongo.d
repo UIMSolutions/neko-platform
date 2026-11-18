@@ -5,12 +5,12 @@
 *****************************************************************************************************************/
 /// MongoDB document store: one collection, one document per
 /// (collection, tenant, key) with the record stored as native BSON.
-module neko.service.authorization.persistence.storages.mongo;
+module neko.authorization.persistence.storages.mongo;
 
 import vibe.data.bson : Bson;
 import vibe.db.mongo.mongo : connectMongoDB;
 import vibe.db.mongo.collection : MongoCollection, ReplaceOptions;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

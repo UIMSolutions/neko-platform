@@ -1,6 +1,6 @@
 module app;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

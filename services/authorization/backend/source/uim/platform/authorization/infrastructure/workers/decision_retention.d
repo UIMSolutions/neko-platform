@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Background worker: removes decision log entries older than the retention period.
-module neko.service.authorization.infrastructure.workers.decision_retention;
+module neko.authorization.infrastructure.workers.decision_retention;
 
 import vibe.core.core : setTimer, Timer;
 import core.time : minutes;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

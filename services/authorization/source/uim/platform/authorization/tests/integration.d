@@ -1,8 +1,8 @@
-module neko.service.authorization.tests.integration;
+module neko.authorization.tests.integration;
 
 import std.algorithm : filter;
 import std.array : array;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

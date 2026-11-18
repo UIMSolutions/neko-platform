@@ -3,8 +3,8 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.management.infrastructure.security;
+module neko.management.infrastructure.security;
 
 public {
-  import neko.service.management.infrastructure.security.identity;
+  import neko.management.infrastructure.security.identity;
 }

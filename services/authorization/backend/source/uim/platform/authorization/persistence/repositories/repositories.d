@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Concrete repositories (implement the driven repository ports).
-module neko.service.authorization.persistence.repositories.repositories;
+module neko.authorization.persistence.repositories.repositories;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

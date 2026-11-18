@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Business enumerations of the authorization domain.
-module neko.service.authorization.domain.enumerations.authorization;
+module neko.authorization.domain.enumerations.authorization;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

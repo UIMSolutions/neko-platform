@@ -1,8 +1,8 @@
-module neko.service.authorization.infrastructure.persistence.memory.repository;
+module neko.authorization.infrastructure.persistence.memory.repository;
 
 import std.algorithm : any, filter;
 import std.array : array;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

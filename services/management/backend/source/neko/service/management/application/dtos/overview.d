@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Response models of the dashboard / overview port.
-module neko.service.management.application.dtos.overview;
+module neko.management.application.dtos.overview;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

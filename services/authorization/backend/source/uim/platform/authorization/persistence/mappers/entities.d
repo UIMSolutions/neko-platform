@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Entity ⇄ record converters.
-module neko.service.authorization.persistence.mappers.entities;
+module neko.authorization.persistence.mappers.entities;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

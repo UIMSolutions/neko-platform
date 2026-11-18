@@ -1,7 +1,7 @@
-module neko.service.authorization.infrastructure.container;
+module neko.authorization.infrastructure.container;
 
 import std.string : toUpper;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

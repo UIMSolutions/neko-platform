@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Tolerant readers for stored JSON records (missing or mistyped fields fall back).
-module neko.service.authorization.persistence.mappers.fields;
+module neko.authorization.persistence.mappers.fields;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

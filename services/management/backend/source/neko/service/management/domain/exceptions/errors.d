@@ -7,9 +7,9 @@
 ///
 /// Entities throw these when an operation would violate a business rule; the
 /// application layer translates them into UsecaseResult codes (see ResultCode).
-module neko.service.management.domain.exceptions.errors;
+module neko.management.domain.exceptions.errors;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

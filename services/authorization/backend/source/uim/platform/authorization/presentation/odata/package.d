@@ -4,13 +4,13 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// OData v4 endpoint & $metadata for SAP Fiori (generic engine of neko-services-platform:service).
-module neko.service.authorization.presentation.odata;
+module neko.authorization.presentation.odata;
 
 public {
   import uim.platform.service.presentation.odata;
-  import neko.service.authorization.presentation.odata.model;
-  import neko.service.authorization.presentation.odata.errors;
-  import neko.service.authorization.presentation.odata.serializers;
-  import neko.service.authorization.presentation.odata.payloads;
-  import neko.service.authorization.presentation.odata.engine;
+  import neko.authorization.presentation.odata.model;
+  import neko.authorization.presentation.odata.errors;
+  import neko.authorization.presentation.odata.serializers;
+  import neko.authorization.presentation.odata.payloads;
+  import neko.authorization.presentation.odata.engine;
 }

@@ -1,5 +1,5 @@
-module neko.service.authorization.infrastructure.persistence.memory;
+module neko.authorization.infrastructure.persistence.memory;
 
 public {
-  import neko.service.authorization.infrastructure.persistence.memory.repository;
+  import neko.authorization.infrastructure.persistence.memory.repository;
 }

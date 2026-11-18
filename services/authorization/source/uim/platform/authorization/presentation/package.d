@@ -1,7 +1,7 @@
-module neko.service.authorization.presentation;
+module neko.authorization.presentation;
 
 public {
-  import neko.service.authorization.presentation.web;
-  import neko.service.authorization.presentation.cli;
-  import neko.service.authorization.presentation.gui;
+  import neko.authorization.presentation.web;
+  import neko.authorization.presentation.cli;
+  import neko.authorization.presentation.gui;
 }

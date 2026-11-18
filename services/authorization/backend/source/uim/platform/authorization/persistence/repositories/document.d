@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Generic repository over a document collection.
-module neko.service.authorization.persistence.repositories.document;
+module neko.authorization.persistence.repositories.document;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

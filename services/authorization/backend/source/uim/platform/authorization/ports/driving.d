@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// The complete set of driving ports — everything an adapter (JSON API,
 /// REST, OData, Diet dashboard, CLI, GUI, workers) is allowed to call.
-module neko.service.authorization.ports.driving;
+module neko.authorization.ports.driving;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

@@ -1,6 +1,6 @@
-module neko.service.management.domain.enumerations.statuses;
+module neko.management.domain.enumerations.statuses;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

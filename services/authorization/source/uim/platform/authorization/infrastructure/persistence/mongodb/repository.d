@@ -1,11 +1,11 @@
-module neko.service.authorization.infrastructure.persistence.mongodb.repository;
+module neko.authorization.infrastructure.persistence.mongodb.repository;
 
 import std.stdio : writeln;
 import std.algorithm : filter;
 import vibe.data.bson : Bson;
 import vibe.db.mongo.mongo : MongoCollection, connectMongoDB, UpdateFlags;
 import vibe.data.json : Json;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

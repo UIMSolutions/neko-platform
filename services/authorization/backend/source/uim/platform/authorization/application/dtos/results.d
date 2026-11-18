@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Result models of the use cases.
-module neko.service.authorization.application.dtos.results;
+module neko.authorization.application.dtos.results;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

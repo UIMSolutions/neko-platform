@@ -1,10 +1,10 @@
-module neko.service.authorization.infrastructure.persistence.file.repository;
+module neko.authorization.infrastructure.persistence.file.repository;
 
 import std.file : exists, mkdirRecurse, write;
 import std.path : buildPath;
 import std.algorithm : filter;
 import vibe.data.json : Json;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

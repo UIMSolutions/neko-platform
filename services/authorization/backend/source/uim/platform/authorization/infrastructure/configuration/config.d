@@ -14,10 +14,10 @@
 ///
 /// Legacy variables of the previous release are still honoured:
 ///   AUTHORIZATION_STORAGE_BACKEND (MEMORY|FILE|MONGODB) and AUTHORIZATION_FILE_PATH.
-module neko.service.authorization.infrastructure.configuration.config;
+module neko.authorization.infrastructure.configuration.config;
 
 import std.process : environment;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Request models of the driving ports.
-module neko.service.management.application.dtos.requests;
+module neko.management.application.dtos.requests;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

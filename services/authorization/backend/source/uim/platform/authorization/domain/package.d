@@ -5,12 +5,12 @@
 *****************************************************************************************************************/
 /// Domain layer: entities, value types, enumerations, business exceptions and
 /// pure domain services. Depends on nothing but neko-services-platform:service basics.
-module neko.service.authorization.domain;
+module neko.authorization.domain;
 
 public {
-  import neko.service.authorization.domain.types;
-  import neko.service.authorization.domain.enumerations;
-  import neko.service.authorization.domain.exceptions;
-  import neko.service.authorization.domain.entities;
-  import neko.service.authorization.domain.services;
+  import neko.authorization.domain.types;
+  import neko.authorization.domain.enumerations;
+  import neko.authorization.domain.exceptions;
+  import neko.authorization.domain.entities;
+  import neko.authorization.domain.services;
 }

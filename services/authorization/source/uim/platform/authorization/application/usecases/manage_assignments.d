@@ -1,7 +1,7 @@
-module neko.service.authorization.application.usecases.manage_assignments;
+module neko.authorization.application.usecases.manage_assignments;
 
 import std.uuid : randomUUID;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

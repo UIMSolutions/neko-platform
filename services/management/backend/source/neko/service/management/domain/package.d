@@ -3,12 +3,12 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.management.domain;
+module neko.management.domain;
 
 public {
-  import neko.service.management.domain.types;
-  import neko.service.management.domain.enumerations;
-  import neko.service.management.domain.exceptions;
-  import neko.service.management.domain.entities;
-  import neko.service.management.domain.services;
+  import neko.management.domain.types;
+  import neko.management.domain.enumerations;
+  import neko.management.domain.exceptions;
+  import neko.management.domain.entities;
+  import neko.management.domain.services;
 }

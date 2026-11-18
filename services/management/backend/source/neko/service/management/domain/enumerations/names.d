@@ -7,10 +7,10 @@
 ///
 /// D keywords force member names like `default_` or `deprecated_`; outside the
 /// domain (JSON, OData, CLI) these are always written without the trailing "_".
-module neko.service.management.domain.enumerations.names;
+module neko.management.domain.enumerations.names;
 
 import std.traits : EnumMembers, Unqual;
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

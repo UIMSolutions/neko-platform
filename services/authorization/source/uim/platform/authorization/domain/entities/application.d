@@ -1,7 +1,7 @@
-module neko.service.authorization.domain.entities.application;
+module neko.authorization.domain.entities.application;
 
 import vibe.data.json : Json;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

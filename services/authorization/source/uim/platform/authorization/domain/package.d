@@ -1,7 +1,7 @@
-module neko.service.authorization.domain;
+module neko.authorization.domain;
 
 public {
-  import neko.service.authorization.domain.entities;
-  import neko.service.authorization.domain.ports;
-  import neko.service.authorization.domain.services;
+  import neko.authorization.domain.entities;
+  import neko.authorization.domain.ports;
+  import neko.authorization.domain.services;
 }

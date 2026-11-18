@@ -1,5 +1,5 @@
-module neko.service.authorization.infrastructure.persistence.file;
+module neko.authorization.infrastructure.persistence.file;
 
 public {
-  import neko.service.authorization.infrastructure.persistence.file.repository;
+  import neko.authorization.infrastructure.persistence.file.repository;
 }

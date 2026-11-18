@@ -6,5 +6,5 @@
 /// Driven port for low-level data stores: the document store of
 /// neko-services-platform:service (collection → tenant → key → JSON document).
 /// Implementations: memory, JSON file (neko-services-platform:service), MongoDB (persistence.storages).
-module neko.service.authorization.ports.storages;
+module neko.authorization.ports.storages;
 

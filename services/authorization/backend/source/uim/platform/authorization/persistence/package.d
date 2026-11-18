@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Persistence layer: driven adapters for the repository and storage ports.
-module neko.service.authorization.persistence;
+module neko.authorization.persistence;
 
 public {
-  import neko.service.authorization.persistence.records;
-  import neko.service.authorization.persistence.mappers;
-  import neko.service.authorization.persistence.repositories;
-  import neko.service.authorization.persistence.storages;
+  import neko.authorization.persistence.records;
+  import neko.authorization.persistence.mappers;
+  import neko.authorization.persistence.repositories;
+  import neko.authorization.persistence.storages;
 }

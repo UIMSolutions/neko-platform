@@ -9,10 +9,10 @@
 ///
 /// Scopes: Read (all reads), Admin (all changes, admin actions),
 ///         Check (EvaluateAuthorization — runtime checks of applications).
-module neko.service.authorization.presentation.odata.model;
+module neko.authorization.presentation.odata.model;
 
 import uim.platform.service.presentation.odata;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

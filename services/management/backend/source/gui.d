@@ -8,8 +8,8 @@
 ///   dub run --config=gui -- [--tenant=<id>] [--data-dir=<dir>]
 module gui;
 
-import neko.service.management;
-import neko.service.management.presentation.gui;
+import neko.management;
+import neko.management.presentation.gui;
 
 version (unittest) {
 } else {

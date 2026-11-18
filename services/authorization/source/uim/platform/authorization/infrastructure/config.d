@@ -1,9 +1,9 @@
-module neko.service.authorization.infrastructure.config;
+module neko.authorization.infrastructure.config;
 
 import std.conv : ConvException, to;
 import std.process : environment;
 import std.string : toLower;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

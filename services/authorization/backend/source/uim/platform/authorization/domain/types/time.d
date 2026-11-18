@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Time values. Entities store timestamps as std time (hnsecs since 0001-01-01 UTC).
-module neko.service.authorization.domain.types.time;
+module neko.authorization.domain.types.time;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

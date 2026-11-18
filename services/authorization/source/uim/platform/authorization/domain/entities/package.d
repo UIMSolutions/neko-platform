@@ -1,8 +1,8 @@
-module neko.service.authorization.domain.entities;
+module neko.authorization.domain.entities;
 
 public {
-  import neko.service.authorization.domain.entities.application;
-  import neko.service.authorization.domain.entities.policy;
-  import neko.service.authorization.domain.entities.policy_assignment;
-  import neko.service.authorization.domain.entities.authorization_decision;
+  import neko.authorization.domain.entities.application;
+  import neko.authorization.domain.entities.policy;
+  import neko.authorization.domain.entities.policy_assignment;
+  import neko.authorization.domain.entities.authorization_decision;
 }

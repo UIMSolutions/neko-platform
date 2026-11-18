@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Validated payload (see ODataEngine.validatePayload) → request DTOs.
-module neko.service.authorization.presentation.odata.payloads;
+module neko.authorization.presentation.odata.payloads;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

@@ -7,7 +7,7 @@
 /// (memory storage): the full AMS flow and the business rules.
 module tests.lifecycle;
 
-import neko.service.authorization;
+import neko.authorization;
 
 private RequestContext admin(string tenant = "t1") {
   RequestContext ctx;

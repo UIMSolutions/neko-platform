@@ -3,10 +3,10 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.management.application.usecases.query_platform_events;
+module neko.management.application.usecases.query_platform_events;
 
 import core.time : days;
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

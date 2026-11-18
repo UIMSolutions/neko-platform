@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Entity → row (flat JSON object matching the EDM model).
-module neko.service.authorization.presentation.odata.serializers;
+module neko.authorization.presentation.odata.serializers;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Value helpers for key/value properties (labels, custom properties, parameters).
-module neko.service.management.domain.types.properties;
+module neko.management.domain.types.properties;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

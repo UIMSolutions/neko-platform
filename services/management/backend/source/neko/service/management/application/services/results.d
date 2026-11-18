@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Uniform construction of use case results.
-module neko.service.management.application.services.results;
+module neko.management.application.services.results;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

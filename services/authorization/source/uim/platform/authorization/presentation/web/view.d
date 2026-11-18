@@ -1,8 +1,8 @@
-module neko.service.authorization.presentation.web.view;
+module neko.authorization.presentation.web.view;
 
 import std.conv : to;
 import vibe.data.json : Json;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

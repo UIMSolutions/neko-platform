@@ -10,7 +10,7 @@
 module cli;
 
 import std.stdio : stdout;
-import neko.service.management;
+import neko.management;
 
 version (unittest) {
 } else {

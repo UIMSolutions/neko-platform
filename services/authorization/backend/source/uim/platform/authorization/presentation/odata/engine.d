@@ -6,10 +6,10 @@
 /// Binds the EDM model to the driving ports. The resulting engine serves the
 /// OData controller, the JSON API, the vibe.d REST interface, the dashboard,
 /// the CLI and the GUI.
-module neko.service.authorization.presentation.odata.engine;
+module neko.authorization.presentation.odata.engine;
 
 import uim.platform.service.presentation.odata;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

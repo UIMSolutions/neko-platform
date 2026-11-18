@@ -7,7 +7,7 @@
 ///   JSON API /api/v1, vibe.d REST /rest/v1, OData v4 /odata/v4/management, Fiori app.
 module app;
 
-import neko.service.management;
+import neko.management;
 
 @safe:
 

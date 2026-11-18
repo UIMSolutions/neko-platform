@@ -1,6 +1,6 @@
-module neko.service.authorization.application.usecases.evaluate_authorizations;
+module neko.authorization.application.usecases.evaluate_authorizations;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

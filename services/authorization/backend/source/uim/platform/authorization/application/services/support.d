@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Small helpers shared by the interactors.
-module neko.service.authorization.application.services.support;
+module neko.authorization.application.services.support;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

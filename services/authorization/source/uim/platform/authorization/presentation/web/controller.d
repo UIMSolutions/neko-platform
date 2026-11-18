@@ -1,10 +1,10 @@
-module neko.service.authorization.presentation.web.controller;
+module neko.authorization.presentation.web.controller;
 
 import std.algorithm : map;
 import std.array : array;
 import std.conv : to;
 import vibe.data.json : Json;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

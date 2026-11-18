@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// vibe.d REST interfaces (registerRestInterface) for applications that call
 /// the service at runtime: authorization checks and effective policies.
-module neko.service.authorization.presentation.rest;
+module neko.authorization.presentation.rest;
 
 public {
-  import neko.service.authorization.presentation.rest.interfaces;
-  import neko.service.authorization.presentation.rest.services;
+  import neko.authorization.presentation.rest.interfaces;
+  import neko.authorization.presentation.rest.services;
 }

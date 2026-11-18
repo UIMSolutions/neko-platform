@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Seeds a tenant with a sample landscape. Everything is created through the
 /// regular use case ports, so all business rules apply to the demo data too.
-module neko.service.management.application.services.demo_data;
+module neko.management.application.services.demo_data;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

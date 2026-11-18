@@ -1,5 +1,5 @@
-module neko.service.authorization.tests;
+module neko.authorization.tests;
 
 public {
-  import neko.service.authorization.tests.integration;
+  import neko.authorization.tests.integration;
 }

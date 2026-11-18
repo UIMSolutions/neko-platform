@@ -1,7 +1,7 @@
-module neko.service.authorization.infrastructure;
+module neko.authorization.infrastructure;
 
 public {
-  import neko.service.authorization.infrastructure.config;
-  import neko.service.authorization.infrastructure.container;
-  import neko.service.authorization.infrastructure.persistence;
+  import neko.authorization.infrastructure.config;
+  import neko.authorization.infrastructure.container;
+  import neko.authorization.infrastructure.persistence;
 }

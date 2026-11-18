@@ -23,13 +23,13 @@
 ///   GET    <root>/statistics
 ///
 /// Errors: {"error": {"code": "...", "message": "..."}} with the HTTP status.
-module neko.service.authorization.presentation.http.controllers.api;
+module neko.authorization.presentation.http.controllers.api;
 
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.stream.operations : readAllUTF8;
 import uim.platform.service.presentation.odata;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Composition root shared by the server, the CLI and the GUI.
-module neko.service.authorization.infrastructure.container;
+module neko.authorization.infrastructure.container;
 
-import neko.service.authorization;
-import neko.service.authorization.presentation.odata.engine : authorizationEngine;
+import neko.authorization;
+import neko.authorization.presentation.odata.engine : authorizationEngine;
 import uim.platform.service.presentation.odata.engine : ODataEngine;
 
 mixin(ShowModule!());

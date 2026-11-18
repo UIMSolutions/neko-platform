@@ -1,6 +1,6 @@
-module neko.service.authorization.application;
+module neko.authorization.application;
 
 public {
-  import neko.service.authorization.application.dto;
-  import neko.service.authorization.application.usecases;
+  import neko.authorization.application.dto;
+  import neko.authorization.application.usecases;
 }

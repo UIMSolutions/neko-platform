@@ -1,6 +1,6 @@
-module neko.service.authorization.application.dto;
+module neko.authorization.application.dto;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

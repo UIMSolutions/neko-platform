@@ -1,6 +1,6 @@
-module neko.service.authorization.presentation.gui.controller;
+module neko.authorization.presentation.gui.controller;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

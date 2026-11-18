@@ -3,9 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.management.domain.enumerations;
+module neko.management.domain.enumerations;
 
 public {
-  import neko.service.management.domain.enumerations.statuses;
-  import neko.service.management.domain.enumerations.names;
+  import neko.management.domain.enumerations.statuses;
+  import neko.management.domain.enumerations.names;
 }

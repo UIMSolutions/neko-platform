@@ -1,7 +1,7 @@
-module neko.service.authorization.presentation.cli.view;
+module neko.authorization.presentation.cli.view;
 
 import std.stdio : writeln;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

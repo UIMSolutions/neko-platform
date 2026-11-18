@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 /// Business exceptions. Driving adapters translate the kind into their
 /// protocol (HTTP status, OData error, CLI exit code, GUI dialog).
-module neko.service.authorization.domain.exceptions.authorization;
+module neko.authorization.domain.exceptions.authorization;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

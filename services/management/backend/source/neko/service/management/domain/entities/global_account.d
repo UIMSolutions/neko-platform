@@ -3,9 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.management.domain.entities.global_account;
+module neko.management.domain.entities.global_account;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

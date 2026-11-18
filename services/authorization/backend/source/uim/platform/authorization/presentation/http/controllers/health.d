@@ -4,11 +4,11 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Liveness/readiness: GET /health and GET <apiPath>/health.
-module neko.service.authorization.presentation.http.controllers.health;
+module neko.authorization.presentation.http.controllers.health;
 
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

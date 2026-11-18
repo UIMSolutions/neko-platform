@@ -8,9 +8,9 @@
 /// Conditions are written (CLI, GUI, Fiori, OData) as a compact text:
 ///   "country eq US; department in Sales,Support; level ge 3"
 /// Values may be quoted with ' or " if they contain ';'.
-module neko.service.authorization.domain.types.condition;
+module neko.authorization.domain.types.condition;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

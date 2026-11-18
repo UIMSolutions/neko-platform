@@ -7,9 +7,9 @@
 ///   memory   in-process, lost on exit (tests, ephemeral demos)
 ///   file     one JSON snapshot shared by server, CLI and GUI (development, single node)
 ///   mongodb  MongoDB collection (production, several replicas)
-module neko.service.authorization.persistence.storages.factory;
+module neko.authorization.persistence.storages.factory;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

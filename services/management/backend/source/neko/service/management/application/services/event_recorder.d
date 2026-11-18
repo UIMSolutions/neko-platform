@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Records platform events (audit trail of all management operations).
-module neko.service.management.application.services.event_recorder;
+module neko.management.application.services.event_recorder;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

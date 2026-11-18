@@ -3,16 +3,16 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file. 
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.management.domain.entities;
+module neko.management.domain.entities;
 
 public {
-    import neko.service.management.domain.entities.directory;
-    import neko.service.management.domain.entities.entitlement;
-    import neko.service.management.domain.entities.environment;
-    import neko.service.management.domain.entities.global_account;
-    import neko.service.management.domain.entities.label;
-    import neko.service.management.domain.entities.environment_event;
-    import neko.service.management.domain.entities.service_plan;
-    import neko.service.management.domain.entities.subscription;
-    import neko.service.management.domain.entities.subaccount;
+    import neko.management.domain.entities.directory;
+    import neko.management.domain.entities.entitlement;
+    import neko.management.domain.entities.environment;
+    import neko.management.domain.entities.global_account;
+    import neko.management.domain.entities.label;
+    import neko.management.domain.entities.environment_event;
+    import neko.management.domain.entities.service_plan;
+    import neko.management.domain.entities.subscription;
+    import neko.management.domain.entities.subaccount;
 }

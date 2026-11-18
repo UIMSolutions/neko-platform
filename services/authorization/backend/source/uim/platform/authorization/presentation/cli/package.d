@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Command-line interface & administrative commands.
-module neko.service.authorization.presentation.cli;
+module neko.authorization.presentation.cli;
 
 public {
   import uim.platform.service.presentation.cli;
-  import neko.service.authorization.presentation.cli.commands;
+  import neko.authorization.presentation.cli.commands;
 }

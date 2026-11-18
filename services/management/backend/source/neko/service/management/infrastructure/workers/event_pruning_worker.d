@@ -3,11 +3,11 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.management.infrastructure.workers.event_pruning_worker;
+module neko.management.infrastructure.workers.event_pruning_worker;
 
 import core.time : minutes;
 import vibe.core.core : setTimer, Timer;
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

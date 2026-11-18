@@ -7,13 +7,13 @@
 /// EDM model (presentation.odata), so the JSON API, vibe.d REST, OData v4,
 /// the Diet dashboard, CLI and GUI share validation, scopes, query options
 /// and error semantics.
-module neko.service.authorization.presentation;
+module neko.authorization.presentation;
 
 public {
-  import neko.service.authorization.presentation.odata;
-  import neko.service.authorization.presentation.http;
-  import neko.service.authorization.presentation.rest;
-  import neko.service.authorization.presentation.web;
-  import neko.service.authorization.presentation.cli;
+  import neko.authorization.presentation.odata;
+  import neko.authorization.presentation.http;
+  import neko.authorization.presentation.rest;
+  import neko.authorization.presentation.web;
+  import neko.authorization.presentation.cli;
   // GtkD GUI: imported explicitly by source/gui.d (built with --config=gui only)
 }

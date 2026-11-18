@@ -1,6 +1,6 @@
-module neko.service.authorization.domain.ports.repositories;
+module neko.authorization.domain.ports.repositories;
 
-import neko.service.authorization;
+import neko.authorization;
 
 mixin(ShowModule!());
 

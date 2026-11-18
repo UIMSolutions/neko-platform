@@ -6,8 +6,7 @@
 /// Ports (interfaces) of the hexagonal architecture: driven repositories/storages and driving services.
 module uim.service.ports;
 
-public {
+public:
   import uim.service.ports.repositories;
   import uim.service.ports.storages;
   import uim.service.ports.services;
-}

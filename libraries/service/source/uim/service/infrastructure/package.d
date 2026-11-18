@@ -7,11 +7,11 @@
 module uim.service.infrastructure;
 
 public:
-  import uim.service.authorization.configs;
-  import uim.service.authorization.configuration;
-  import uim.service.authorization.logging;
+  import uim.service.infrastructure.configs;
+  import uim.service.infrastructure.configuration;
+  import uim.service.infrastructure.logging;
   import uim.service.infrastructure.security;
-  import uim.service.authorization.tests;
+  import uim.service.infrastructure.tests;
   // Deprecated locations (moved to uim.service.persistence)
-  import uim.service.authorization.repositories;
-  import uim.service.authorization.stores;
+  import uim.service.infrastructure.repositories;
+  import uim.service.infrastructure.stores;

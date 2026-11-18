@@ -14,7 +14,7 @@
 /// VCAP_SERVICES bindings are exposed as config["services"][<name>] =
 /// { "label", "plan", "tags", "credentials" } so adapters can look up e.g.
 /// the XSUAA or PostgreSQL credentials by instance name or by label.
-module uim.service.authorization.configuration.loader;
+module uim.service.infrastructure.configuration.loader;
 
 import std.file : exists, readText;
 import std.path : buildPath;

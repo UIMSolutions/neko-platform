@@ -5,7 +5,7 @@
 *****************************************************************************************************************/
 /// Structured (one JSON object per line) logging, as expected by the SAP BTP
 /// Cloud Logging / Kibana pipelines, plus a vibe.d request logging wrapper.
-module uim.service.authorization.logging.structured;
+module uim.service.infrastructure.logging.structured;
 
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse, HTTPServerRequestDelegate;
 import uim.service;

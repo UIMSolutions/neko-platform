@@ -8,6 +8,8 @@ module neko.authorization.infrastructure.logging.events;
 
 import vibe.core.log : LogLevel, setLogLevel;
 import neko.authorization;
+import uim.service.infrastructure.logging;
+import uim.service.infrastructure.logging.structured;
 
 mixin(ShowModule!());
 

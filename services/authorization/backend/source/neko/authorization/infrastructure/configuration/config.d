@@ -18,6 +18,8 @@ module neko.authorization.infrastructure.configuration.config;
 
 import std.process : environment;
 import neko.authorization;
+import uim.service.infrastructure.configuration.loader;
+
 
 mixin(ShowModule!());
 

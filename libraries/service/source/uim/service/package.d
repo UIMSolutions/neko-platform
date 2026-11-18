@@ -13,8 +13,8 @@
 module uim.service;
 
 public {
-  import uim.framework;
-  import uim.services;
+  import uim.oop;
+  // import uim.services;
 
   import uim.service.application;
   import uim.service.classes;

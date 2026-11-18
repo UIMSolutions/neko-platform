@@ -9,7 +9,7 @@ module app;
 
 import std.array : join;
 import vibe.core.core : runApplication;
-import vibe.core.log;
+import vibe.core.log : LogLevel;
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerSettings, listenHTTP;
 import neko.platform;
@@ -48,8 +48,8 @@ int serve(PlatformContainer c) {
   auto router = new URLRouter;
 
   // Order matters: middleware first, the static catch-all last.
-  new SecurityMiddleware(config).registerRoutes(router);
-  new HealthController(config, selfDomain).registerRoutes(router);
+  (new SecurityMiddleware(config)).registerRoutes(router);
+  (new HealthController(config, selfDomain)).registerRoutes(router);
   UnixSocketController socket;
   if (config.transport == "unix") {
     socket = new UnixSocketController(config.effectiveSocketPath(selfDomain));

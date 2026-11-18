@@ -12,13 +12,13 @@
 /// ---
 ///
 /// Issuer/audience checks are not performed; pin them via expectedAudience if needed.
-module uim.service.authorization.security.rs256;
+module uim.service.infrastructure.security.rs256;
 
 import std.base64 : Base64, Base64URLNoPadding;
 import deimos.openssl.evp;
 import deimos.openssl.x509 : d2i_PUBKEY;
 import uim.service;
-import uim.service.authorization.security.context;
+import uim.service.infrastructure.security.context;
 
 mixin(ShowModule!());
 

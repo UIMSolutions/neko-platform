@@ -3,11 +3,11 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.service.management.persistence;
+module neko.management.persistence;
 
 public {
-  import neko.service.management.persistence.mappers;
-  import neko.service.management.persistence.records;
-  import neko.service.management.persistence.repositories;
-  import neko.service.management.persistence.storages;
+  import neko.management.persistence.mappers;
+  import neko.management.persistence.records;
+  import neko.management.persistence.repositories;
+  import neko.management.persistence.storages;
 }

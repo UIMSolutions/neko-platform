@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Technical record layouts (collections and snapshot envelope).
-module neko.service.management.persistence.records;
+module neko.management.persistence.records;
 
 public {
-  import neko.service.management.persistence.records.collections;
+  import neko.management.persistence.records.collections;
 }

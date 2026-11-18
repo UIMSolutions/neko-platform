@@ -10,15 +10,15 @@
 ///
 /// Layers (hexagonal / clean architecture):
 ///   domain → ports → application → persistence / infrastructure → presentation
-module neko.service.authorization;
+module neko.authorization;
 
 public:
   import uim.oop;
   import uim.service;
 
-  import neko.service.authorization.domain;
-  import neko.service.authorization.ports;
-  import neko.service.authorization.application;
-  import neko.service.authorization.persistence;
-  import neko.service.authorization.infrastructure;
-  import neko.service.authorization.presentation;
+  import neko.authorization.domain;
+  import neko.authorization.ports;
+  import neko.authorization.application;
+  import neko.authorization.persistence;
+  import neko.authorization.infrastructure;
+  import neko.authorization.presentation;

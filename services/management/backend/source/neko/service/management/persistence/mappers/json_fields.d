@@ -4,9 +4,9 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Defensive accessors for record fields (missing or mistyped fields fall back to defaults).
-module neko.service.management.persistence.mappers.json_fields;
+module neko.management.persistence.mappers.json_fields;
 
-import neko.service.management;
+import neko.management;
 
 mixin(ShowModule!());
 

@@ -4,10 +4,10 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Technical storage drivers.
-module neko.service.management.persistence.storages;
+module neko.management.persistence.storages;
 
 public {
-  import neko.service.management.persistence.storages.json_file;
-  import neko.service.management.persistence.storages.memory;
-  import neko.service.management.persistence.storages.snapshot_store;
+  import neko.management.persistence.storages.json_file;
+  import neko.management.persistence.storages.memory;
+  import neko.management.persistence.storages.snapshot_store;
 }

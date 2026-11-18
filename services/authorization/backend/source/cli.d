@@ -11,7 +11,7 @@
 ///   ./build/uim-authorization-cli check alice incident-management Incident Read --attributes=country=US
 module cli;
 
-import neko.service.authorization;
+import neko.authorization;
 
 version (unittest) {
 } else {

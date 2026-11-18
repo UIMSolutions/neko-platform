@@ -4,17 +4,17 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Converters between snapshot records and domain entities.
-module neko.service.management.persistence.mappers;
+module neko.management.persistence.mappers;
 
 public {
-  import neko.service.management.persistence.mappers.directory;
-  import neko.service.management.persistence.mappers.entitlement;
-  import neko.service.management.persistence.mappers.environment;
-  import neko.service.management.persistence.mappers.environment_event;
-  import neko.service.management.persistence.mappers.global_account;
-  import neko.service.management.persistence.mappers.json_fields;
-  import neko.service.management.persistence.mappers.label;
-  import neko.service.management.persistence.mappers.service_plan;
-  import neko.service.management.persistence.mappers.subaccount;
-  import neko.service.management.persistence.mappers.subscription;
+  import neko.management.persistence.mappers.directory;
+  import neko.management.persistence.mappers.entitlement;
+  import neko.management.persistence.mappers.environment;
+  import neko.management.persistence.mappers.environment_event;
+  import neko.management.persistence.mappers.global_account;
+  import neko.management.persistence.mappers.json_fields;
+  import neko.management.persistence.mappers.label;
+  import neko.management.persistence.mappers.service_plan;
+  import neko.management.persistence.mappers.subaccount;
+  import neko.management.persistence.mappers.subscription;
 }

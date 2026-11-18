@@ -6,7 +6,7 @@
 /// Business objects with their own identity.
 module neko.authentication.domain.entities;
 
-public {
+public:
   import neko.authentication.domain.entities.user;
   import neko.authentication.domain.entities.group;
   import neko.authentication.domain.entities.application;
@@ -15,4 +15,4 @@ public {
   import neko.authentication.domain.entities.idp_config;
   import neko.authentication.domain.entities.session;
   import neko.authentication.domain.entities.token;
-}
+

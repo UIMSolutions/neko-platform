@@ -5,9 +5,8 @@
 *****************************************************************************************************************/
 module uim.service.mixins.entities;
 
-public {
+public:
   import uim.service.mixins.entities.id;
   import uim.service.mixins.entities.tenant;
   import uim.service.mixins.entities.global;
   import uim.service.mixins.entities.resource;
-}

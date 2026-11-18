@@ -9,7 +9,7 @@
 ///   domain → ports → application → persistence / infrastructure → presentation
 module neko.authentication;
 
-public {
+public:
   import uim.oop;
   import uim.service;
 
@@ -19,4 +19,4 @@ public {
   import neko.authentication.persistence;
   import neko.authentication.infrastructure;
   import neko.authentication.presentation;
-}
+

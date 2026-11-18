@@ -6,8 +6,8 @@
 /// Application layer: use cases (interactors), application services and DTOs.
 module neko.authentication.application;
 
-public {
+public:
   import neko.authentication.application.dtos;
   import neko.authentication.application.usecases;
   import neko.authentication.application.services;
-}
+

@@ -6,6 +6,6 @@
 /// Business exceptions and error types.
 module neko.authentication.domain.exceptions;
 
-public {
+public:
   import neko.authentication.domain.exceptions.identity;
-}
+

@@ -9,3 +9,4 @@ public:
     import neko.database.presentation.rest.interfaces;
     import neko.database.presentation.rest.models;
     import neko.database.presentation.rest.services;
+    import neko.database.presentation.rest.cloud;

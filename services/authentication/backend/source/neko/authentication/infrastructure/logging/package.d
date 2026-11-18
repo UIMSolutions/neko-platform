@@ -6,6 +6,6 @@
 /// Technical logging & tracing.
 module neko.authentication.infrastructure.logging;
 
-public {
+public:
   import neko.authentication.infrastructure.logging.logger;
-}
+

@@ -67,9 +67,9 @@ struct DatabaseConfig {
     long gatewayReadSeconds = 300;
 
     // Cloud-Funktionen (HANA-Cloud-ähnlich)
-    string region = "eu10";
-    string landscape = "local";
-    long maxBackupRetentionDays = 215; // 7 Monate
+    string region = "local";
+    string publicUrl; // öffentliche Adresse für Zugangsdaten von Bindungen; leer: aus der Anfrage
+    string dataProductsDir = "data/dataproducts"; // freigegebene Datenprodukte (*.json)
 
     string[] trustedProxyList() const {
         return trustedProxies.split(",").map!(s => s.strip).array;
@@ -159,10 +159,10 @@ unittest {
     assert(envName("port") == "PORT");
     string[string] e = [
         "PORT": "9090", "TENANTS_DIR": "/var/hdb",
-        "VCAP_SERVICES": `{"user-provided":[{"name":"hdb-config","credentials":{"region":"us10","maxBackupRetentionDays":100}}]}`
+        "VCAP_SERVICES": `{"user-provided":[{"name":"hdb-config","credentials":{"region":"us10","dataProductsDir":"/shares"}}]}`
     ];
     auto c = loadConfig((string k) @safe => k in e ? e[k] : null, "does-not-exist.json");
     assert(c.port == 9090 && c.tenantsDir == "/var/hdb");
-    assert(c.region == "us10" && c.maxBackupRetentionDays == 100);
+    assert(c.region == "us10" && c.dataProductsDir == "/shares");
     assert(c.usersFile == "data/hdb-users.json");
 }

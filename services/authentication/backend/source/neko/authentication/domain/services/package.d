@@ -6,10 +6,10 @@
 /// Pure domain services (business-only operations, no I/O).
 module neko.authentication.domain.services;
 
-public {
+public:
   import neko.authentication.domain.services.network;
   import neko.authentication.domain.services.lifecycle;
   import neko.authentication.domain.services.policy_evaluator;
   import neko.authentication.domain.services.risk_evaluator;
   import neko.authentication.domain.services.validator;
-}
+

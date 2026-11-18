@@ -11,7 +11,7 @@
 /// ---
 module uim.service.presentation.odata;
 
-public {
+public:
   import uim.service.presentation.odata.model;
   import uim.service.presentation.odata.query;
   import uim.service.presentation.odata.metadata;
@@ -20,4 +20,4 @@ public {
   import uim.service.presentation.odata.engine;
   import uim.service.presentation.odata.values;
   import uim.service.presentation.odata.controller;
-}
+

@@ -8,7 +8,6 @@
 module neko.database.persistence.records;
 
 import neko.database.domain.entities.binding : ServiceBinding;
-import neko.database.domain.entities.calcview : CalcAttribute, CalcJoin;
 import neko.database.domain.entities.dataproduct : InstalledProduct;
 import neko.database.domain.entities.workload : WorkloadClass, WorkloadMapping;
 import neko.database.domain.types.monitoring : TraceSettings;
@@ -31,6 +30,18 @@ struct InstanceRecord {
     @optional string createdAt, createdBy, updatedAt;
 }
 
+struct CalcJoinRecord {
+    string table;
+    @optional string alias_;
+    @optional bool left;
+    string leftColumn, rightColumn;
+}
+
+struct CalcAttributeRecord {
+    string column;
+    @optional string label, description;
+}
+
 struct CalcMeasureRecord {
     string column;
     @optional string aggregation = "sum";
@@ -43,8 +54,8 @@ struct CalcViewRecord {
     @optional string viewType = "cube";
     string baseTable;
     @optional string baseAlias;
-    @optional CalcJoin[] joins;
-    @optional CalcAttribute[] attributes;
+    @optional CalcJoinRecord[] joins;
+    @optional CalcAttributeRecord[] attributes;
     @optional CalcMeasureRecord[] measures;
     @optional string filter;
     @optional string createdAt, createdBy, updatedAt;

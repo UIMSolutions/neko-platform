@@ -6,8 +6,8 @@
 /// Data transfer objects / request-response models.
 module neko.authentication.application.dtos;
 
-public {
+public:
   import neko.authentication.application.dtos.authentication;
   import neko.authentication.application.dtos.directory;
   import neko.authentication.application.dtos.statistics;
-}
+

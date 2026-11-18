@@ -5,11 +5,10 @@
 *****************************************************************************************************************/
 module neko.authentication.application.usecases.manage;
 
-public {
+public:
   import neko.authentication.application.usecases.manage.users;
   import neko.authentication.application.usecases.manage.groups;
   import neko.authentication.application.usecases.manage.applications;
   import neko.authentication.application.usecases.manage.policies;
   import neko.authentication.application.usecases.manage.risk_rules;
   import neko.authentication.application.usecases.manage.sessions;
-}

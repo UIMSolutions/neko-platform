@@ -5,9 +5,9 @@
 *****************************************************************************************************************/
 module uim.service.ports.storages;
 
-public {
+public:
   import uim.service.ports.storages.documents;
   import uim.service.ports.storages.entity;
   import uim.service.ports.storages.id;
   import uim.service.ports.storages.tenant;
-}
+

@@ -11,3 +11,4 @@ public:
     import neko.database.presentation.odata.errors;
     import neko.database.presentation.odata.filter;
     import neko.database.presentation.odata.model;
+    import neko.database.presentation.odata.cloud;

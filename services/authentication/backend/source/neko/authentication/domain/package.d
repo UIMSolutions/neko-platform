@@ -7,10 +7,10 @@
 /// and business exceptions. Depends on nothing but the platform base types.
 module neko.authentication.domain;
 
-public {
+public:
   import neko.authentication.domain.enumerations;
   import neko.authentication.domain.types;
   import neko.authentication.domain.entities;
   import neko.authentication.domain.exceptions;
   import neko.authentication.domain.services;
-}
+

@@ -6,6 +6,6 @@
 /// Background tasks & task queues.
 module neko.authentication.infrastructure.workers;
 
-public {
+public:
   import neko.authentication.infrastructure.workers.cleanup;
-}
+

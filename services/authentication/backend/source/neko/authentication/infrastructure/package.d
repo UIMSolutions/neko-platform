@@ -7,11 +7,11 @@
 /// background workers and the dependency injection container.
 module neko.authentication.infrastructure;
 
-public {
+public:
   import neko.authentication.infrastructure.configuration;
   import neko.authentication.infrastructure.logging;
   import neko.authentication.infrastructure.security;
   import neko.authentication.infrastructure.clients;
   import neko.authentication.infrastructure.workers;
   import neko.authentication.infrastructure.container;
-}
+

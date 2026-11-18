@@ -5,6 +5,5 @@
 *****************************************************************************************************************/
 module uim.service.classes.stores;
 
-public {
+public:
   import uim.service.classes.stores.store;
-}

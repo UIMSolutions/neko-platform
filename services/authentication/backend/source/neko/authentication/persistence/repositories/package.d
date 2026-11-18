@@ -6,7 +6,7 @@
 /// Concrete repository implementations (driven adapters of the repository ports).
 module neko.authentication.persistence.repositories;
 
-public {
+public:
   import neko.authentication.persistence.repositories.users;
   import neko.authentication.persistence.repositories.groups;
   import neko.authentication.persistence.repositories.applications;
@@ -15,4 +15,4 @@ public {
   import neko.authentication.persistence.repositories.idp_configs;
   import neko.authentication.persistence.repositories.sessions;
   import neko.authentication.persistence.repositories.tokens;
-}
+

@@ -6,6 +6,6 @@
 /// Loading environment variables & config files (VCAP_SERVICES).
 module neko.authentication.infrastructure.configuration;
 
-public {
+public:
   import neko.authentication.infrastructure.configuration.config;
-}
+

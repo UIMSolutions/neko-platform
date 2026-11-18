@@ -6,6 +6,6 @@
 /// Value objects and composite types.
 module neko.authentication.domain.types;
 
-public {
+public:
   import neko.authentication.domain.types.ids;
-}
+

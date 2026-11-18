@@ -6,11 +6,11 @@
 /// Concrete use cases / interactors.
 module neko.authentication.application.usecases;
 
-public {
+public:
   import neko.authentication.application.usecases.support;
   import neko.authentication.application.usecases.settings;
   import neko.authentication.application.usecases.authenticate_user;
   import neko.authentication.application.usecases.issue_token;
   import neko.authentication.application.usecases.delegated_auth;
   import neko.authentication.application.usecases.manage;
-}
+

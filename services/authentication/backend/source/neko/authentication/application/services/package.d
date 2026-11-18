@@ -6,6 +6,6 @@
 /// Application-wide services.
 module neko.authentication.application.services;
 
-public {
+public:
   import neko.authentication.application.services.statistics;
-}
+

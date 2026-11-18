@@ -39,8 +39,9 @@ DatabaseInstance toDomain(InstanceRecord r) {
 }
 
 CalcViewRecord toRecord(CalculationView v) {
-    return CalcViewRecord(v.name, v.label, v.description, enumName(v.viewType), v.baseTable, v.baseAlias, v.joins.dup,
-        v.attributes.dup, v.measures.map!(m => CalcMeasureRecord(m.column, enumName(m.aggregation), m.label,
+    return CalcViewRecord(v.name, v.label, v.description, enumName(v.viewType), v.baseTable, v.baseAlias,
+        v.joins.map!(j => CalcJoinRecord(j.table, j.alias_, j.left, j.leftColumn, j.rightColumn)).array,
+        v.attributes.map!(a => CalcAttributeRecord(a.column, a.label, a.description)).array, v.measures.map!(m => CalcMeasureRecord(m.column, enumName(m.aggregation), m.label,
             m.description)).array, v.filter, v.createdAt, v.createdBy, v.updatedAt);
 }
 
@@ -52,8 +53,10 @@ CalculationView toDomain(CalcViewRecord r) {
     v.viewType = parseEnum!CalcViewType(r.viewType.length ? r.viewType : "cube");
     v.baseTable = r.baseTable;
     v.baseAlias = r.baseAlias;
-    v.joins = r.joins;
-    v.attributes = r.attributes;
+    foreach (j; r.joins)
+        v.joins ~= CalcJoin(j.table, j.alias_, j.left, j.leftColumn, j.rightColumn);
+    foreach (a; r.attributes)
+        v.attributes ~= CalcAttribute(a.column, a.label, a.description);
     foreach (m; r.measures)
         v.measures ~= CalcMeasure(m.column, parseEnum!Aggregation(m.aggregation.length ? m.aggregation : "sum"),
             m.label, m.description);

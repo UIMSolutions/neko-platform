@@ -8,4 +8,3 @@
 /// Implementations: memory, JSON file (neko-services-platform:service), MongoDB (persistence.storages).
 module neko.service.authorization.ports.storages;
 
-public import uim.platform.service.ports.storages.documents : IDocumentStore;

@@ -1,1 +1,0 @@
-module neko.service.tests.repositories.tenant;

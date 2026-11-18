@@ -6,7 +6,7 @@
 /// Persistence layer: concrete repositories and storages implementing the driven ports.
 module uim.service.persistence;
 
-public {
+public:
   import uim.service.persistence.repositories;
   import uim.service.persistence.storages;
-}
+

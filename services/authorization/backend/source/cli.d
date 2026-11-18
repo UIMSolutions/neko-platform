@@ -13,6 +13,8 @@ module cli;
 
 import neko.authorization;
 
+mixin(ShowModule!());
+
 version (unittest) {
 } else {
   int main(string[] argv) {

@@ -5,10 +5,9 @@
 *****************************************************************************************************************/
 module uim.service.exceptions;
 
-public {
+public:
   import uim.service.exceptions.exception;
 
   import uim.service.exceptions.authorization;
   import uim.service.exceptions.configuration;
   import uim.service.exceptions.validation;
-}

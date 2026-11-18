@@ -5,8 +5,7 @@
 *****************************************************************************************************************/
 module uim.service.application;
 
-public {
+public:
     import uim.service.application.dto;
     import uim.service.application.services;
     import uim.service.application.usecases;
-}

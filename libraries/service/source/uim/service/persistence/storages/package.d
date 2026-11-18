@@ -5,8 +5,7 @@
 *****************************************************************************************************************/
 module uim.service.persistence.storages;
 
-public {
+public:
   import uim.service.persistence.storages.documents;
   import uim.service.persistence.storages.id;
   import uim.service.persistence.storages.tenant;
-}

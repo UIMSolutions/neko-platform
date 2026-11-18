@@ -30,13 +30,13 @@ import vibe.textfilter.urlencode : urlDecode, urlEncode;
 import uim.service;
 import uim.service.ports.services.context;
 import uim.service.ports.services.entitysets;
-import uim.service.authorization.security.context;
 import uim.service.presentation.odata.model;
 import uim.service.presentation.odata.query;
 import uim.service.presentation.odata.metadata;
 import uim.service.presentation.odata.resource;
 import uim.service.presentation.odata.batch;
 import uim.service.presentation.odata.engine;
+import uim.service.infrastructure.security.context;
 
 mixin(ShowModule!());
 

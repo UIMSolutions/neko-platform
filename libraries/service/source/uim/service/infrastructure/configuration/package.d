@@ -3,8 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module uim.service.authorization.configuration;
+module uim.service.infrastructure.configuration;
 
-public {
-  import uim.service.authorization.configuration.loader;
-}
+public:
+  import uim.service.infrastructure.configuration.loader;

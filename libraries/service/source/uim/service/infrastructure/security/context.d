@@ -11,7 +11,7 @@
 /// signature. Without a verifier the token is decoded for identification
 /// only (authenticated = false, no scopes) — enable scope enforcement only
 /// together with a verifier.
-module uim.service.authorization.security.context;
+module uim.service.infrastructure.security.context;
 
 import std.base64 : Base64URLNoPadding;
 import std.digest.hmac : HMAC;

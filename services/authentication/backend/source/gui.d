@@ -8,8 +8,8 @@
 ///   dub run --config=gui -- [--tenant=<id>] [--data-dir=<dir>]
 module gui;
 
-import neko.service.authentication;
-import neko.service.authentication.presentation.gui;
+import neko.authentication;
+import neko.authentication.presentation.gui;
 
 version (unittest) {
 } else {

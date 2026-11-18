@@ -10,7 +10,7 @@
 module cli;
 
 import std.stdio : stdout;
-import neko.service.authentication;
+import neko.authentication;
 
 version (unittest) {
 } else {

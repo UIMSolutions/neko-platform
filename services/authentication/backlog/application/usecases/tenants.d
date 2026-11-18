@@ -4,14 +4,14 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 module identity-authentication.backlog.application.usecases.tenants;
-// import neko.service.authentication.domain.entities.tenant;
-// import neko.service.authentication.domain.types;
-// import neko.service.authentication.domain.ports.repositories.tenant;
-// import neko.service.authentication.application.dto;
+// import neko.authentication.domain.entities.tenant;
+// import neko.authentication.domain.types;
+// import neko.authentication.domain.ports.repositories.tenant;
+// import neko.authentication.application.dto;
 // 
 // 
 // 
-import neko.service.authentication;
+import neko.authentication;
 
 mixin(ShowModule!());
 @safe:

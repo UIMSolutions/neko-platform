@@ -5,12 +5,12 @@
 *****************************************************************************************************************/
 module identity-authentication.backlog.presentation.http.controllers.tenant;
 
-// import neko.service.authentication.application.usecases.manage.tenants;
-// import neko.service.authentication.application.dto;
-// import neko.service.authentication.domain.entities.tenant;
-// import neko.service.authentication.domain.types;
+// import neko.authentication.application.usecases.manage.tenants;
+// import neko.authentication.application.dto;
+// import neko.authentication.domain.entities.tenant;
+// import neko.authentication.domain.types;
 
-import neko.service.authentication;
+import neko.authentication;
 
 mixin(ShowModule!());
 @safe:

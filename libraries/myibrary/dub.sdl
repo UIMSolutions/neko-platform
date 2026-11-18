@@ -1,0 +1,37 @@
+name "myLibrary"
+description "Template for libraries"
+homepage "https://www"
+authors "Ozan Nurettin Süel"
+copyright "Copyright © 2018 - 2026, ONS"
+license "Apache-2.0"
+dependency "vibe-d" version="~>0.10.5"
+dependency "uim-framework" version="~>26.11.1"
+dependency "webview" version="~>0.1.1"
+dependency "fluid" version="~>0.9.1"
+dependency "gtk-d" version="~>3.11.0"
+targetType "library"
+targetPath "build"
+targetName "neko-myLibrary"
+configuration "default" {
+	targetType "library"
+}
+configuration "modules" {
+	targetType "library"
+	versions "show_module"
+}
+configuration "tests" {
+	targetType "library"
+	versions "show_module" "show_test"
+}
+configuration "inits" {
+	targetType "library"
+	versions "show_module" "show_init"
+}
+configuration "calls" {
+	targetType "library"
+	versions "show_module" "show_test" "show_function"
+}
+configuration "verbose" {
+	targetType "library"
+	versions "show_module" "show_test" "show_init" "show_function"
+}

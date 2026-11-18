@@ -5,16 +5,13 @@ authors "Ozan Nurettin Süel" "UI Manufaktur (R.I.P)"
 copyright "Copyright © 2018-2026, Ozan Nurettin Süel"
 license "Apache-2.0"
 dependency "vibe-d" version="~>0.10.5"
-dependency "neko-service-platform:service" path=".."
+dependency "neko-service-platform:service" path="../../.."
 dependency "uim-framework" version="~>26.11.1"
 targetPath "build"
-sourcePaths "backend/source"
-importPaths "backend/source"
+sourcePaths "source"
+importPaths "source"
 stringImportPaths "views"
 
-// Shared platform library: uim-framework, vibe-d 0.10.x, generic OData v4 engine,
-// CLI toolkit and GtkD entity browser.
-dependency "neko-services-platform:service" path=".."
 
 buildRequirements "allowWarnings" "silenceDeprecations"
 
@@ -25,8 +22,8 @@ buildRequirements "allowWarnings" "silenceDeprecations"
 configuration "defaultRun" {
 	targetType "executable"
 	targetName "neko-service-authorization"
-	mainSourceFile "backend/source/app.d"
-	excludedSourceFiles "backend/source/cli.d" "backend/source/gui.d"
+	mainSourceFile "source/app.d"
+	excludedSourceFiles "source/cli.d" "source/gui.d"
 }
 
 // ── Command line interface ──────────────────────────────────────────────────
@@ -35,8 +32,8 @@ configuration "defaultRun" {
 configuration "cli" {
 	targetType "executable"
 	targetName "neko-service-authorization-cli"
-	mainSourceFile "backend/source/cli.d"
-	excludedSourceFiles "backend/source/app.d" "backend/source/gui.d"
+	mainSourceFile "source/cli.d"
+	excludedSourceFiles "source/app.d" "source/gui.d"
 }
 
 // ── Desktop GUI (GtkD 3 / GTK 3.24) ─────────────────────────────────────────
@@ -45,8 +42,8 @@ configuration "cli" {
 configuration "gui" {
 	targetType "executable"
 	targetName "neko-service-authorization-gui"
-	mainSourceFile "backend/source/gui.d"
-	excludedSourceFiles "backend/source/app.d" "backend/source/cli.d"
+	mainSourceFile "source/gui.d"
+	excludedSourceFiles "source/app.d" "source/cli.d"
 	dependency "gtk-d" version="~>3.11.0"
 }
 
@@ -55,17 +52,17 @@ configuration "defaultTest" {
 	targetType "library"
 	targetName "neko-service-authorization"
 	sourcePaths "tests"
-	excludedSourceFiles "backend/source/app.d" "backend/source/cli.d" "backend/source/gui.d"
+	excludedSourceFiles "source/app.d" "source/cli.d" "source/gui.d"
 }
 
 configuration "modules" {
 	targetType "library"
 	versions "show_module"
-	excludedSourceFiles "backend/source/app.d" "backend/source/cli.d" "backend/source/gui.d"
+	excludedSourceFiles "source/app.d" "source/cli.d" "source/gui.d"
 }
 
 configuration "tests" {
 	targetType "library"
 	versions "show_module" "show_test"
-	excludedSourceFiles "backend/source/app.d" "backend/source/cli.d" "backend/source/gui.d"
+	excludedSourceFiles "source/app.d" "source/cli.d" "source/gui.d"
 }

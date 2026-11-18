@@ -14,7 +14,7 @@
 module neko.service.authorization.infrastructure.security.authentication;
 
 import vibe.http.server : HTTPServerRequest;
-import uim.platform.service.infrastructure.security.context;
+import neko.service.authorization.security.context;
 import neko.service.authorization;
 
 mixin(ShowModule!());

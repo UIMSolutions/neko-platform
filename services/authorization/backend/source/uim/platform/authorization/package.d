@@ -14,7 +14,7 @@ module neko.service.authorization;
 
 public:
   import uim.oop;
-  import neko.service;
+  import uim.service;
 
   import neko.service.authorization.domain;
   import neko.service.authorization.ports;

@@ -1,6 +1,0 @@
-applications:
-- name: neko.database
-  memory: 256M
-  buildpacks:
-  - binary_buildpack
-  command: ./hdb

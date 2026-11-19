@@ -1,0 +1,22 @@
+/****************************************************************************************************************
+* Copyright: © 2018-2026 Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*) 
+* License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file. 
+* Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
+*****************************************************************************************************************/
+module neko.directory.domain.ports.repositories.password_policies;
+
+// import neko.directory.domain.entities.password_policy;
+
+import neko.directory;
+
+mixin(ShowModule!());
+
+@safe:
+/// Port: outgoing — password policy persistence.
+interface IPasswordPolicyRepository : ITenantRepository!(PasswordPolicy, PasswordPolicyId) {
+
+  bool existsActiveForTenant(TenantId tenantId);
+  PasswordPolicy findActiveForTenant(TenantId tenantId);
+  void removeActiveForTenant(TenantId tenantId);
+
+}

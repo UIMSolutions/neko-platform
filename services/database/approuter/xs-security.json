@@ -1,0 +1,21 @@
+{
+  "xsappname": "hdb",
+  "tenant-mode": "dedicated",
+  "description": "hdb database service: access to the Fiori app and the admin console",
+  "scopes": [
+    { "name": "$XSAPPNAME.DatabaseUser", "description": "Open the Fiori app; the database login decides about data and permissions" },
+    { "name": "$XSAPPNAME.DatabaseAdmin", "description": "Open the Fiori app and the admin console" }
+  ],
+  "role-templates": [
+    { "name": "DatabaseUser", "description": "Database user", "scope-references": ["$XSAPPNAME.DatabaseUser"] },
+    { "name": "DatabaseAdmin", "description": "Database administrator",
+      "scope-references": ["$XSAPPNAME.DatabaseAdmin", "$XSAPPNAME.DatabaseUser"] }
+  ],
+  "role-collections": [
+    { "name": "hdb User", "role-template-references": ["$XSAPPNAME.DatabaseUser"] },
+    { "name": "hdb Administrator", "role-template-references": ["$XSAPPNAME.DatabaseAdmin"] }
+  ],
+  "oauth2-configuration": {
+    "redirect-uris": ["https://*.hana.ondemand.com/**", "http://localhost:5000/**"]
+  }
+}

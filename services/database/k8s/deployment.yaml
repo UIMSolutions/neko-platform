@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hdb
+  labels: { app: hdb, part-of: neko-platform }
+spec:
+  replicas: 1            # one writer per data volume; scale reads with replication (see README)
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app: hdb }
+  template:
+    metadata:
+      labels: { app: hdb }
+    spec:
+      securityContext: { fsGroup: 10001 }
+      containers:
+      - name: hdb
+        image: neko-platform/hdb:latest
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        envFrom:
+        - configMapRef: { name: hdb-config }
+        - secretRef: { name: hdb-admin }
+        livenessProbe:
+          httpGet: { path: /health, port: 8080 }
+          initialDelaySeconds: 5
+          periodSeconds: 30
+        readinessProbe:
+          httpGet: { path: /health, port: 8080 }
+          initialDelaySeconds: 3
+          periodSeconds: 10
+        resources:
+          requests: { memory: "256Mi", cpu: "250m" }
+          limits: { memory: "2Gi", cpu: "2" }
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - { name: data, mountPath: /app/data }
+      volumes:
+      - name: data
+        persistentVolumeClaim: { claimName: hdb-data }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hdb-data
+  labels: { app: hdb, part-of: neko-platform }
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests: { storage: 10Gi }

@@ -24,7 +24,7 @@
 								<tnt:NavigationListItem key="monitoring" text="{i18n>monitoring}" icon="sap-icon://line-chart" visible="{app>/canMonitor}"/>
 								<tnt:NavigationListItem key="advisors" text="{i18n>advisors}" icon="sap-icon://lightbulb" visible="{app>/canMonitor}"/>
 								<tnt:NavigationListItem key="workloads" text="{i18n>workloads}" icon="sap-icon://performance" visible="{= ${app>/canMonitor} || ${app>/canWorkloads} }"/>
-								<tnt:NavigationListItem key="views" text="{i18n>calcViews}" icon="sap-icon://cube" visible="{= !${app>/isSystem} }"/>
+								<tnt:NavigationListItem key="views" text="{i18n>calcViews}" icon="sap-icon://chart-table-view" visible="{= !${app>/isSystem} }"/>
 								<tnt:NavigationListItem key="dataproducts" text="{i18n>dataProducts}" icon="sap-icon://database" visible="{= !${app>/isSystem} }"/>
 								<tnt:NavigationListItem key="bindings" text="{i18n>bindings}" icon="sap-icon://chain-link" visible="{app>/canBindings}"/>
 								<tnt:NavigationListItem key="assistant" text="{i18n>assistant}" icon="sap-icon://da-2"/>

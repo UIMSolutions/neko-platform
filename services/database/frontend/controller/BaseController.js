@@ -70,11 +70,24 @@ sap.ui.define([
 			MessageBox.error(error.message || String(error));
 		},
 
-		/** Liest die Liste der Seite neu (Tabelle mit der Id "list"). */
+		/**
+		 * Liest die Liste der Seite neu (Tabelle mit der Id "list"). Die Bindungen beginnen angehalten
+		 * (suspended), damit keine Seite liest, bevor sie geöffnet wird: Systemadministratoren und Mandanten
+		 * sehen verschiedene Entity Sets.
+		 */
 		refreshList: function () {
-			const list = this.byId("list");
-			const binding = list && list.getBinding("items");
-			if (binding && binding.refresh) {
+			this.refreshTable("list");
+		},
+
+		refreshTable: function (id) {
+			const table = this.byId(id);
+			const binding = table && table.getBinding("items");
+			if (!binding) {
+				return;
+			}
+			if (binding.isSuspended && binding.isSuspended()) {
+				binding.resume();
+			} else if (binding.refresh) {
 				binding.refresh();
 			}
 		},

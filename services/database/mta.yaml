@@ -1,0 +1,86 @@
+_schema-version: "3.3"
+ID: hdb
+version: 1.0.0
+description: hdb — HANA-Cloud-like in-memory column database. D/vibe.d backend (REST, OData v4), SAP Fiori 3 UI and approuter
+
+parameters:
+  enable-parallel-deployments: true
+
+modules:
+  # ── D / vibe.d backend ────────────────────────────────────────────────────
+  - name: hdb-srv
+    type: custom
+    path: backend
+    build-parameters:
+      builder: custom
+      commands:
+        - dub build --build=release --config=application
+        - rm -rf dist && mkdir -p dist/config dist/public
+        - cp build/hdb dist/
+        - cp config/default.json dist/config/
+        - cp -r public/. dist/public/
+      build-result: dist
+    parameters:
+      buildpack: binary_buildpack
+      command: ./hdb
+      memory: 1G
+      disk-quota: 4G
+      health-check-type: http
+      health-check-http-endpoint: /health
+    properties:
+      HDB_MODE: multi
+      # Data lives on the (ephemeral) container disk: bind a volume service or use replication/backups
+      # downloads before keeping real data here.
+      TENANTS_DIR: data/tenants
+    provides:
+      - name: hdb-srv-api
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: hdb-xsuaa
+      - name: hdb-config
+
+  # ── Approuter (serves the Fiori app from resources/) ──────────────────────
+  - name: hdb-approuter
+    type: approuter.nodejs
+    path: approuter
+    build-parameters:
+      builder: custom
+      commands:
+        - rm -rf resources
+        - cp -r ../frontend resources
+        - rm -rf resources/test resources/localService
+        - npm install --omit=dev
+    parameters:
+      memory: 256M
+      disk-quota: 512M
+      keep-existing-routes: true
+    requires:
+      - name: hdb-xsuaa
+      - name: hdb-srv-api
+        group: destinations
+        properties:
+          name: hdb-srv
+          url: ~{srv-url}
+          forwardAuthToken: false
+          timeout: 300000
+
+resources:
+  - name: hdb-xsuaa
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: approuter/xs-security.json
+      config:
+        xsappname: hdb-${space}
+
+  # Runtime overrides from VCAP_SERVICES (service named or tagged "hdb-config"); keys are the configuration
+  # names in camelCase, see backend/config/default.json
+  - name: hdb-config
+    type: org.cloudfoundry.user-provided-service
+    parameters:
+      service-name: hdb-config
+      config:
+        region: cf-eu10
+        monitorTickSeconds: "60"

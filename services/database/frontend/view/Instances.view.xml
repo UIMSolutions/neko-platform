@@ -15,7 +15,7 @@
 		<f:content>
 			<VBox>
 				<MessageStrip text="{i18n>instancesHint}" type="Information" class="sapUiSmallMarginBottom"/>
-				<Table id="list" items="{path: 'cloud>/Instances', parameters: {$$operationMode: 'Server'}}" noDataText="{i18n>noInstances}" sticky="ColumnHeaders" growing="true">
+				<Table id="list" items="{path: 'cloud>/Instances', suspended: true}" noDataText="{i18n>noInstances}" sticky="ColumnHeaders" growing="true">
 					<columns>
 						<Column><Text text="{i18n>instance}"/></Column>
 						<Column><Text text="{i18n>status}"/></Column>
@@ -30,11 +30,11 @@
 						<ObjectStatus text="{cloud>status}" state="{path: 'cloud>status', formatter: '.formatter.statusState'}"/>
 						<Text text="{cloud>performanceClass}"/>
 						<Text text="{parts: ['cloud>memoryGb', 'cloud>vcpus', 'cloud>storageGb'], formatter: '.formatter.sizing'}"/>
-						<Text text="{= (${cloud>nseEnabled} ? 'NSE' : '') + (${cloud>ecnNodes} > 0 ? ' · ECN ' + ${cloud>ecnNodes} : '') }"/>
+						<Text text="{parts: [{path: 'cloud>nseEnabled', targetType: 'any'}, {path: 'cloud>ecnNodes', targetType: 'any'}], formatter: '.formatter.instanceOptions'}"/>
 						<Text text="{cloud>users}"/>
 						<HBox justifyContent="End" visible="{app>/canManageInstances}">
-							<Button text="{i18n>start}" type="Transparent" visible="{= ${cloud>status} !== 'running' }" press=".onStart"/>
-							<Button text="{i18n>stop}" type="Transparent" visible="{= ${cloud>status} === 'running' }" press=".onStop"/>
+							<Button text="{i18n>start}" type="Transparent" visible="{path: 'cloud>status', targetType: 'any', formatter: '.formatter.isStopped'}" press=".onStart"/>
+							<Button text="{i18n>stop}" type="Transparent" visible="{path: 'cloud>status', targetType: 'any', formatter: '.formatter.isRunning'}" press=".onStop"/>
 							<Button text="{i18n>resize}" type="Transparent" press=".onResize"/>
 							<Button text="{i18n>advisors}" type="Transparent" press=".onAdvisors"/>
 							<Button icon="sap-icon://delete" tooltip="{i18n>delete}" type="Transparent" press=".onDelete"/>

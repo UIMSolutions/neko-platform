@@ -1,22 +1,74 @@
-# neko.database
+# neko.database (hdb)
 
-In-memory column database built with vibe.d using hexagonal architecture.
+HANA-Cloud-like in-memory column database: a D / vibe.d backend in hexagonal (Clean) architecture with SQL, REST
+and OData v4, a SAP Fiori 3 frontend, an approuter for SAP BTP, a command line interface (`hdb-cli`) and a GtkD desktop
+client (`hdb-admin`). On top of the column store it offers the cloud functions of a managed database service:
+instances, workload management, monitoring and tracing, intelligent advisors, calculation views, application bindings,
+data products and a virtual assistant (see [Cloud functions](#cloud-functions-hana-cloud-feature-scope)).
 
-    domain/        Value, ColumnTable (Column Store)
-    application/   Ports + SqlService (Mini-SQL-Parser/Executor)
-    adapters/
-      inbound/     REST (vibe.d)
-      outbound/    InMemoryTableRepository
-    app.d          Composition Root
+Architecture documents: [UML.md](UML.md) (class, component and sequence diagrams) and [NAFv4.md](NAFv4.md) (NATO
+Architecture Framework v4 views).
 
-Start: `dub run`
+## Project layout
 
-    curl -X POST localhost:8080/sql -H 'Content-Type: application/json' \
+    mta.yaml                  MTA descriptor: backend + approuter + XSUAA on SAP BTP Cloud Foundry
+    Containerfile, Dockerfile Container image (Podman / Docker), k8s/ Kubernetes manifests
+    backend/                  D & vibe.d 0.10 service (dub.sdl, config/, views/, public/, tests/, source/)
+      source/app.d            Composition root of the server (hdb)
+      source/cli.d            hdb-cli: SQL shell and cloud administration
+      source/gui.d            hdb-admin: GtkD desktop client
+      source/neko/database/
+        domain/               entities, types, enumerations, services (advisors, diagnosis, assistant), exceptions
+        ports/                usecases (driving), repositories, storages, gateways, messaging, services (driven)
+        application/          services (SQL engine, tenants, access, backups, audit, logs, cloud/*), use cases, DTOs
+        persistence/          repositories (tables, backups, cloud), storages (files), records, mappers
+        infrastructure/       configuration, logging, security, clients, workers, gateway
+        presentation/         http, rest, odata, web (admin), cli, gui (models/views/controllers), unix
+    frontend/                 SAP Fiori 3 / OpenUI5 app (view/, controller/, model/, i18n/, localService/, test/)
+    approuter/                @sap/approuter: xs-app.json, xs-security.json, default-env.json (local only, ignored)
+
+## Quick start
+
+    cd backend
+    dub build                       # server            → build/hdb
+    dub build --config=cli          # command line      → build/hdb-cli
+    dub build --config=gui          # GTK client        → build/hdb-admin (needs GTK 3 and libcurl)
+    dub test --config=library       # unit and integration tests
+    ADMIN_PASSWORD=... SYSTEM_ADMIN_PASSWORD=... ./build/hdb
+    tests/smoke.sh                  # end-to-end check against a running server
+
+Open http://localhost:8080/ui5/ (Fiori), http://localhost:8080/admin (admin console) or use the APIs:
+
+    TOKEN=$(curl -s -X POST localhost:8080/api/v1/auth/login -H 'Content-Type: application/json' \
+      -d '{"user":"admin","password":"..."}' | jq -r .token)
+    curl -X POST localhost:8080/api/v1/sql -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
       -d '{"statement":"CREATE TABLE orders (id INTEGER, customer VARCHAR(40), amount DECIMAL)"}'
-    curl -X POST localhost:8080/sql -H 'Content-Type: application/json' \
-      -d '{"statement":"INSERT INTO orders VALUES (1, '\''ACME'\'', 99.5)"}'
-    curl -X POST localhost:8080/sql -H 'Content-Type: application/json' \
+    curl -X POST localhost:8080/api/v1/sql -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
       -d '{"statement":"SELECT SUM(amount) FROM orders WHERE id >= 1"}'
+
+## Configuration
+
+Type-safe settings (`infrastructure/configuration`, struct `DatabaseConfig`) are read in this order; later sources win:
+
+1. defaults in the code,
+2. `backend/config/default.json` (or the file named in `HDB_CONFIG`),
+3. environment variables (`PORT`, `HDB_MODE`, `TENANTS_DIR`, …: the key in upper snake case),
+4. `VCAP_SERVICES`: credentials of the user-provided service named or tagged `hdb-config` (keys in camelCase).
+
+| Key / variable | Default | Meaning |
+|---|---|---|
+| `port` / `PORT`, `host` / `HOST` | `8080`, `0.0.0.0` | HTTP listener |
+| `mode` / `HDB_MODE` | `multi` | `multi`, `single` or `gateway` |
+| `tenantsDir`, `tenantsFile`, `usersFile`, `rolesFile` | `data/…` | Data and account files |
+| `logDir`, `logSettingsFile` | `data/logs`, `data/hdb-logs.json` | Logs |
+| `cloudFile` / `CLOUD_FILE` | `data/hdb-cloud.json` | Instances, workload classes, views, bindings, installed data products, trace settings |
+| `dataProductsDir` / `DATA_PRODUCTS_DIR` | `data/dataproducts` | Shared data products (`*.json`) in addition to the built-in samples |
+| `frontendDir` / `FRONTEND_DIR` | `../frontend` | Fiori app served at `/ui5/`; on BTP the approuter serves it |
+| `publicUrl` / `PUBLIC_URL` | from the request | Public address written into binding credentials |
+| `region` / `REGION` | `local` | Region shown on instances |
+| `monitorTickSeconds` / `MONITOR_TICK_SECONDS` | `60` | Interval of metric samples (24 h are kept) |
+| `backupTickSeconds`, `replicationRetain`, `trustedProxies`, `unixSocket`, `maxRequestMb` | | See the sections below |
+| `adminUser`/`adminPassword`, `systemAdminUser`/`systemAdminPassword` | `admin`, `sysadmin` | First start only |
 
 ## Data types
 
@@ -98,7 +150,8 @@ Also available: `GET|PUT /api/v1/network`, `PUT /api/v1/tenants/:name/networks` 
 `PUT|DELETE /api/v1/users/:name`, `POST /api/v1/users/:name/password`, `PUT /api/v1/users/:name/grants`,
 `GET /api/v1/roles`, `PUT|DELETE /api/v1/roles/:name` (see Users and permissions), and for system administrators
 `GET|POST /api/v1/tenants` and `PUT|DELETE /api/v1/tenants/:name` (see Tenants). Missing authentication returns 401,
-insufficient permissions return 403. The endpoints without `/api/v1` (`adapters/inbound/rest_api.d`) remain available
+insufficient permissions return 403. Errors of the cloud functions add 404 (unknown object), 409 (exists or wrong state) and 429 (workload limit). The
+endpoints without `/api/v1` (`presentation/http/sqlapi.d`) remain available
 and also require a bearer token.
 
 ## OData v4
@@ -136,10 +189,104 @@ The core does not enforce uniqueness: `POST` rejects existing keys, but if a key
 expose the computed property `__rowid`. This is only the position in the result; individual rows cannot be addressed (501).
 Tables or columns whose names are not valid OData identifiers (such as `1a`) do not appear in the service.
 
+## Cloud functions (HANA Cloud feature scope)
+
+The functions below follow the feature scope of a managed cloud database (SAP HANA Cloud feature scope description).
+They are implemented in `application/services/cloud/` on pure domain logic in `domain/` and are available through REST,
+OData v4 (`/odata/v4/cloud`), the Fiori app, `hdb-cli cloud` and `hdb-admin`. Every action is checked against the
+caller's permissions and recorded in the audit log (categories `instances`, `workloads`, `monitoring`, `views`,
+`bindings`, `dataproducts`, `assistant`).
+
+| Feature | Here | Notes |
+|---|---|---|
+| Provision database: create / delete an instance | Instances (system scope) | An instance is a tenant plus memory (16–6144 GB, multiples of 16), storage (≥ 2 × memory), performance class (compute 8 GB, memory 16 GB, high memory 32 GB per vCPU), NSE flag and elastic compute nodes (0–4). Delete stops the instance and removes data, users and backups. Start/stop map to activating/deactivating the tenant. |
+| Scale system load: multicore, parallel computation | Background delta merge thread; table statistics for 8 or more tables are computed in parallel on all cores (`std.parallelism`) | The number of cores is shown in Monitoring. Sizing values are metadata used by the advisors: this process does not reserve memory or CPUs per instance. |
+| Manage database-internal workloads | Workload classes and mappings | Enforced on every statement by `MonitoredDatabases`: concurrency limit (rejected with 429), statement memory limit (result discarded, 429), statement timeout (recorded as a violation, the statement is not interrupted). Priority decides between several matching classes; a user mapping beats a role mapping. |
+| Backup, recovery and retention up to 7 months | Backups with schedule, safety backups and `retentionDays` (0–215) | See [Backup and restore](#backup-and-restore). |
+| Monitor status, performance and resource consumption | Monitoring: statements, errors, expensive statements, violations, average/max duration, rows, estimated column memory, process CPU and resident memory | One sample per tenant every `monitorTickSeconds`, 24 h kept in memory. Table accesses (reads, writes, filter columns) are counted for the advisors. |
+| Tracing and diagnosis | SQL trace (all statements), expensive statement trace (threshold in ms), error trace, workload violations | Statements are stored without literal values (`id = ?`). In memory only; cleared on restart. |
+| Develop applications, expose data with OData, SQL/SQLScript procedures | OData v4 for tables and calculation views, REST, SQL with stored procedures (`CREATE PROCEDURE`, `CALL`) | See [OData v4](#odata-v4) and [Stored procedures](#stored-procedures). |
+| Bind applications | Bindings | Creates a technical user `app_<name>` with a role (default `editor`) and returns VCAP-style credentials (host, port, URLs, user, password, JDBC/ODBC-style strings). The password is shown only once. |
+| Access with many languages and operating systems | REST/JSON and OData v4 over HTTP (any language), Unix socket, `hdb-cli` on Linux/macOS, the embedded D library | There are no native JDBC/ODBC drivers; the connection strings in bindings are informational. |
+| Calculation views | Calculation views (cube or dimension) | Base table, inner/left joins, attributes (group-by columns with labels), measures (sum, count, avg, min, max, countDistinct), fixed filter. Saved only after a successful trial run. Queried with the caller's table permissions via REST (`/api/v1/views/{name}/data`) or as OData entity set `CV_<name>` with `Core.Description` annotations. |
+| Virtual assistant for administration (single and batch tasks, guided assistance, instance status) | Assistant | Rule-based intent recognition in English and German, no external AI service. Tasks are chained with `;`, line breaks, `then` or `dann` (at most 10). Guides for backup, restore, instance, scale, workload, view, binding, data product, monitoring, advisor. |
+| Automated issue summaries with root cause and resolution | Issue summary | Groups failed statements and violations by normalized message, assigns a suspected cause and a resolution from documented rules (permissions, missing tables or columns, syntax, locks, workload limits, replica writes, duplicates) and writes a readable text. |
+| Intelligent advisors | Index, NSE, Partition, Performance Class, ECN | See below. Advisors never change anything themselves. |
+| Data products from a business data fabric | Data products | Catalog of three built-in sample products plus `*.json` files in `dataProductsDir`. Installing creates tables named `<id with _>__<table>` and fills them; uninstalling drops them. |
+
+### Advisors
+
+- **Index advisor:** columns used in WHERE conditions of tables with at least 10 000 rows and at least 30 % distinct
+  values are inverted-index candidates; tables whose delta holds 20 % or more of the rows get a delta-merge
+  recommendation. The engine has no secondary indexes yet, so the index statement is a recommendation, not executable.
+- **NSE advisor:** tables of at least 1 MiB (estimated) with at most 5 % of all accesses are candidates for page-loadable
+  storage. All data of this engine stays in memory; the recommendation is for planning.
+- **Partition advisor:** tables above 2 million rows get a hash-partitioning proposal on the most filtered, most
+  selective column, with one partition per million rows (2–64).
+- **Performance class advisor:** compares twice the peak column memory with the instance memory over the analysis
+  window (at least 10 samples) and the average CPU: size down below 25 %, size up above 80 %, compute class at high CPU,
+  high-memory class at low CPU with high memory usage.
+- **ECN advisor:** finds hours of the day whose statement rate is two standard deviations above the daily mean and
+  mostly reads, names the users active then and recommends an elastic compute node for that window.
+
+### Cloud REST API
+
+| Method and path | Permission | Purpose |
+|---|---|---|
+| `GET/POST /api/v1/cloud/instances` | `viewInstances` / `manageInstances` (system) | List / create (`name, description, memoryGb, storageGb, performanceClass, nseEnabled, ecnNodes, adminName, adminPassword`) |
+| `GET/PATCH/DELETE /api/v1/cloud/instances/{name}` | as above | Read, resize or change options, delete |
+| `POST /api/v1/cloud/instances/{name}/start` and `/stop` | `manageInstances` | Activate / deactivate |
+| `GET /api/v1/cloud/instances/{name}/metrics` and `/advisors` | `monitor` (system) | Samples; Performance Class and ECN advisors |
+| `GET/POST /api/v1/workloads/classes`, `PUT/DELETE …/{name}` | `monitor` to read, `manageWorkloads` to change | Workload classes |
+| `GET/POST /api/v1/workloads/mappings`, `PUT/DELETE …/{name}` | as above | Mappings (`workloadClass, userName, roleName`) |
+| `GET /api/v1/monitoring` | `monitor` | Overview with samples and top expensive statements |
+| `GET /api/v1/monitoring/traces?kind=&user=&text=&limit=`, `DELETE` | `monitor` / `manageWorkloads` | Trace; clear |
+| `GET/PUT /api/v1/monitoring/trace-settings` | `monitor` / `manageWorkloads` | `sqlTrace, traceErrors, expensiveThresholdMs, maxEntries` |
+| `GET /api/v1/monitoring/access`, `GET /api/v1/monitoring/issues` | `monitor` | Table accesses; issue summary |
+| `GET /api/v1/advisors`, `POST /api/v1/advisors/run` | `monitor` | Last result; run (`{"advisors": ["index","nse"]}`, empty: all) |
+| `GET/POST /api/v1/views`, `GET/PUT/DELETE /api/v1/views/{name}` | read: any tenant user, change: `manageViews` | Calculation views |
+| `GET /api/v1/views/{name}/data?filter=&orderby=&top=&skip=`, `GET …/sql` | table permissions | Result rows; generated SQL |
+| `GET/POST /api/v1/bindings`, `DELETE /api/v1/bindings/{name}` | `manageBindings` (+ `manageAccess`) | Bindings; POST returns `binding` and `credentials` |
+| `GET /api/v1/dataproducts[/{id}]`, `POST/DELETE /api/v1/dataproducts/{id}/install` | read: any, change: `manageDataProducts` | Catalog, install, uninstall |
+| `POST /api/v1/assistant` | any authenticated | `{"message": "status; run advisors"}` → `{text, steps[], suggestions[]}` |
+| `PUT /api/v1/backups/retention` | `manageBackups` | `{"retentionDays": 0..215}` |
+
+New permissions: `viewInstances`, `manageInstances` (system scope), `monitor` (both scopes), `manageWorkloads`,
+`manageViews`, `manageBindings`, `manageDataProducts` (tenant scope). The built-in `admin` roles contain them; the system
+`viewer` role gets `viewInstances` and `monitor`. Custom roles can be extended in the admin console.
+
+### Cloud OData v4
+
+`/odata/v4/cloud` is a second OData 4.0 service for Fiori. Its `$metadata` depends on the login:
+
+- system administrators: entity set `Instances` (read, `POST` to create, `PATCH`, `DELETE`), actions `StartInstance`,
+  `StopInstance`;
+- tenant users: `WorkloadClasses`, `WorkloadMappings` (read/write), `Traces`, `Metrics`, `TableAccess`,
+  `Recommendations`, `CalculationViews`, `Bindings`, `DataProducts` (read, some delete), one entity set `CV_<name>` per
+  calculation view, actions `RunAdvisors`, `InstallDataProduct`, `UninstallDataProduct`, `ClearTraces`, function
+  `IssueSummary()`;
+- everyone: action `Ask(message)`.
+
+Options: `$filter` (`eq ne gt ge lt le`, `contains`, `startswith`, combined with `and`), `$select`, `$orderby` (one
+property), `$top`, `$skip`, `$count`. `$expand`, `$batch` and `$search` return 501. The service is registered before the
+table service, so a table named `cloud` is hidden from `/odata/v4`.
+
+    curl "localhost:8080/odata/v4/cloud/CV_REVENUE?\$orderby=REVENUE%20desc&\$count=true" -H "Authorization: Bearer $TOKEN"
+    curl "localhost:8080/odata/v4/cloud/Traces?\$filter=kind%20eq%20'error'" -H "Authorization: Bearer $TOKEN"
+    curl -X POST localhost:8080/odata/v4/cloud/Ask -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+      -d '{"message":"summarize issues"}'
+
 ## Fiori frontend
 
-OpenUI5 application using the Fiori 3 design (`sap_fiori_3`) at `http://localhost:8080/ui5/`, with sources in `public/ui5/`.
-It communicates only with `/odata/v4` and authentication (`/api/v1/auth`) and requires no build step.
+OpenUI5 application using the Fiori 3 design (`sap_fiori_3`) at `http://localhost:8080/ui5/`, with sources in `frontend/`
+(served from `frontendDir`; on BTP by the approuter). Tables use `/odata/v4`, the cloud pages bind their lists to the
+OData V4 model `cloud` (`/odata/v4/cloud`) and run actions through REST (`/api/v1`). No build step is needed.
+
+- Tenant users see Tables, Statistics, Backups, Monitoring, Advisors, Workloads, Calculation views, Data products,
+  Bindings and the Assistant, each only with the matching permission. System administrators (tenant `system`) see
+  Instances and the Assistant.
+- `frontend/model/formatter.js` holds the formatters, `frontend/localService/` a snapshot of the cloud `$metadata`
+  with mock data, `frontend/test/testsuite.qunit.html` the QUnit tests.
 
 - `FlexibleColumnLayout`: tables, rows, details. Links such as `#/tables/orders/rows/1` can be shared and reloaded.
 - Side navigation (`sap.tnt.ToolPage`) with a hamburger button in the ShellBar: tables, statistics, backups (administrators
@@ -152,12 +299,12 @@ It communicates only with `/odata/v4` and authentication (`/api/v1/auth`) and re
   When saving, each changed field is sent as a separate `PATCH`, so changes to multiple fields in a row are not atomic.
 - The token is stored in `sessionStorage` and expires with the browser tab. OpenUI5 is loaded at a fixed version (1.148.10,
   maintained until Q3/2027) from the `sdk.openui5.org` CDN. This script has access to the token; to operate without an
-  external CDN, serve the library yourself and change the URL in `public/ui5/index.html`.
-- `public/ui5/` is accessible without authentication and must therefore contain no data or secrets.
+  external CDN, serve the library yourself and change the URL in `frontend/index.html`.
+- `frontend/` is accessible without authentication and must therefore contain no data or secrets.
 
 ## Administration interface
 
-`http://localhost:8080/admin` (Adapter `adapters/inbound/admin_web.d`, Templates in `views/`, Skript in `public/admin.js`).
+`http://localhost:8080/admin` (adapter `presentation/web/admin.d`, templates in `backend/views/`, script in `backend/public/admin.js`).
 
 - Dashboard: metrics per table, trigger delta merges and checkpoints, create tables.
 - Table view: filtering (WHERE), sorting, pagination, creating, editing and deleting rows, CSV export,
@@ -172,7 +319,7 @@ The interface hides actions not permitted by the role, but authorization is alwa
 
 ## Admin client (GTK)
 
-A standalone desktop program `hdb-admin` based on GtkD (GTK 3), with sources in `source/neko/database/presentation/gui`.
+A standalone desktop program `hdb-admin` based on GtkD (GTK 3), with sources in `backend/source/neko/database/presentation/gui`.
 It communicates with the server only through the REST API, using the same authentication and permissions as any other
 client, and contains no server code (no vibe.d or OpenSSL).
 
@@ -193,18 +340,56 @@ the user's permissions allow:
 | Application log | As above, only in the server scope | Technical server messages |
 | Users | `manageAccess` | Create, assign roles, enable/disable, reset passwords, delete |
 | Tenants | `viewTenants`/`manageTenants` | Only in the `system` scope: create, change and delete tenants |
+| Instances | `viewInstances`/`manageInstances` | Only in the `system` scope: create, resize, start, stop, delete, advisors |
+| Monitoring | `monitor` (settings: `manageWorkloads`) | Key figures, trace, issue summary, trace settings |
+| Advisors | `monitor` | Run all advisors, details of each recommendation |
+| Workloads | `monitor`/`manageWorkloads` | Workload classes and user/role mappings |
+| Calculation views | – (changes: `manageViews`) | Definitions, preview, generated SQL, simple creation |
+| Bindings | `manageBindings` | Bind and unbind applications, credentials shown once |
+| Data products | – (changes: `manageDataProducts`) | Catalog, install, uninstall |
+| Assistant | – | Conversational tasks with the permissions of the login |
 
 - When the session ends (expired, password changed, network not allowed), the client prompts for login again.
 - Requests are synchronous, with a 5-second connection timeout and a 120-second total timeout; the window does not
   respond while a request is running.
 - Roles, table grants, allowed networks, replication and the backup schedule are currently available only in the
-  browser administration interface.
+  browser administration interface. The backup page has a Retention… button.
 - Without a desktop, the client can be viewed in a browser: run `broadwayd :5 &` and
   `GDK_BACKEND=broadway BROADWAY_DISPLAY=:5 ./hdb-admin`, then open http://localhost:8085.
 
-Structure: `api.d` is the @safe REST API client behind the `IHttpTransport` port (tested with a fake),
-`transport.d` is the actual libcurl transport, and `widgets.d`, `pages.d`, `login.d` and `window.d` provide the GTK interface.
+Structure (MVC): `models/api.d` is the @safe REST API client behind the `IHttpTransport` port (tested with a fake),
+`models/transport.d` the libcurl transport; `views/widgets.d`, `views/pages.d` and `views/cloud.d` are the pages;
+`controllers/login.d` and `controllers/window.d` drive sign-in and navigation.
 GtkD is not @safe, so the interface modules remain @system and contain no logic of their own.
+
+## Command line (hdb-cli)
+
+`hdb-cli` (`dub build --config=cli`) has two parts:
+
+- **SQL shell** (`presentation/cli`): local on a database directory or in memory, or as a client of a running server
+  over its Unix socket (`--socket`). `hdb-cli --help` lists the options.
+- **Cloud administration** (`hdb-cli cloud …`, `presentation/cli/cloud.d`): talks to the REST API of a running server.
+  Sign in with `--user` and `--tenant` (password from `HDB_PASSWORD` or a prompt) or pass a token in `HDB_TOKEN`; the
+  server is `--server` or `HDB_SERVER` (default `http://localhost:8080`). Output as table, `--json` or `--csv`.
+
+      export HDB_PASSWORD=...
+      hdb-cli cloud --tenant system --user sysadmin instances list
+      HDB_ADMIN_PASSWORD=... hdb-cli cloud --tenant system --user sysadmin instances create acme --memory 64 --class compute --nse
+      hdb-cli cloud --tenant system --user sysadmin instances resize acme --memory 128
+      hdb-cli cloud --user admin monitor
+      hdb-cli cloud --user admin traces --kind error
+      hdb-cli cloud --user admin trace-settings --sql-trace --expensive-ms 200
+      hdb-cli cloud --user admin issues
+      hdb-cli cloud --user admin advisors run --advisors index,nse
+      hdb-cli cloud --user admin workloads class REPORTING --priority 3 --limit 4 --memory-limit 256
+      hdb-cli cloud --user admin workloads map viewers --class REPORTING --role viewer
+      hdb-cli cloud --user admin products install bdc.sales.orders
+      hdb-cli cloud --user admin views create revenue.json
+      hdb-cli cloud --user admin views data REVENUE --orderby "REVENUE desc" --top 10
+      hdb-cli cloud --user admin bindings create shop --application "Web Shop" --role viewer
+      hdb-cli cloud --user admin ask "merge delta; checkpoint; summarize issues"
+
+  `hdb-cli cloud --help` lists all commands. Exit code 0 on success, 1 on errors (message of the server), 2 on usage errors.
 
 ## Unix Domain Socket
 
@@ -562,6 +747,15 @@ They can be configured in both interfaces and through `GET|PUT /api/v1/backups/s
 - Retention counts backups without inspecting their contents: an unnoticed incorrect state displaces all older scheduled
   states after `keepScheduled` runs. Create manual backups for important states.
 
+**Retention time.** In addition to the counts, automatic backups (`scheduled` and `safety`) older than `retentionDays`
+are deleted after each scheduled run and immediately when the value changes. The standard retention is 15 days and can
+be customized from 0 (count only) up to 215 days, about 7 months. The newest scheduled backup always stays; manual and
+uploaded backups are never deleted. Schedules written before this setting existed keep count-only retention (0).
+
+    curl -X PUT localhost:8080/api/v1/backups/retention -H "Authorization: Bearer $TOKEN" \
+      -H 'Content-Type: application/json' -d '{"retentionDays": 215}'
+    hdb-cli cloud --user admin backups retention 215
+
 ## Replication
 
 A tenant can be mirrored to another hdb server: one source, any number of targets, with changes flowing only from source
@@ -638,7 +832,7 @@ Entries are returned newest first with `total` (all matches); paginate using `be
 Structure: `domain/types/logentry.d` (entry, settings, categories), `application/services/logging.d`
 (`LogService`: filtering according to settings, search, retention), `application/services/audit.d` (decorators around
 `IAccessUseCase`, `ITenantUseCase` and the data ports: the services themselves know nothing about auditing),
-`adapters/outbound/file_log_store.d` and `adapters/inbound/application_log.d` (vibe logger buffering lines from all
+`persistence/storages/log_store.d` and `infrastructure/logging/capture.d` (vibe logger buffering lines from all
 threads and emitting them on the main thread).
 
 ## Persistence
@@ -887,3 +1081,19 @@ Removing deleted rows changes row numbers. This also runs in three phases (`doma
   starting (it is skipped and retried in the next cycle).
 - A rollback replaces the table with the snapshot; an already running job then works on the discarded table and has
   no effect. Row numbers are not retained across calls, so renumbering is invisible.
+
+## Deployment
+
+- **Local:** `cd backend && ./build/hdb` serves the API, the admin console and the Fiori app (`/ui5/`).
+- **Container:** `podman build -t hdb -f Containerfile .` (or `docker build`), then
+  `podman run -p 8080:8080 -v hdb-data:/app/data -e ADMIN_PASSWORD=… -e SYSTEM_ADMIN_PASSWORD=… hdb`. The image contains
+  `hdb`, `hdb-cli` and the Fiori app, runs as a non-root user and keeps data in the volume `/app/data`.
+- **Kubernetes:** `kubectl apply -f k8s/` (ConfigMap, Secret for the first administrator passwords, Deployment with a
+  PersistentVolumeClaim, Service). One replica per data volume; scale reads with [Replication](#replication).
+- **SAP BTP Cloud Foundry:** `mbt build && cf deploy mta_archives/hdb_1.0.0.mtar`. The approuter is the single entry point:
+  XSUAA protects the Fiori app and the admin console, `/api/v1` and `/odata/v4` are forwarded without XSUAA because the
+  database authenticates every request with its own users and tokens (the Fiori app signs in at `/api/v1/auth/login`).
+  Runtime overrides come from the user-provided service `hdb-config`. The container disk of Cloud Foundry is
+  ephemeral: keep backups elsewhere or use replication for real data. For local approuter tests copy
+  `approuter/default-env.json` values from a service key (the file is git-ignored).
+

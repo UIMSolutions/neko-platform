@@ -1,0 +1,8 @@
+backend/build/
+backend/dist/
+backend/.dub/
+backend/data/
+approuter/node_modules/
+approuter/resources/
+approuter/default-env.json
+*.hdbbak

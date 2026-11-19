@@ -17,7 +17,7 @@
 			<VBox>
 				<MessageStrip text="{i18n>workloadsHint}" type="Information" class="sapUiSmallMarginBottom"/>
 				<Title text="{i18n>workloadClasses}" class="sapUiTinyMarginBottom"/>
-				<Table id="list" items="{path: 'cloud>/WorkloadClasses'}" noDataText="{i18n>noWorkloadClasses}" class="sapUiMediumMarginBottom">
+				<Table id="list" items="{path: 'cloud>/WorkloadClasses', suspended: true}" noDataText="{i18n>noWorkloadClasses}" class="sapUiMediumMarginBottom">
 					<columns>
 						<Column><Text text="{i18n>name}"/></Column>
 						<Column hAlign="End"><Text text="{i18n>priority}"/></Column>
@@ -33,12 +33,12 @@
 						<Text text="{cloud>statementTimeoutSeconds}"/>
 						<Text text="{cloud>statementMemoryLimitMb}"/>
 						<Text text="{cloud>totalStatementLimit}"/>
-						<ObjectStatus text="{= ${cloud>enabled} ? ${i18n>yes} : ${i18n>no} }" state="{= ${cloud>enabled} ? 'Success' : 'None' }"/>
+						<ObjectStatus text="{parts: [{path: 'cloud>enabled', targetType: 'any'}, 'i18n>yes', 'i18n>no'], formatter: '.formatter.choose'}" state="{path: 'cloud>enabled', targetType: 'any', formatter: '.formatter.enabledState'}"/>
 						<Button icon="sap-icon://delete" tooltip="{i18n>delete}" type="Transparent" press=".onDeleteClass" visible="{app>/canWorkloads}"/>
 					</ColumnListItem>
 				</Table>
 				<Title text="{i18n>workloadMappings}" class="sapUiTinyMarginBottom"/>
-				<Table id="mappings" items="{path: 'cloud>/WorkloadMappings'}" noDataText="{i18n>noMappings}">
+				<Table id="mappings" items="{path: 'cloud>/WorkloadMappings', suspended: true}" noDataText="{i18n>noMappings}">
 					<columns>
 						<Column><Text text="{i18n>name}"/></Column>
 						<Column><Text text="{i18n>workloadClass}"/></Column>

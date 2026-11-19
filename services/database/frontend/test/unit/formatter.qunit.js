@@ -20,5 +20,8 @@ sap.ui.define(["hdb/client/model/formatter"], function (formatter) {
 		assert.strictEqual(formatter.ms(1500), "1.50 s");
 		assert.strictEqual(formatter.percent(12.345), "12.3 %");
 		assert.strictEqual(formatter.sizing(64, 8, 256), "64 GB · 8 vCPU · 256 GB");
+		assert.strictEqual(formatter.instanceOptions(false, 0), "");
+		assert.strictEqual(formatter.instanceOptions(true, 2), "NSE · ECN 2");
+		assert.ok(formatter.isRunning("running") && !formatter.isStopped("running") && formatter.isStopped("stopped"));
 	});
 });

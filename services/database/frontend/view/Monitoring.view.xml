@@ -60,7 +60,7 @@
 						<SegmentedButtonItem key="sql" text="{i18n>sqlTrace}"/>
 					</items>
 				</SegmentedButton>
-				<Table id="list" items="{path: 'cloud>/Traces', sorter: {path: 'id', descending: true}}" noDataText="{i18n>noTraces}" sticky="ColumnHeaders" growing="true" growingThreshold="50">
+				<Table id="list" items="{path: 'cloud>/Traces', suspended: true, sorter: {path: 'id', descending: true}}" noDataText="{i18n>noTraces}" sticky="ColumnHeaders" growing="true" growingThreshold="50">
 					<columns>
 						<Column width="11rem"><Text text="{i18n>time}"/></Column>
 						<Column width="7rem"><Text text="{i18n>kind}"/></Column>
@@ -75,7 +75,7 @@
 						<Text text="{path: 'cloud>durationMs', formatter: '.formatter.ms'}"/>
 						<VBox>
 							<Text text="{cloud>statement}"/>
-							<Text text="{cloud>error}" visible="{= !!${cloud>error} }" class="sapUiTinyMarginTop sapMMsgStripError"/>
+							<Text text="{cloud>error}" visible="{path: 'cloud>error', targetType: 'any', formatter: '.formatter.hasText'}" class="sapUiTinyMarginTop sapMMsgStripError"/>
 						</VBox>
 					</ColumnListItem>
 				</Table>

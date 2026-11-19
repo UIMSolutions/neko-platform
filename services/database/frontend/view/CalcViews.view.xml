@@ -15,7 +15,7 @@
 		<f:content>
 			<VBox>
 				<MessageStrip text="{i18n>calcViewsHint}" type="Information" class="sapUiSmallMarginBottom"/>
-				<Table id="list" items="{path: 'cloud>/CalculationViews'}" noDataText="{i18n>noViews}" sticky="ColumnHeaders">
+				<Table id="list" items="{path: 'cloud>/CalculationViews', suspended: true}" noDataText="{i18n>noViews}" sticky="ColumnHeaders">
 					<columns>
 						<Column><Text text="{i18n>view}"/></Column>
 						<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>attributes}"/></Column>

@@ -15,7 +15,7 @@
 		<f:content>
 			<VBox>
 				<MessageStrip text="{i18n>advisorsHint}" type="Information" class="sapUiSmallMarginBottom"/>
-				<Table id="list" items="{path: 'cloud>/Recommendations'}" noDataText="{i18n>noRecommendations}" sticky="ColumnHeaders" growing="true">
+				<Table id="list" items="{path: 'cloud>/Recommendations', suspended: true}" noDataText="{i18n>noRecommendations}" sticky="ColumnHeaders" growing="true">
 					<columns>
 						<Column width="9rem"><Text text="{i18n>advisor}"/></Column>
 						<Column width="7rem"><Text text="{i18n>severity}"/></Column>

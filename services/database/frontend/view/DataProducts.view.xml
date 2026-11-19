@@ -15,7 +15,7 @@
 		<f:content>
 			<VBox>
 				<MessageStrip text="{i18n>dataProductsHint}" type="Information" class="sapUiSmallMarginBottom"/>
-				<Table id="list" items="{path: 'cloud>/DataProducts'}" noDataText="{i18n>noDataProducts}" sticky="ColumnHeaders">
+				<Table id="list" items="{path: 'cloud>/DataProducts', suspended: true}" noDataText="{i18n>noDataProducts}" sticky="ColumnHeaders">
 					<columns>
 						<Column><Text text="{i18n>dataProduct}"/></Column>
 						<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>provider}"/></Column>
@@ -26,7 +26,7 @@
 					<ColumnListItem>
 						<ObjectIdentifier title="{cloud>title} {cloud>version}" text="{cloud>id} — {cloud>description}"/>
 						<Text text="{cloud>provider}"/>
-						<Text text="{= ${cloud>installed} ? ${cloud>installedTables} : ${cloud>tables} }"/>
+						<Text text="{parts: [{path: 'cloud>installed', targetType: 'any'}, 'cloud>installedTables', 'cloud>tables'], formatter: '.formatter.productTables'}"/>
 						<Text text="{cloud>rows}"/>
 						<HBox justifyContent="End" visible="{app>/canDataProducts}">
 							<Button text="{i18n>install}" type="Emphasized" visible="{= !${cloud>installed} }" press=".onInstall"/>

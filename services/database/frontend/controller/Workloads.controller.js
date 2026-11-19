@@ -15,11 +15,8 @@ sap.ui.define([
 		route: "workloads",
 
 		refreshList: function () {
-			BaseController.prototype.refreshList.apply(this, arguments);
-			const binding = this.byId("mappings").getBinding("items");
-			if (binding) {
-				binding.refresh();
-			}
+			this.refreshTable("list");
+			this.refreshTable("mappings");
 		},
 
 		_form: function (title, content, onOk) {

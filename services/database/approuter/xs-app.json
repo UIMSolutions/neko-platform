@@ -1,0 +1,38 @@
+{
+  "welcomeFile": "/index.html",
+  "authenticationMethod": "route",
+  "logout": {
+    "logoutEndpoint": "/do/logout",
+    "logoutPage": "/index.html"
+  },
+  "routes": [
+    {
+      "source": "^/odata/v4/(.*)$",
+      "target": "/odata/v4/$1",
+      "destination": "hdb-srv",
+      "authenticationType": "none",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/api/v1/(.*)$",
+      "target": "/api/v1/$1",
+      "destination": "hdb-srv",
+      "authenticationType": "none",
+      "csrfProtection": false
+    },
+    {
+      "source": "^/admin(.*)$",
+      "target": "/admin$1",
+      "destination": "hdb-srv",
+      "authenticationType": "xsuaa",
+      "scope": ["$XSAPPNAME.DatabaseUser", "$XSAPPNAME.DatabaseAdmin"]
+    },
+    {
+      "source": "^/(.*)$",
+      "target": "$1",
+      "localDir": "resources",
+      "authenticationType": "xsuaa",
+      "scope": ["$XSAPPNAME.DatabaseUser", "$XSAPPNAME.DatabaseAdmin"]
+    }
+  ]
+}

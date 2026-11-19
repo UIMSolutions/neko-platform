@@ -54,6 +54,44 @@ sap.ui.define([], function () {
 			return (Number(value) || 0).toFixed(1) + " %";
 		},
 
+		isRunning: function (status) {
+			return status === "running";
+		},
+
+		isStopped: function (status) {
+			return !!status && status !== "running";
+		},
+
+		/** Optionen einer Instanz: "NSE · ECN 2". */
+		instanceOptions: function (nse, ecn) {
+			const parts = [];
+			if (nse === true || nse === "true") {
+				parts.push("NSE");
+			}
+			if (Number(ecn) > 0) {
+				parts.push("ECN " + ecn);
+			}
+			return parts.join(" · ");
+		},
+
+		/** Installierte Tabellen eines Datenprodukts, sonst die Tabellen des Katalogs. */
+		productTables: function (installed, installedTables, tables) {
+			return installed === true || installed === "true" ? installedTables : tables;
+		},
+
+		/** Wählt zwischen zwei Texten nach einem Wahrheitswert. */
+		choose: function (flag, yes, no) {
+			return flag === true || flag === "true" ? yes : no;
+		},
+
+		enabledState: function (flag) {
+			return flag === true || flag === "true" ? "Success" : "None";
+		},
+
+		hasText: function (value) {
+			return !!value;
+		},
+
 		/** Größe einer Instanz: "64 GB · 8 vCPU · 256 GB". */
 		sizing: function (memory, vcpus, storage) {
 			return memory + " GB · " + vcpus + " vCPU · " + storage + " GB";

@@ -52,3 +52,4 @@ services/service/service-test-tests
 build/platform-open
 services/logging/build/logging-test-defaultTest
 services/logging/build/uim-logging-platform-service
+build/neko-platform-test-open

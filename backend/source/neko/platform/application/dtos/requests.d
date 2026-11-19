@@ -47,3 +47,21 @@ struct ImportPackageRequest {
   /// The transfer document (JSON text) produced by an export.
   string document;
 }
+
+struct CreateUserRequest {
+  string userName;
+  string password;
+  @optional string displayName;
+  @optional string email;
+  /// "viewer" (default) | "admin"
+  @optional string role;
+  @optional bool active = true;
+}
+
+/// Partial update; null fields are left unchanged.
+struct UpdateUserRequest {
+  @optional Nullable!string displayName;
+  @optional Nullable!string email;
+  @optional Nullable!string role;
+  @optional Nullable!bool active;
+}

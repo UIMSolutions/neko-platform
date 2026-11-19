@@ -8,3 +8,4 @@ module neko.platform.domain.enumerations;
 public:
   import neko.platform.domain.enumerations.security;
   import neko.platform.domain.enumerations.status;
+  import neko.platform.domain.enumerations.role;

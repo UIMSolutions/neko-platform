@@ -35,11 +35,28 @@ dub build --config=open            # → backend/build/platform-open
 
 | URL | What |
 | --- | --- |
-| `/status` | server-rendered status page (no JavaScript needed) |
+| `/login` | sign-in for the server-rendered pages |
+| `/status` | status page (Beer CSS + htmx, all assets embedded — works in isolated domains) |
+| `/users`, `/account` | user management (administrators), own password |
 | `/index.html` | Fiori cockpit (needs a frontend build, see below) |
 | `/rest/v1/…` | REST API |
 | `/odata/v4/platform/$metadata` | OData v4 service for Fiori |
 | `/health`, `/api/v1/info` | liveness, effective configuration |
+
+**Sign-in.** Each domain has its own web user accounts (stored with its data).
+On the first start without accounts the server creates the administrator
+`adminUser` (default `admin`) with `adminPassword` / `NEKO_ADMIN_PASSWORD`; if
+none is set, it generates a password and prints it once in the log. Locked out?
+Use the CLI on the same data directory:
+
+```bash
+./build/platform-open users list
+echo 'a-new-password' | ./build/platform-open users passwd admin
+./build/platform-open users add --name=ops --role=admin    # password from stdin
+```
+
+Further settings: `sessionIdleMinutes` (default 60, `NEKO_SESSION_IDLE_MINUTES`).
+Five failed sign-ins for one user name from one address lock it for 15 minutes.
 
 Two domains side by side, carrying a package upwards:
 

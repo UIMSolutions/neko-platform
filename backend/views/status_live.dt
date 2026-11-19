@@ -1,0 +1,99 @@
+//- Live part of the status page; replaces itself every 30 seconds (htmx).
+#live(hx-get="/status/live", hx-trigger="every 30s", hx-swap="outerHTML")
+  .grid
+    - import std.conv : to;
+    - import neko.platform.application.dtos : isoTime;
+    - foreach (t; [["Services", info.serviceCount.to!string, "apps"], ["Active", info.activeServices.to!string, "play_circle"], ["Down", info.servicesDown.to!string, "error"], ["Transfers", info.transferCount.to!string, "swap_horiz"], ["Rejected", info.rejectedTransfers.to!string, "block"]])
+      .s6.m4.l2
+        article.round.stat
+          nav
+            i.primary-text= t[2]
+            div.max
+              h4= t[1]
+              span.label= t[0]
+
+  article.round
+    h6 Capabilities
+    nav.wrap
+      - if (info.canExport)
+        span.chip.green-border.green-text
+          i upload
+          span Export to #{info.exportTargets.length ? info.exportTargets[0] : ""}#{info.exportTargets.length > 1 ? " …" : ""}
+      - else
+        span.chip.border
+          i block
+          span Export disabled
+      - if (info.canImport)
+        span.chip.green-border.green-text
+          i download
+          span Import enabled
+      - else
+        span.chip.border
+          i block
+          span Import disabled
+      span.chip.border
+        i dns
+        span Environment: #{info.environment}
+    nav.wrap
+      a.button.border.small(href="/index.html")
+        i dashboard
+        span Fiori cockpit
+      a.button.border.small(href="/odata/v4/platform/$metadata")
+        i data_object
+        span OData $metadata
+      a.button.border.small(href="/api/v1/info")
+        i settings
+        span Configuration
+
+  article.round
+    h6 Service catalogue
+    - if (catalogue.length == 0)
+      p No services registered yet.
+    - else
+      .scroll
+        table.stripes
+          thead
+            tr
+              th Name
+              th Classification
+              th Status
+              th Health
+              th Base URL
+          tbody
+            - foreach (s; catalogue)
+              tr
+                td
+                  strong= s.name
+                  br
+                  span.small-text= s.description
+                td= s.classification
+                td
+                  - auto statusColor = s.status == "active" ? "green" : s.status == "retired" ? "red" : "orange";
+                  span.chip.small(class=statusColor ~ "-border " ~ statusColor ~ "-text")= s.status
+                td
+                  - auto healthColor = s.health == "up" ? "green" : s.health == "down" ? "red" : "grey";
+                  span.chip.small(class=healthColor ~ "-border " ~ healthColor ~ "-text")= s.health
+                td= s.baseUrl
+
+  article.round
+    h6 Recent events
+    - if (recent.length == 0)
+      p No events since the last start.
+    - else
+      .scroll
+        table.stripes
+          thead
+            tr
+              th.nowrap Time (UTC)
+              th Event
+              th Actor
+              th Message
+          tbody
+            - foreach (e; recent)
+              tr
+                - auto when = isoTime(e.at);
+                td.nowrap= when.length >= 19 ? when[0 .. 10] ~ " " ~ when[11 .. 19] : when
+                td
+                  code= e.type
+                td= e.actor
+                td= e.message

@@ -11,6 +11,7 @@
 ///   commands   runCli, usage, general commands
 ///   services   services …
 ///   transfers  transfers …
+///   users      users …
 module neko.platform.presentation.cli;
 
 public:
@@ -19,3 +20,4 @@ public:
   import neko.platform.presentation.cli.output;
   import neko.platform.presentation.cli.services;
   import neko.platform.presentation.cli.transfers;
+  import neko.platform.presentation.cli.users;

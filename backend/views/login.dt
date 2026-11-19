@@ -1,0 +1,34 @@
+//- Sign-in page. Needs page (PageContext, anonymous), error, userName, next.
+doctype html
+html(lang="en")
+  head
+    include head
+    title Sign in · #{page.serviceName} (#{page.domain})
+  body.sign-in(data-domain=page.domain)
+    main.responsive
+      article.round.large-padding
+        nav
+          i.extra.primary-text hub
+          div.max
+            h5.no-margin= page.serviceName
+            span.chip.small.border.domain-chip= page.domain
+          button.circle.transparent(type="button", data-theme-toggle=true, title="Light / dark")
+            i dark_mode
+        - if (error.length)
+          article.error-container.round.small-padding(role="alert")
+            nav
+              i error
+              span= error
+        form(method="post", action="/login")
+          input(type="hidden", name="next", value=next)
+          .field.label.prefix.border
+            i person
+            input(type="text", name="user", value=userName, required=true, autofocus=true, autocomplete="username", autocapitalize="none", spellcheck="false", placeholder=" ")
+            label User name
+          .field.label.prefix.border
+            i lock
+            input(type="password", name="password", required=true, autocomplete="current-password", placeholder=" ")
+            label Password
+          button.responsive.large-margin(type="submit")
+            i login
+            span Sign in

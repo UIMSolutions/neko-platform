@@ -43,3 +43,33 @@ interface ITransferPackagesUseCase {
 interface IPlatformOverviewUseCase {
   OverviewDto overview();
 }
+
+/// Web user accounts. `actor` is the user name of the caller (audit trail).
+interface IManageUsersUseCase {
+  UserDto[] list();
+  UserDto get(string id);
+  UserDto create(CreateUserRequest request, string actor);
+  UserDto update(string id, UpdateUserRequest request, string actor);
+  void resetPassword(string id, string password, string actor);
+  /// Requires the current password.
+  void changeOwnPassword(string id, string currentPassword, string newPassword);
+  /// The last active administrator cannot be removed, demoted or deactivated.
+  void remove(string id, string actor);
+}
+
+/// Result of creating the first administrator at start-up.
+struct BootstrapResult {
+  bool created;
+  string userName;
+  /// Set when no password was configured; shown once in the log.
+  string generatedPassword;
+}
+
+interface IAuthenticateUseCase {
+  /// The active account with these credentials; throws AuthenticationException.
+  UserDto authenticate(string userName, string password);
+  /// The account behind a session, if it still exists and is active.
+  bool tryActive(string id, out UserDto user);
+  /// Creates an administrator if there are no accounts at all.
+  BootstrapResult ensureAdministrator(string userName, string password);
+}

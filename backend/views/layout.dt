@@ -1,0 +1,50 @@
+//- Frame of the signed-in pages. Templates extend it and fill "content".
+//- Needs `page` (PageContext).
+doctype html
+html(lang="en")
+  head
+    include head
+    title #{page.title} · #{page.serviceName} (#{page.domain})
+  body(data-domain=page.domain, hx-headers=page.htmxHeaders)
+    nav.left.l
+      header
+        i.extra.primary-text hub
+      a(href="/status", class=(page.active == "status" ? "active" : ""))
+        i monitoring
+        span Status
+      - if (page.user.isAdmin)
+        a(href="/users", class=(page.active == "users" ? "active" : ""))
+          i group
+          span Users
+      a(href="/account", class=(page.active == "account" ? "active" : ""))
+        i person
+        span Account
+    nav.bottom.s.m
+      a(href="/status", class=(page.active == "status" ? "active" : ""))
+        i monitoring
+        span Status
+      - if (page.user.isAdmin)
+        a(href="/users", class=(page.active == "users" ? "active" : ""))
+          i group
+          span Users
+      a(href="/account", class=(page.active == "account" ? "active" : ""))
+        i person
+        span Account
+    header.fixed
+      nav
+        h6.max
+          | #{page.serviceName}
+          span.chip.small.border.domain-chip.small-margin= page.domain
+        span.small-text.l= page.user.label
+        button.circle.transparent(type="button", data-theme-toggle=true, title="Light / dark")
+          i dark_mode
+        form(method="post", action="/logout")
+          input(type="hidden", name="_csrf", value=page.csrf)
+          button.circle.transparent(type="submit", title="Sign out")
+            i logout
+    main.responsive
+      block content
+    #dialog-host
+    #snackbar.snackbar
+      i check_circle
+      span

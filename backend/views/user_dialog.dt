@@ -1,0 +1,44 @@
+//- Create / edit dialog (htmx fragment for #dialog-host). Needs page, form (UserForm).
+dialog
+  h5= form.isNew ? "New user" : "Edit " ~ form.userName
+  - if (form.error.length)
+    article.error-container.round.small-padding(role="alert")
+      nav
+        i error
+        span= form.error
+  form(hx-post=(form.isNew ? "/users" : "/users/" ~ form.id), hx-target="#dialog-host")
+    - if (form.isNew)
+      .field.label.border
+        input(type="text", name="userName", value=form.userName, required=true, minlength="2", maxlength="64", autocomplete="off", autocapitalize="none", spellcheck="false", placeholder=" ")
+        label User name
+        span.helper a-z, 0-9, . _ - @
+    .field.label.border
+      input(type="text", name="displayName", value=form.displayName, maxlength="128", placeholder=" ")
+      label Display name
+    .field.label.border
+      input(type="email", name="email", value=form.email, placeholder=" ")
+      label E-mail
+    - if (form.self)
+      p.small-text You cannot change the role or status of your own account.
+    - else
+      .field.label.border
+        select(name="role")
+          option(value="viewer", selected=(form.role == "viewer")) Viewer: status pages
+          option(value="admin", selected=(form.role == "admin")) Administrator: also manages users
+        label Role
+      label.checkbox
+        input(type="checkbox", name="active", checked=form.active)
+        span Active (may sign in)
+    - if (form.isNew)
+      .field.label.border
+        input(type="password", name="password", required=true, minlength="10", autocomplete="new-password", placeholder=" ")
+        label Password
+        span.helper At least 10 characters
+      .field.label.border
+        input(type="password", name="confirm", required=true, minlength="10", autocomplete="new-password", placeholder=" ")
+        label Repeat password
+    nav.right-align
+      button.border(type="button", data-close-dialog=true) Cancel
+      button(type="submit")
+        i save
+        span= form.isNew ? "Create" : "Save"

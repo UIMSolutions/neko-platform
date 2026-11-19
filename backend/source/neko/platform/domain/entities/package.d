@@ -8,3 +8,4 @@ module neko.platform.domain.entities;
 public:
   import neko.platform.domain.entities.service;
   import neko.platform.domain.entities.transfer;
+  import neko.platform.domain.entities.account;

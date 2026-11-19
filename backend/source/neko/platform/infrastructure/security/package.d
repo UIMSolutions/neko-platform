@@ -11,6 +11,8 @@ import std.base64 : Base64URLNoPadding;
 import std.string : strip, stripRight;
 import vibe.data.json;
 
+public import neko.platform.infrastructure.security.passwords;
+
 @safe:
 
 /// Strict policy for the API: nothing may be loaded or framed.

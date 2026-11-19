@@ -14,7 +14,7 @@ copyrightYear 2026
 mainSourceFile "backend/source/app.d"
 sourcePaths "backend/source"
 importPaths "backend/source"
-stringImportPaths "backend/views"
+stringImportPaths "backend/views" "backend/assets"
 
 dependency ":service" version="*"
 

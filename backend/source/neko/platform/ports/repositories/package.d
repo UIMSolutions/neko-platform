@@ -25,3 +25,13 @@ interface ITransferRepository {
   /// Transfers are an audit trail: they are inserted, never deleted.
   void save(TransferPackage pkg);
 }
+
+interface IUserRepository {
+  UserAccount[] all();
+  bool tryGet(AccountId id, out UserAccount account);
+  /// `name` in canonical (lower case) form.
+  bool tryGetByName(string name, out UserAccount account);
+  /// Insert or replace.
+  void save(UserAccount account);
+  bool remove(AccountId id);
+}

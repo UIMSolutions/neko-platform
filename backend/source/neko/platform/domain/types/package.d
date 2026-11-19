@@ -10,3 +10,4 @@ public:
   import neko.platform.domain.types.servicename;
   import neko.platform.domain.types.serviceendpoint;
   import neko.platform.domain.types.id;
+  import neko.platform.domain.types.username;

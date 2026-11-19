@@ -81,6 +81,29 @@ TransferPackage toEntity(const TransferRecord r) {
   return t;
 }
 
+UserRecord toRecord(const UserAccount a) {
+  return UserRecord(a.id.value, a.userName.value, a.displayName, a.email, a.role.to!string, a.active,
+    a.passwordHash, timeToText(a.createdAt), timeToText(a.modifiedAt), timeToText(a.lastLoginAt),
+    timeToText(a.passwordChangedAt));
+}
+
+UserAccount toEntity(const UserRecord r) {
+  UserAccount a;
+  a.id = AccountId(r.id);
+  a.userName = UserName(r.userName);
+  a.displayName = r.displayName;
+  a.email = r.email;
+  // Unknown roles fall back to the least privileged one.
+  a.role = toEnum(r.role, UserRole.viewer);
+  a.active = r.active;
+  a.passwordHash = r.passwordHash;
+  a.createdAt = textToTime(r.createdAt);
+  a.modifiedAt = textToTime(r.modifiedAt);
+  a.lastLoginAt = textToTime(r.lastLoginAt);
+  a.passwordChangedAt = textToTime(r.passwordChangedAt);
+  return a;
+}
+
 ///
 unittest {
   import std.datetime.systime : Clock;

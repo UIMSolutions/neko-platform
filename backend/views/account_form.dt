@@ -1,0 +1,28 @@
+//- Password change form (htmx replaces it with the answer). Needs page, message, error.
+article#password-form.round
+  h6 Change password
+  - if (message.length)
+    article.green-border.round.small-padding(role="status")
+      nav
+        i.green-text check_circle
+        span= message
+  - if (error.length)
+    article.error-container.round.small-padding(role="alert")
+      nav
+        i error
+        span= error
+  form(hx-post="/account/password", hx-target="#password-form", hx-swap="outerHTML")
+    .field.label.border
+      input(type="password", name="current", required=true, autocomplete="current-password", placeholder=" ")
+      label Current password
+    .field.label.border
+      input(type="password", name="password", required=true, minlength="10", autocomplete="new-password", placeholder=" ")
+      label New password
+      span.helper At least 10 characters
+    .field.label.border
+      input(type="password", name="confirm", required=true, minlength="10", autocomplete="new-password", placeholder=" ")
+      label Repeat new password
+    nav.right-align
+      button(type="submit")
+        i lock_reset
+        span Change password

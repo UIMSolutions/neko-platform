@@ -27,6 +27,8 @@ struct Id(string kind) {
 
 alias ServiceId = Id!"service";
 alias TransferId = Id!"transfer";
+/// Web user account (not UserId: uim.service already defines that name).
+alias AccountId = Id!"account";
 
 ///
 unittest {

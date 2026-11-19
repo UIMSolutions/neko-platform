@@ -49,7 +49,7 @@ check "open platform refuses secret services (exit code)" "1" "$code"
 check "… with a policy message" "cannot host secret" "$(cat "$WORK/err")"
 
 echo "HTTP (open on :$OPEN_PORT, secret on unix socket)"
-NEKO_PORT=$OPEN_PORT "$BIN/platform-open" >"$WORK/open.log" 2>&1 & PIDS+=($!)
+NEKO_PORT=$OPEN_PORT NEKO_ADMIN_PASSWORD=smoke-admin-pw "$BIN/platform-open" >"$WORK/open.log" 2>&1 & PIDS+=($!)
 NEKO_TRANSPORT=unix NEKO_UNIX_SOCKET="$SOCKET" NEKO_ENFORCE_SCOPES=true \
   "$BIN/platform-secret" >"$WORK/secret.log" 2>&1 & PIDS+=($!)
 for _ in $(seq 50); do
@@ -100,7 +100,14 @@ check "action SuspendService" '"Status":"suspended"' \
   "$(curl -s "${J[@]}" -d "{\"ID\":\"$id\"}" $O/odata/v4/platform/SuspendService)"
 check "DELETE needs a retired service" "409" \
   "$(curl -s -o /dev/null -w '%{http_code}' -X DELETE "$O/odata/v4/platform/Services('$id')")"
-check "status page" "self" "$(curl -s $O/status)"
+check "status page needs sign-in" "302" "$(curl -s -o /dev/null -w '%{http_code}' $O/status)"
+check "wrong password refused" "401" \
+  "$(curl -s -o /dev/null -w '%{http_code}' -d 'user=admin&password=wrong-password' $O/login)"
+check "sign-in" "303" \
+  "$(curl -s -o /dev/null -w '%{http_code}' -c "$WORK/cookies" -d 'user=admin&password=smoke-admin-pw' $O/login)"
+check "status page" "self" "$(curl -s -b "$WORK/cookies" $O/status)"
+check "user management" "admin" "$(curl -s -b "$WORK/cookies" $O/users)"
+check "embedded Beer CSS" "200" "$(curl -s -o /dev/null -w '%{http_code}' $O/ui/beer-5.0.3.min.css)"
 
 echo
 if [[ $failures -gt 0 ]]; then

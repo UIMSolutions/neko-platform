@@ -14,6 +14,7 @@ import neko.platform.persistence;
 import neko.platform.infrastructure.clients;
 import neko.platform.infrastructure.configuration;
 import neko.platform.infrastructure.logging;
+import neko.platform.infrastructure.security : OpensslPasswordHasher;
 
 @safe:
 
@@ -24,6 +25,8 @@ class PlatformContainer {
   IDocumentStore store;
   IServiceRepository serviceRepository;
   ITransferRepository transferRepository;
+  IUserRepository userRepository;
+  IPasswordHasher passwords;
   LoggingEventPublisher events;
   IClock clock;
 
@@ -31,6 +34,8 @@ class PlatformContainer {
   ICheckServiceHealthUseCase health;
   ITransferPackagesUseCase transfers;
   IPlatformOverviewUseCase overview;
+  IManageUsersUseCase users;
+  IAuthenticateUseCase authentication;
 }
 
 /// `store` overrides the configured storage (used by tests).
@@ -57,6 +62,11 @@ PlatformContainer buildContainer(PlatformConfig config, SecurityDomain domain, I
     new HttpHealthGateway(config.healthTimeoutSeconds), c.events, c.clock);
   c.transfers = new TransferPackagesUseCase(c.transferRepository, c.events, c.clock, ids, domain,
     cast(size_t) config.maxPayloadBytes);
+  c.userRepository = new DocumentUserRepository(c.store);
+  c.passwords = new OpensslPasswordHasher;
+  auto users = new ManageUsersUseCase(c.userRepository, c.passwords, c.events, c.clock, ids);
+  c.users = users;
+  c.authentication = users;
   c.overview = new PlatformOverviewUseCase(c.serviceRepository, c.transferRepository, domain, config.environment);
   return c;
 }

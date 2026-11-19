@@ -55,6 +55,28 @@ struct OverviewDto {
   string environment;
 }
 
+/// A web user account; the password hash never leaves the application layer.
+struct UserDto {
+  string id;
+  string userName;
+  string displayName;
+  string email;
+  string role;
+  bool active;
+  string createdAt;
+  string modifiedAt;
+  string lastLoginAt;
+  string passwordChangedAt;
+
+  bool isAdmin() const pure nothrow {
+    return role == "admin";
+  }
+
+  string label() const pure nothrow {
+    return displayName.length > 0 ? displayName : userName;
+  }
+}
+
 /// ISO 8601 in UTC with fixed millisecond precision ("2026-11-16T21:25:30.885Z"),
 /// so timestamps also sort correctly as text; "" for unset timestamps.
 string isoTime(SysTime time) {
@@ -107,5 +129,20 @@ TransferDto toDto(const TransferPackage t) {
   d.reason = t.reason;
   d.createdBy = t.createdBy;
   d.createdAt = isoTime(t.createdAt);
+  return d;
+}
+
+UserDto toDto(const UserAccount a) {
+  UserDto d;
+  d.id = a.id.value;
+  d.userName = a.userName.value;
+  d.displayName = a.displayName;
+  d.email = a.email;
+  d.role = a.role.to!string;
+  d.active = a.active;
+  d.createdAt = isoTime(a.createdAt);
+  d.modifiedAt = isoTime(a.modifiedAt);
+  d.lastLoginAt = isoTime(a.lastLoginAt);
+  d.passwordChangedAt = isoTime(a.passwordChangedAt);
   return d;
 }

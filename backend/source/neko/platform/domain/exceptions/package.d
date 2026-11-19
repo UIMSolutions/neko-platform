@@ -10,6 +10,7 @@ module neko.platform.domain.exceptions;
 @safe:
 
 public:
+  import neko.platform.domain.exceptions.authentication;
   import neko.platform.domain.exceptions.conflict;
   import neko.platform.domain.exceptions.integrity;
   import neko.platform.domain.exceptions.invalidstatetransition;

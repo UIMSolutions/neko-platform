@@ -63,7 +63,10 @@ class SecurityMiddleware {
     res.headers["Content-Security-Policy"] = api ? apiContentSecurityPolicy : uiContentSecurityPolicy;
     res.headers["X-Content-Type-Options"] = "nosniff";
     res.headers["X-Frame-Options"] = "DENY";
-    res.headers["Referrer-Policy"] = "no-referrer";
+    // UI pages: same-origin, so browsers keep sending a real Origin header on
+    // form posts (with no-referrer they send "Origin: null"), which the web
+    // pages check against cross-site requests. Nothing leaks to other sites.
+    res.headers["Referrer-Policy"] = api ? "no-referrer" : "same-origin";
     if (api)
       res.headers["Cache-Control"] = "no-store";
 

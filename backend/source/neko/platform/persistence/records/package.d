@@ -13,6 +13,7 @@ import vibe.data.serialization : optional;
 
 enum servicesCollection = "services";
 enum transfersCollection = "transfers";
+enum usersCollection = "users";
 
 struct ServiceRecord {
   string id;
@@ -40,4 +41,18 @@ struct TransferRecord {
   @optional string reason;
   @optional string createdBy;
   string createdAt;
+}
+
+struct UserRecord {
+  string id;
+  string userName;
+  @optional string displayName;
+  @optional string email;
+  string role;
+  bool active;
+  string passwordHash;
+  string createdAt;
+  string modifiedAt;
+  @optional string lastLoginAt;
+  @optional string passwordChangedAt;
 }

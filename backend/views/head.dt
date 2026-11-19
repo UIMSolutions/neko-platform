@@ -1,0 +1,11 @@
+//- Shared <head> content. Everything is served by the platform itself (/ui/),
+//- see backend/assets/vendor/README.md.
+- auto htmxConfig = `{"allowEval":false,"historyCacheSize":0,"refreshOnHistoryMiss":true,"includeIndicatorStyles":true}`;
+meta(charset="utf-8")
+meta(name="viewport", content="width=device-width, initial-scale=1")
+meta(name="htmx-config", content=htmxConfig)
+link(rel="icon", href="data:,")
+link(rel="stylesheet", href="/ui/beer-5.0.3.min.css")
+link(rel="stylesheet", href="/ui/app.css")
+script(src="/ui/htmx-2.0.11.min.js", defer=true)
+script(src="/ui/app.js", defer=true)

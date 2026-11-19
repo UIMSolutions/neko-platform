@@ -1,0 +1,36 @@
+extends layout
+//- Own account. Needs page, message, error.
+block content
+  h5 My account
+  .grid
+    .s12.l6
+      article.round
+        h6 Profile
+        - auto u = page.user;
+        - auto row(string v) { return v.length ? v : "–"; }
+        table
+          tbody
+            tr
+              th User name
+              td= u.userName
+            tr
+              th Display name
+              td= row(u.displayName)
+            tr
+              th E-mail
+              td= row(u.email)
+            tr
+              th Role
+              td= u.isAdmin ? "Administrator" : "Viewer"
+            tr
+              th Last sign-in
+              td= row(u.lastLoginAt.length >= 16 ? u.lastLoginAt[0 .. 10] ~ " " ~ u.lastLoginAt[11 .. 16] ~ " UTC" : "")
+            tr
+              th Password changed
+              td= row(u.passwordChangedAt.length >= 16 ? u.passwordChangedAt[0 .. 10] ~ " " ~ u.passwordChangedAt[11 .. 16] ~ " UTC" : "")
+        - if (u.isAdmin)
+          p.small-text Name, e-mail and role are changed under Users.
+        - else
+          p.small-text Ask an administrator to change your name, e-mail or role.
+    .s12.l6
+      include account_form

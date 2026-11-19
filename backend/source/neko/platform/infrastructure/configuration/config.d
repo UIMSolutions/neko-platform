@@ -56,6 +56,12 @@ struct PlatformConfig {
   int healthCheckIntervalSeconds = 0;
   int healthTimeoutSeconds = 5;
   long maxPayloadBytes = 10 * 1024 * 1024;
+  /// First administrator, created when the instance has no web user yet.
+  string adminUser = "admin";
+  /// "" = generate one and print it once in the log.
+  string adminPassword = "";
+  /// Web sessions end after this many minutes without a request.
+  int sessionIdleMinutes = 60;
 
   /// Where the values came from (diagnostics).
   string[] sources = ["defaults"];
@@ -81,6 +87,10 @@ struct PlatformConfig {
     str("restPath", restPath);
     str("odataPath", odataPath);
     str("adminScope", adminScope);
+    str("adminUser", adminUser);
+    str("adminPassword", adminPassword);
+    if ("sessionIdleMinutes" in values)
+      sessionIdleMinutes = asNumber!int(values["sessionIdleMinutes"], "sessionIdleMinutes");
     if ("port" in values)
       port = asNumber!ushort(values["port"], "port");
     if ("enforceScopes" in values)
@@ -114,6 +124,8 @@ struct PlatformConfig {
       throw new Exception("health check interval must be >= 0 and timeout > 0");
     if (maxPayloadBytes <= 0)
       throw new Exception("maxPayloadBytes must be positive");
+    if (sessionIdleMinutes <= 0)
+      throw new Exception("sessionIdleMinutes must be positive");
   }
 
   ushort effectivePort(SecurityDomain domain) const {
@@ -151,6 +163,8 @@ struct PlatformConfig {
     j["enforceScopes"] = enforceScopes;
     j["healthCheckIntervalSeconds"] = healthCheckIntervalSeconds;
     j["maxPayloadBytes"] = maxPayloadBytes;
+    j["adminUser"] = adminUser; // the password is never shown
+    j["sessionIdleMinutes"] = sessionIdleMinutes;
     j["sources"] = Json(sources.map!(s => Json(s)).array);
     return j;
   }
@@ -179,6 +193,8 @@ PlatformConfig loadConfig(SecurityDomain domain) {
     ["NEKO_FRONTEND_DIR", "frontendDir"], ["NEKO_ENFORCE_SCOPES", "enforceScopes"],
     ["NEKO_ADMIN_SCOPE", "adminScope"], ["NEKO_HEALTH_INTERVAL", "healthCheckIntervalSeconds"],
     ["NEKO_HEALTH_TIMEOUT", "healthTimeoutSeconds"], ["NEKO_MAX_PAYLOAD", "maxPayloadBytes"],
+    ["NEKO_ADMIN_USER", "adminUser"], ["NEKO_ADMIN_PASSWORD", "adminPassword"],
+    ["NEKO_SESSION_IDLE_MINUTES", "sessionIdleMinutes"],
   ];
   foreach (pair; variables) {
     auto value = (() @trusted => environment.get(pair[0], ""))();

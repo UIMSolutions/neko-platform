@@ -96,6 +96,40 @@ class DocumentTransferRepository : ITransferRepository {
   }
 }
 
+class DocumentUserRepository : IUserRepository {
+  mixin DocumentCollection!(UserAccount, UserRecord, usersCollection);
+
+  UserAccount[] all() {
+    return loadAll();
+  }
+
+  bool tryGet(AccountId id, out UserAccount account) {
+    return find(id.value, account);
+  }
+
+  bool tryGetByName(string name, out UserAccount account) {
+    foreach (a; loadAll())
+      if (a.userName.value == name) {
+        account = a;
+        return true;
+      }
+    return false;
+  }
+
+  void save(UserAccount account) {
+    put(account.id.value, account);
+  }
+
+  bool remove(AccountId id) {
+    auto docs = store.load(usersCollection);
+    if (id.value !in docs)
+      return false;
+    docs.remove(id.value);
+    store.store(usersCollection, docs);
+    return true;
+  }
+}
+
 ///
 unittest {
   import neko.platform.persistence.storages : MemoryDocumentStore;
@@ -110,4 +144,21 @@ unittest {
   assert(repo.tryGetByName("alpha", found) && found.id.value == "1");
   assert(repo.all.length == 1);
   assert(repo.remove(ServiceId("1")) && !repo.remove(ServiceId("1")));
+}
+
+///
+unittest {
+  import neko.platform.persistence.storages : MemoryDocumentStore;
+
+  auto repo = new DocumentUserRepository(new MemoryDocumentStore);
+  UserAccount a;
+  a.id = AccountId("1");
+  a.userName = UserName("jane");
+  a.role = UserRole.admin;
+  a.passwordHash = "h";
+  repo.save(a);
+
+  UserAccount found;
+  assert(repo.tryGetByName("jane", found) && found.isAdmin && found.passwordHash == "h");
+  assert(repo.remove(AccountId("1")) && repo.all.length == 0);
 }

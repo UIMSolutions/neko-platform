@@ -7,11 +7,12 @@
 /// the domain is fixed at compile time so a binary can never run in the wrong domain.
 module app;
 
+import core.time : minutes;
 import std.array : join;
 import vibe.core.core : runApplication;
 import vibe.core.log : LogLevel;
 import vibe.http.router : URLRouter;
-import vibe.http.server : HTTPServerSettings, listenHTTP;
+import vibe.http.server : HTTPServerRequest, HTTPServerResponse, HTTPServerSettings, listenHTTP;
 import neko.platform;
 
 version (DomainOpen)
@@ -57,9 +58,20 @@ int serve(PlatformContainer c) {
   }
   router.registerPlatformRestApi(c.services, c.health, c.transfers, c.overview, config.restPath);
   new PlatformODataController(c.services, c.health, c.transfers, c.overview, config.odataPath).registerRoutes(router);
-  new StatusPageController(c.overview, c.services, c.events, config.serviceName).registerRoutes(router);
+
+  // Server-rendered pages with sign-in (Beer CSS + htmx, assets embedded).
+  bootstrapAdministrator(c);
+  auto sessions = new WebSessions(c.passwords, c.clock, config.sessionIdleMinutes.minutes);
+  auto guard = new WebGuard(sessions, c.authentication, config.serviceName, selfDomain.label);
+  new AssetsController().registerRoutes(router);
+  new AuthController(guard, c.authentication, c.users, new LoginThrottle(c.clock)).registerRoutes(router);
+  new UsersController(guard, c.users).registerRoutes(router);
+  new StatusPageController(guard, c.overview, c.services, c.events).registerRoutes(router);
+
   auto frontend = new FrontendController(config.frontendDir);
   frontend.registerRoutes(router);
+  if (!frontend.available)
+    router.get("/", (HTTPServerRequest req, HTTPServerResponse res) { res.redirect("/status"); });
 
   auto worker = new HealthCheckWorker(c.health, config.healthCheckIntervalSeconds);
   worker.start();
@@ -85,10 +97,24 @@ int serve(PlatformContainer c) {
   return runApplication();
 }
 
+/// The first web administrator, if this domain has no user account yet.
+void bootstrapAdministrator(PlatformContainer c) {
+  auto result = c.authentication.ensureAdministrator(c.config.adminUser, c.config.adminPassword);
+  if (!result.created)
+    return;
+  if (result.generatedPassword.length > 0)
+    logWarn("Created web administrator '%s' with the generated password '%s' — sign in at /login and change it "
+        ~ "under Account (or set adminPassword / NEKO_ADMIN_PASSWORD before the first start)",
+      result.userName, result.generatedPassword);
+  else
+    logInfo("Created web administrator '%s' with the configured adminPassword", result.userName);
+}
+
 void logEndpoints(PlatformConfig config, FrontendController frontend) {
   logInfo("  REST   %s{overview,services,transfers}", config.restPath);
   logInfo("  OData  %s/$metadata", config.odataPath);
-  logInfo("  Web    /status, /health, /api/v1/info%s", config.transport == "unix" ? ", /api/v1/socket" : "");
+  logInfo("  Web    /login, /status, /users, /account (sign-in required); /health, /api/v1/info%s",
+    config.transport == "unix" ? ", /api/v1/socket" : "");
   if (frontend.available)
     logInfo("  Fiori  /index.html (%s)", frontend.location);
   else

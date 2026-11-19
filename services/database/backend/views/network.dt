@@ -8,7 +8,7 @@ block content
       i location_on
       span
         | Your current address:
-        span.mono  #{view.yourAddress.length ? view.yourAddress : "unknown"}
+        span.mono.gap-left #{view.yourAddress.length ? view.yourAddress : "unknown"}
     form(action="/admin/network", method="POST")
       div.field.textarea.label.border.extra
         textarea.mono(name="networks", rows="8", spellcheck="false", autocapitalize="none") #{view.networksText}

@@ -32,8 +32,10 @@ block content
         i error
         span.break Last scheduled backup failed: #{schedule.lastError}
     form(action="/admin/backups/schedule", method="POST")
-      label.switch
-        input(type="checkbox", name="enabled", value="1", checked=schedule.enabled)
+      div.row
+        label.switch
+          input(type="checkbox", name="enabled", value="1", checked=schedule.enabled)
+          span
         span Automatic backups
       div.form-grid
         div.field.label.border

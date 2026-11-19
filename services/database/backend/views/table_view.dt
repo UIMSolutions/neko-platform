@@ -4,7 +4,7 @@ block content
   div.toolbar
     p.max.muted
       span.chip.small #{view.storage}
-      |  #{view.live} live rows · #{view.deleted} deleted · #{view.columns.length} columns
+      span.gap-left #{view.live} live rows · #{view.deleted} deleted · #{view.columns.length} columns
     - if (view.canInsert)
       button.small(type="button", data-row-insert="1")
         i add

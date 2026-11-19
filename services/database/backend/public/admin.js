@@ -32,8 +32,11 @@
   }
 
   document.addEventListener('click', (event) => {
+    // Klick auf den abgedunkelten Hintergrund eines Dialogs schließt ihn (das Ziel ist dann der Dialog selbst)
+    if (event.target.tagName === 'DIALOG') event.target.close();
     const target = event.target.closest('button');
     if (!target) return;
+    if (target.dataset.drawer) byId(target.dataset.drawer).showModal();
     if (target.dataset.resetUser) {
       const name = target.dataset.resetUser;
       byId('reset-form').action = `/admin/users/${encodeURIComponent(name)}/password`;
@@ -107,10 +110,13 @@
     }
   });
 
+  // beer.js setzt schwebende Beschriftungen nur beim Laden; nach einem Austausch durch htmx erneut
+  document.addEventListener('htmx:afterSettle', () => {
+    if (typeof window.ui === 'function') window.ui();
+  });
+
   // Nach einem Seitenwechsel per htmx: offene Dialoge und die mobile Navigation schließen
   document.addEventListener('htmx:beforeSwap', () => {
     document.querySelectorAll('dialog[open]').forEach((d) => d.close());
-    const drawer = byId('nav-drawer');
-    if (drawer) drawer.classList.remove('active');
   });
 })();

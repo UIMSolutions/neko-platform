@@ -25,7 +25,7 @@ block content
               td
                 span.mono #{r.name}
                 - if (r.builtin)
-                  span.chip.small  Built in
+                  span.chip.small.gap-left Built in
                 - if (r.description.length)
                   div.small-text.muted #{r.description}
               td

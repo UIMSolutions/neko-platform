@@ -22,11 +22,12 @@ html(lang="en")
       include nav_items
 
     dialog#nav-drawer.left.surface-container
-      include nav_items
+      nav.drawer
+        include nav_items
 
     header.fixed
       nav
-        button.circle.transparent.m.s(data-ui="#nav-drawer", aria-label="Open navigation")
+        button.circle.transparent.m.s(type="button", data-drawer="nav-drawer", aria-label="Open navigation")
           i menu
         h5.max #{page.title}
 
@@ -40,7 +41,7 @@ html(lang="en")
           i sync
           span
             | This tenant is a read-only replica of
-            span.mono #{page.replicaOf}
+            span.mono.gap-left #{page.replicaOf}
             | . Changes come from there. Stop the replication to change data here.
       - if (page.ok.length)
         article.round.primary-container.notice(role="status")

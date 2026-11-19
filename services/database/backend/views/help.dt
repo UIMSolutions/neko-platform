@@ -28,7 +28,7 @@ block content
           li Statistics: storage figures for every column of every table.
           li
             | Fiori client: a separate app for browsing and editing rows, at
-            a.link(href="/ui5/", hx-boost="false") /ui5/
+            a.link.gap-left(href="/ui5/", hx-boost="false") /ui5/
             | .
         p.small-text.muted Tables have no primary key. Editing or deleting a row here affects every row with identical values, and the result message reports how many.
 

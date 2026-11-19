@@ -306,6 +306,17 @@ OData V4 model `cloud` (`/odata/v4/cloud`) and run actions through REST (`/api/v
 
 `http://localhost:8080/admin` (adapter `presentation/web/admin.d`, templates in `backend/views/`, script in `backend/public/admin.js`).
 
+Built with server-side Diet templates, [beer.css](https://www.beercss.com) 3.13.3 (Material Design 3, dark theme,
+Material Symbols icons) and [htmx](https://htmx.org) 2.0.11, both pinned and loaded from jsDelivr; `backend/public/admin.css`
+adds the few helpers beer.css lacks.
+
+- `hx-boost` on `<body>`: links and forms load only the page content; the server keeps its post/redirect/get flow
+  and still works without JavaScript. Error pages (4xx/5xx) are swapped in too (`htmx-config` `responseHandling`).
+- Downloads (CSV export, backups), the Fiori link and sign-out are not boosted. A thin progress bar shows running
+  requests; dialogs and the mobile navigation close on every page change.
+- Confirmations (`data-confirm`, `data-confirm-name`) run in the capture phase, before htmx sends anything.
+- The backup page also sets the backup retention (0–215 days).
+
 - Dashboard: metrics per table, trigger delta merges and checkpoints, create tables.
 - Table view: filtering (WHERE), sorting, pagination, creating, editing and deleting rows, CSV export,
   emptying or deleting a table, storage statistics per column.

@@ -5,7 +5,7 @@ block content
     div.toolbar
       h6.max
         | Additional roles of
-        span.mono  #{view.user}
+        span.mono.gap-left #{view.user}
       a.button.small.transparent(href="/admin/users")
         i arrow_back
         span Users

@@ -12,7 +12,7 @@ block content
     - else
       p.small-text.muted
         | Users of tenant #{page.tenant}. The role applies to all tables. Table access adds roles for single tables, so a user without a role sees only those tables. Define your own roles under
-        a.link(href="/admin/roles")  Roles
+        a.link.gap-left(href="/admin/roles") Roles
         | .
     div.scroll-box
       table.stripes
@@ -29,7 +29,7 @@ block content
               td
                 span.mono #{u.name}
                 - if (u.self)
-                  span.chip.small  You
+                  span.chip.small.gap-left You
               td
                 form(action="/admin/users/#{u.name}/update", method="POST")
                   - if (u.active)

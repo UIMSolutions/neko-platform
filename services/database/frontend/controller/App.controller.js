@@ -18,12 +18,18 @@ sap.ui.define([
 		onInit: function () {
 			const component = this.getOwnerComponent();
 			this.getView().addStyleClass(component.getContentDensityClass ? component.getContentDensityClass() : "sapUiSizeCompact");
-			Promise.all(["login", "tables", "rows", "row", "backups", "statistics", "help"].map(function (id) {
+			Promise.all(["login", "tables", "rows", "row", "backups", "statistics", "help", "instances", "monitoring", "advisors",
+				"workloads", "views", "dataproducts", "bindings", "assistant"].map(function (id) {
 				return this.byId(id).loaded();
 			}, this)).then(component.viewsLoaded);
 			const router = component.getRouter();
 			const app = component.getModel("app");
 			router.getRoute("home").attachPatternMatched(function () {
+				// Systemadministratoren haben keine Tabellen: ihre Startseite sind die Instanzen
+				if (app.getProperty("/isSystem")) {
+					router.navTo("instances", {}, true);
+					return;
+				}
 				app.setProperty("/layout", "OneColumn");
 			});
 			router.attachRouteMatched(function (event) {
@@ -43,6 +49,9 @@ sap.ui.define([
 			router.getRoute("backups").attachPatternMatched(showMid.bind(null, "backups", "MidColumnFullScreen"));
 			router.getRoute("statistics").attachPatternMatched(showMid.bind(null, "statistics", "MidColumnFullScreen"));
 			router.getRoute("help").attachPatternMatched(showMid.bind(null, "help", "MidColumnFullScreen"));
+			["instances", "monitoring", "advisors", "workloads", "views", "dataproducts", "bindings", "assistant"].forEach(function (route) {
+				router.getRoute(route).attachPatternMatched(showMid.bind(null, route, "MidColumnFullScreen"));
+			});
 		},
 
 		initials: function (name) {

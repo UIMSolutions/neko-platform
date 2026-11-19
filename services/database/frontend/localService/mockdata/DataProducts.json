@@ -1,0 +1,41 @@
+[
+  {
+    "provider": "Finance",
+    "id": "bdc.finance.costcenters",
+    "rows": 25,
+    "installed": false,
+    "title": "Cost Centers",
+    "installedAt": null,
+    "tags": "finance, controlling",
+    "tables": "costcenters, costs",
+    "description": "Cost center master data with planned and actual cost per quarter.",
+    "version": "2.0.1",
+    "installedTables": ""
+  },
+  {
+    "provider": "People",
+    "id": "bdc.hr.workforce",
+    "rows": 12,
+    "installed": false,
+    "title": "Workforce",
+    "installedAt": null,
+    "tags": "hr, headcount",
+    "tables": "headcount",
+    "description": "Headcount by country and job family, without personal data.",
+    "version": "1.0.0",
+    "installedTables": ""
+  },
+  {
+    "provider": "Sales",
+    "id": "bdc.sales.orders",
+    "rows": 72,
+    "installed": true,
+    "title": "Sales Orders",
+    "installedAt": "2026-11-18T22:38:15Z",
+    "tags": "sales, orders, revenue",
+    "tables": "customers, orders",
+    "description": "Customers and their sales orders with amounts and status, for revenue analysis by region and segment.",
+    "version": "1.2.0",
+    "installedTables": "bdc_sales_orders__customers, bdc_sales_orders__orders"
+  }
+]

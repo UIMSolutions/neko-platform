@@ -139,29 +139,43 @@ sap.ui.define([
 				}
 				return response.json();
 			}).then(function (me) {
-				// Systemadministratoren haben keine Daten: dieser Client hat für sie nichts zu zeigen
-				if (me.tenant === SYSTEM_TENANT) {
-					fetch("/api/v1/auth/logout", { method: "POST", headers: { Authorization: "Bearer " + token } }).catch(function () {});
-					throw new Error(this.getModel("i18n").getResourceBundle().getText("systemNoData"));
-				}
+				// Systemadministratoren haben keine Tabellen: sie sehen nur die Instanzen (und den Assistenten)
+				const isSystem = me.tenant === SYSTEM_TENANT;
 				this._token = token;
 				this._rememberTenant(me.tenant);
 				try {
 					window.sessionStorage.setItem(TOKEN_KEY, token);
 				} catch (e) { /* die Sitzung gilt dann nur bis zum Neuladen */ }
+				if (!isSystem) {
+					this.setModel(new ODataModel({
+						serviceUrl: "/odata/v4/",
+						groupId: "$direct",
+						updateGroupId: "$direct",
+						operationMode: "Server",
+						httpHeaders: { Authorization: "Bearer " + token }
+					}));
+				}
+				// Cloud-Funktionen: Instanzen, Traces, Empfehlungen, Views, Bindungen, Datenprodukte
 				this.setModel(new ODataModel({
-					serviceUrl: "/odata/v4/",
+					serviceUrl: "/odata/v4/cloud/",
 					groupId: "$direct",
 					updateGroupId: "$direct",
 					operationMode: "Server",
 					httpHeaders: { Authorization: "Bearer " + token }
-				}));
+				}), "cloud");
+				const permissions = me.permissions || [];
+				const has = function (p) {
+					return permissions.indexOf(p) >= 0;
+				};
 				app.setData(Object.assign(app.getData(), {
 					authenticated: true, busy: false, user: me.name, role: me.role, userTenant: me.tenant, tenant: me.tenant,
 					permissions: me.permissions || [], tablePermissions: this._byTable(me.tables),
-					canBackups: (me.permissions || []).indexOf("manageBackups") >= 0, loginError: ""
+					canBackups: !isSystem && has("manageBackups"), loginError: "", isSystem: isSystem,
+					canManageInstances: isSystem && has("manageInstances"), canMonitor: !isSystem && has("monitor"),
+					canWorkloads: !isSystem && has("manageWorkloads"), canManageViews: has("manageViews"),
+					canBindings: !isSystem && has("manageBindings"), canDataProducts: has("manageDataProducts")
 				}));
-				return this.loadEntitySets();
+				return isSystem ? null : this.loadEntitySets();
 			}.bind(this)).then(this._startRouting.bind(this));
 		},
 
@@ -234,15 +248,19 @@ sap.ui.define([
 			try {
 				window.sessionStorage.removeItem(TOKEN_KEY);
 			} catch (e) { /* nichts zu löschen */ }
-			const old = this.getModel();
-			this.setModel(null);
-			if (old) {
-				old.destroy();
-			}
+			[undefined, "cloud"].forEach(function (name) {
+				const old = this.getModel(name);
+				this.setModel(null, name);
+				if (old) {
+					old.destroy();
+				}
+			}, this);
 			const app = this.getModel("app");
 			app.setData(Object.assign(app.getData(), {
 				authenticated: false, busy: false, user: "", role: "", userTenant: "", permissions: [], tablePermissions: {},
-				canBackups: false, canInsert: false, canUpdate: false, canDelete: false,
+				canBackups: false, canInsert: false, canUpdate: false, canDelete: false, isSystem: false,
+				canManageInstances: false, canMonitor: false, canWorkloads: false, canManageViews: false,
+				canBindings: false, canDataProducts: false,
 				layout: "OneColumn", navKey: "home", sets: [], loginError: message || ""
 			}));
 			sap.ui.getCore().getEventBus().publish("hdb", "sessionEnded");

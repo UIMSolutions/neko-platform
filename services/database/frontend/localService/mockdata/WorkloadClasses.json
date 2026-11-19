@@ -1,0 +1,12 @@
+[
+  {
+    "enabled": true,
+    "statementTimeoutSeconds": 0,
+    "statementMemoryLimitMb": 0,
+    "priority": 3,
+    "name": "REPORTING",
+    "description": "",
+    "statementThreadLimit": 0,
+    "totalStatementLimit": 2
+  }
+]

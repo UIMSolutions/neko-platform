@@ -11,14 +11,21 @@ stringImportPaths "views"
 
 buildRequirements "allowWarnings" "silenceDeprecations"
 
+dependency "vibe-d" version="~>0.10.5"
+dependency "neko-platform:service" path="../../.."
+dependency "uim-framework:oop" version="~>26.11.1"
+
+
 // ── Server: REST (/api/v1), OData v4 (/odata/v4, /odata/v4/cloud), Admin-Web (/admin), Fiori (/ui5)
 // dub build          ./build/hdb
 configuration "application" {
     targetType "executable"
     targetName "hdb"
     mainSourceFile "source/app.d"
-    dependency "vibe-d" version="~>0.10.3"
+    dependency "vibe-d" version="~>0.10.5"
     dependency "uim-framework:oop" version="~>26.11.1"
+dependency "neko-platform:service" path="../../.."
+
     excludedSourceFiles "source/gui.d" "source/cli.d" "source/neko/database/presentation/gui/*"
 }
 
@@ -28,8 +35,9 @@ configuration "cli" {
     targetType "executable"
     targetName "hdb-cli"
     mainSourceFile "source/cli.d"
-    dependency "vibe-d" version="~>0.10.3"
+    dependency "vibe-d" version="~>0.10.5"
     dependency "uim-framework:oop" version="~>26.11.1"
+    dependency "neko-platform:service" path="../../.."
     excludedSourceFiles "source/app.d" "source/gui.d" "source/neko/database/presentation/gui/*"
 }
 
@@ -40,6 +48,7 @@ configuration "gui" {
     targetName "hdb-admin"
     mainSourceFile "source/gui.d"
     dependency "gtk-d:gtkd" version="~>3.11.0"
+    dependency "neko-platform:service" path="../../.."
     excludedSourceFiles "source/app.d" "source/cli.d" "source/neko/database/package.d" "source/neko/database/embedded.d" \
         "source/neko/database/testing.d" "source/neko/database/application/*" "source/neko/database/domain/*" \
         "source/neko/database/infrastructure/*" "source/neko/database/persistence/*" "source/neko/database/ports/*" \
@@ -54,7 +63,8 @@ configuration "gui" {
 configuration "library" {
     targetType "library"
     targetName "hdb"
-    dependency "vibe-d" version="~>0.10.3"
+    dependency "vibe-d" version="~>0.10.5"
     dependency "uim-framework:oop" version="~>26.11.1"
+    dependency "neko-platform:service" path="../../.."
     excludedSourceFiles "source/app.d" "source/gui.d" "source/cli.d" "source/neko/database/presentation/gui/*"
 }

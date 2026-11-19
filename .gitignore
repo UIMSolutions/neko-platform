@@ -50,3 +50,5 @@ services/service/build/service-test-modules
 services/service/service-test-default
 services/service/service-test-tests
 build/platform-open
+services/logging/build/logging-test-defaultTest
+services/logging/build/uim-logging-platform-service

@@ -168,10 +168,10 @@ cd identity-directory
 dub build
 
 # Run (default: 0.0.0.0:8082)
-./build/uim-identity-directory-platform-service
+./build/neko-directory-platform-service
 
 # Override host/port via environment
-IDS_HOST=127.0.0.1 IDS_PORT=9090 ./build/uim-identity-directory-platform-service
+IDS_HOST=127.0.0.1 IDS_PORT=9090 ./build/neko-directory-platform-service
 ```
 
 ## Configuration

@@ -6,7 +6,7 @@
 /// Command line entry point. Uses the same container and storage as the server.
 ///
 ///   dub run --config=cli -- stats
-///   ./build/uim-identity-directory-cli users list --status=locked --json
+///   ./build/neko-directory-cli users list --status=locked --json
 module cli;
 
 import std.stdio : stdout;

@@ -9,9 +9,9 @@ targetPath "build"
 sourcePaths "source"
 importPaths "source"
 
-// Core framework (brings uim-framework, vibe-d 0.10.x and gtk-d). Referenced by
-// path, so the build does not depend on the repository root recipe.
-dependency "service" path="../../service"
+dependency "vibe-d" version="~>0.10.5"
+dependency "neko-platform:service" path="../../.."
+dependency "uim-framework" version="~>26.11.1"
 
 buildRequirements "allowWarnings" "silenceDeprecations"
 buildOptions "ignoreDeprecations" "debugInfo"

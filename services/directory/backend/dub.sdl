@@ -1,5 +1,5 @@
-name "identity-directory"
-description "SAP Cloud Identity Services – Identity Directory style service: SCIM 2.0 users and groups, custom schemas, password policies, API clients and audit log; D/vibe.d backend with REST, OData v4, SCIM 2.0, CLI and GtkD GUI"
+name "directory"
+description "Identity Directory style service: SCIM 2.0 users and groups, custom schemas, password policies, API clients and audit log; D/vibe.d backend with REST, OData v4, SCIM 2.0, CLI and GtkD GUI"
 homepage "https://github.com/UIMSolutions/uim/platform/identity-directory"
 authors "Ozan Nurettin Süel" "UI Manufaktur (R.I.P)"
 copyright "Copyright © 2018-2026, Ozan Nurettin Süel"
@@ -9,39 +9,39 @@ targetPath "build"
 sourcePaths "source"
 importPaths "source"
 
-// Core framework (brings uim-framework, vibe-d 0.10.x and gtk-d). Referenced
-// directly, so the service builds without loading the repository root package.
-dependency "service" path="../../service"
+dependency "vibe-d" version="~>0.10.5"
+dependency "neko-platform:service" path="../../.."
+dependency "uim-framework" version="~>26.11.1"
 
 buildRequirements "allowWarnings" "silenceDeprecations"
 buildOptions "ignoreDeprecations" "debugInfo"
 
 // ── HTTP server: REST (/api/v1) + OData v4 + SCIM 2.0 (/scim/v2) + Fiori app ─
 // dub build            (or --config=defaultRun)
-// ./build/uim-identity-directory-platform-service
+// ./build/neko-directory-platform-service
 configuration "defaultRun" {
 	targetType "executable"
-	targetName "uim-identity-directory-platform-service"
+	targetName "neko-directory-platform-service"
 	mainSourceFile "source/app.d"
 	excludedSourceFiles "source/cli.d" "source/gui.d"
 }
 
 // ── Command line interface ──────────────────────────────────────────────────
 // dub build --config=cli
-// ./build/uim-identity-directory-cli help
+// ./build/neko-directory-cli help
 configuration "cli" {
 	targetType "executable"
-	targetName "uim-identity-directory-cli"
+	targetName "neko-directory-cli"
 	mainSourceFile "source/cli.d"
 	excludedSourceFiles "source/app.d" "source/gui.d"
 }
 
 // ── Desktop GUI (GtkD 3 / GTK 3.24) ─────────────────────────────────────────
 // dub build --config=gui
-// ./build/uim-identity-directory-gui [--tenant=<id>] [--data-dir=<dir>]
+// ./build/neko-directory-gui [--tenant=<id>] [--data-dir=<dir>]
 configuration "gui" {
 	targetType "executable"
-	targetName "uim-identity-directory-gui"
+	targetName "neko-directory-gui"
 	mainSourceFile "source/gui.d"
 	excludedSourceFiles "source/app.d" "source/cli.d"
 	dependency "gtk-d" version="~>3.11.0"

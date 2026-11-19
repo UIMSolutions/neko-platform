@@ -17,10 +17,10 @@ mixin(ShowModule!());
 
 @safe:
 
-enum cliUsage = `uim-identity-directory-cli — SCIM 2.0 identity directory administration (users, groups,
+enum cliUsage = `neko-directory-cli — SCIM 2.0 identity directory administration (users, groups,
 custom schemas, password policies, API clients, audit log)
 
-Usage: uim-identity-directory-cli <command> [arguments] [options]
+Usage: neko-directory-cli <command> [arguments] [options]
 
 Global options:
   --tenant=<id>        tenant (default: configured defaultTenant)
@@ -52,22 +52,22 @@ extended-attributes) as JSON · "@file" reads the value from a file · timestamp
 clients are addressed by id or unique name · --kebab-case = --camelCase.
 
 Example:
-  uim-identity-directory-cli seed
-  uim-identity-directory-cli users create --user-name=jane.doe --given-name=Jane --family-name=Doe \
+  neko-directory-cli seed
+  neko-directory-cli users create --user-name=jane.doe --given-name=Jane --family-name=Doe \
       --emails='[{"value": "jane@example.com"}]' --password=Welcome2026 \
       --extended-attributes='[{"schema": "Enterprise User", "name": "department", "value": "Sales"}]'
-  uim-identity-directory-cli users authenticate jane.doe --password=Welcome2026
-  uim-identity-directory-cli users set-password jane.doe --password=Spring2027x --must-change-password=true
-  uim-identity-directory-cli groups create --display-name=Sales --members='[{"value": "jane.doe"}]'
-  uim-identity-directory-cli groups create --display-name=Contractors --group-type=dynamic \
+  neko-directory-cli users authenticate jane.doe --password=Welcome2026
+  neko-directory-cli users set-password jane.doe --password=Spring2027x --must-change-password=true
+  neko-directory-cli groups create --display-name=Sales --members='[{"value": "jane.doe"}]'
+  neko-directory-cli groups create --display-name=Contractors --group-type=dynamic \
       --membership-rule='userType eq "contractor"'
-  uim-identity-directory-cli groups add-member Sales --member=bob
-  uim-identity-directory-cli schemas create --urn=urn:acme:schemas:extension:hr:1.0:User --name=HR \
+  neko-directory-cli groups add-member Sales --member=bob
+  neko-directory-cli schemas create --urn=urn:acme:schemas:extension:hr:1.0:User --name=HR \
       --attributes='[{"name": "grade", "type": "integer"}]'
-  uim-identity-directory-cli password-policies make-default Strong
-  uim-identity-directory-cli api-clients create --name=Provisioning --scopes=directory.read,directory.write
-  uim-identity-directory-cli api-clients rotate-secret Provisioning
-  uim-identity-directory-cli audit-events list --event-type=LOGIN_FAILURE
+  neko-directory-cli password-policies make-default Strong
+  neko-directory-cli api-clients create --name=Provisioning --scopes=directory.read,directory.write
+  neko-directory-cli api-clients rotate-secret Provisioning
+  neko-directory-cli audit-events list --event-type=LOGIN_FAILURE
 `;
 
 /// Options that belong to the CLI itself, not to a resource payload.
@@ -142,7 +142,7 @@ class DirectoryCli {
         return resource(adapter, a);
       }
     } catch (CliUsageError e) {
-      output("error: " ~ e.msg ~ "\nRun 'uim-identity-directory-cli help' for usage.\n");
+      output("error: " ~ e.msg ~ "\nRun 'neko-directory-cli help' for usage.\n");
       return 2;
     } catch (ResourceError e) {
       output("error %d (%s): %s\n".format(e.status, e.code, e.msg));

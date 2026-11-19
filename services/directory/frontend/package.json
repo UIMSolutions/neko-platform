@@ -1,5 +1,5 @@
 {
-  "name": "uim-identity-directory-ui",
+  "name": "neko-directory-ui",
   "version": "1.0.0",
   "description": "SAP Fiori 3 / UI5 frontend of the UIM Identity Directory service",
   "private": true,

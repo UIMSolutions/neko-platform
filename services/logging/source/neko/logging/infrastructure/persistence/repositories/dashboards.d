@@ -1,0 +1,30 @@
+/****************************************************************************************************************
+* Copyright: © 2018-2026 Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*) 
+* License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file. 
+* Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
+*****************************************************************************************************************/
+module neko.logging.infrastructure.persistence.repositories.dashboards;
+// import neko.logging.domain.entities.dashboard;
+// import neko.logging.domain.ports.repositories.dashboards;
+
+import neko.logging;
+
+mixin(ShowModule!());
+
+@safe:
+class DashboardRepository : TenantRepository!(Dashboard, DashboardId), IDashboardRepository {
+
+  bool existsDefault(TenantId tenantId) {
+    return findByTenant(tenantId).any!(d => d.isDefault);
+  }
+  Dashboard findDefault(TenantId tenantId) {
+    foreach (d; findByTenant(tenantId))
+      if (d.isDefault)
+        return d;
+    return Dashboard.init;
+  }
+  void removeDefault(TenantId tenantId) {
+    remove(findDefault(tenantId));
+  }
+
+}

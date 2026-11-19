@@ -6,9 +6,9 @@
 /// Persistence layer: driven adapters for the repository and storage ports.
 module neko.authorization.persistence;
 
-public {
+public:
   import neko.authorization.persistence.records;
   import neko.authorization.persistence.mappers;
   import neko.authorization.persistence.repositories;
   import neko.authorization.persistence.storages;
-}
+

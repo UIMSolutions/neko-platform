@@ -3,11 +3,11 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.database.presentation.gui.login;
+module neko.database.presentation.gui.controllers.login;
 
-import neko.database.presentation.gui.api;
-import neko.database.presentation.gui.transport : CurlTransport;
-import neko.database.presentation.gui.widgets;
+import neko.database.presentation.gui.models.api;
+import neko.database.presentation.gui.models.transport : CurlTransport;
+import neko.database.presentation.gui.views.widgets;
 import gtk.Window;
 
 /// Fragt Server, Mandant, Benutzer und Passwort ab, bis die Anmeldung gelingt oder abgebrochen wird.

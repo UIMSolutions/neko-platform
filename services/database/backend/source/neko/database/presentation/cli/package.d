@@ -16,3 +16,5 @@ public:
     import neko.database.presentation.cli.remote;
     import neko.database.presentation.cli.shell;
     import neko.database.presentation.cli.statements;
+    import neko.database.presentation.cli.cloud;
+    import neko.database.presentation.cli.cloud_http;

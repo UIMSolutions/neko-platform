@@ -13,6 +13,7 @@
 module app;
 
 import vibe.web.rest : registerRestInterface;
+import uim.service.infrastructure.logging : withRequestLogging;
 import neko.authorization;
 
 @safe:

@@ -1,7 +1,7 @@
 _schema-version: "3.3"
 ID: neko-platform
 version: 1.0.0
-description: Neko Service Platform — D/vibe.d backend (REST, OData v4), SAP Fiori 3 cockpit and approuter
+description: Neko Platform — D/vibe.d backend (REST, OData v4), SAP Fiori 3 cockpit and approuter
 
 # One platform instance per security domain, typically one CF space each:
 #   NEKO_DOMAIN=restricted mbt build && cf deploy mta_archives/neko-platform_1.0.0.mtar

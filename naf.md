@@ -1,4 +1,4 @@
-# Neko Service Platform — NAF v4 Description
+# Neko Platform — NAF v4 Description
 
 Architecture description following the NATO Architecture Framework v4 grid
 (viewpoints C = concepts, L = logical, P = physical resources, S = services,
@@ -8,7 +8,7 @@ A = meta-data).
 
 | Item | Value |
 | --- | --- |
-| Architecture | Neko Service Platform |
+| Architecture | Neko Platform |
 | Scope | One platform instance per security domain, plus the transfer path between them |
 | Status | Baseline (as built) |
 | Sources | `backend/source/neko/service/platform`, `frontend/`, `approuter/`, `mta.yaml` |

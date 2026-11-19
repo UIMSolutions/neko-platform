@@ -1,0 +1,34 @@
+<mvc:View controllerName="hdb.client.controller.Assistant" height="100%" xmlns="sap.m" xmlns:mvc="sap.ui.core.mvc" xmlns:f="sap.f">
+	<f:DynamicPage toggleHeaderOnTitleClick="false" showFooter="true" busy="{view>/busy}">
+		<f:title>
+			<f:DynamicPageTitle>
+				<f:heading><Title text="{i18n>assistant}"/></f:heading>
+				<f:actions>
+					<Button text="{i18n>clearConversation}" type="Transparent" press=".onClear"/>
+				</f:actions>
+				<f:navigationActions>
+					<Button icon="sap-icon://decline" tooltip="{i18n>close}" type="Transparent" press=".onClose"/>
+				</f:navigationActions>
+			</f:DynamicPageTitle>
+		</f:title>
+		<f:content>
+			<VBox>
+				<MessageStrip text="{i18n>assistantHint}" type="Information" class="sapUiSmallMarginBottom"/>
+				<FlexBox wrap="Wrap" items="{view>/suggestions}" class="sapUiSmallMarginBottom">
+					<Button text="{view>}" type="Ghost" press=".onSuggestion" class="sapUiTinyMarginEnd sapUiTinyMarginBottom"/>
+				</FlexBox>
+				<List id="conversation" items="{view>/messages}" noDataText="{i18n>assistantEmpty}" showSeparators="Inner">
+					<FeedListItem sender="{view>sender}" icon="{view>icon}" text="{view>text}" showIcon="true" convertLinksToAnchorTags="None"/>
+				</List>
+			</VBox>
+		</f:content>
+		<f:footer>
+			<OverflowToolbar>
+				<Input id="message" value="{view>/draft}" placeholder="{i18n>assistantPlaceholder}" submit=".onSend" width="100%">
+					<layoutData><OverflowToolbarLayoutData priority="NeverOverflow" shrinkable="true" minWidth="10rem"/></layoutData>
+				</Input>
+				<Button text="{i18n>send}" type="Emphasized" icon="sap-icon://paper-plane" press=".onSend"/>
+			</OverflowToolbar>
+		</f:footer>
+	</f:DynamicPage>
+</mvc:View>

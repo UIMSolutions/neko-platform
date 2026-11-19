@@ -1,4 +1,4 @@
-# Neko Service Platform — UML
+# Neko Platform — UML
 
 ## Component diagram (hexagonal architecture)
 

@@ -3,7 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.database.presentation.gui.api;
+module neko.database.presentation.gui.models.api;
 
 import std.algorithm : canFind, map;
 import std.array : array;
@@ -383,6 +383,16 @@ final class HdbClient {
         return toLogSettings(call("PUT", "/api/v1/logs/" ~ segment(kind) ~ "/settings", body));
     }
 
+    /// Beliebige Anfrage an die REST-API mit Anmeldung (für die Cloud-Seiten). `path` beginnt mit /api/v1.
+    JSONValue request(string method, string path, JSONValue body = JSONValue.init) {
+        return call(method, path, body);
+    }
+
+    /// Pfadsegment, für Namen in URLs.
+    static string pathSegment(string name) {
+        return segment(name);
+    }
+
     /// Eine Anfrage mit JSON. Fehler des Servers werden zu ApiError mit seiner Meldung.
     private JSONValue call(string method, string path, JSONValue body = JSONValue.init, bool authenticated = true) {
         string[string] headers;
@@ -590,3 +600,32 @@ unittest {
     assert(cellText(JSONValue(0.30000000000000004)) == "0.30000000000000004");
     assert(cellText(JSONValue(0.3)) == "0.3" && cellText(JSONValue(true)) == "true");
 }
+
+/// Liste von Objekten als Tabelle: `keys` sind die Felder, `headers` die Überschriften (leer: wie keys).
+Grid jsonGrid(JSONValue list, string[] keys, string[] headers = null) {
+    Grid g;
+    g.columns = headers.length ? headers : keys;
+    if (list.type != JSONType.array)
+        return g;
+    foreach (item; list.arrayNoRef) {
+        string[] row;
+        bool[] nulls;
+        foreach (k; keys) {
+            auto v = item.type == JSONType.object && k in item.objectNoRef ? item.objectNoRef[k] : JSONValue(null);
+            row ~= v.type == JSONType.array ? joinCells(v) : cellText(v);
+            nulls ~= v.type == JSONType.null_;
+        }
+        g.rows ~= row;
+        g.nulls ~= nulls;
+    }
+    g.total = cast(long) g.rows.length;
+    return g;
+}
+
+private string joinCells(JSONValue v) {
+    string r;
+    foreach (i, x; v.arrayNoRef)
+        r ~= (i ? ", " : "") ~ cellText(x);
+    return r;
+}
+

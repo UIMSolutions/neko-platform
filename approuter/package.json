@@ -1,7 +1,7 @@
 {
   "name": "neko-platform-approuter",
   "version": "1.0.0",
-  "description": "Approuter (XSUAA login, routing, CSRF, sessions) for the Neko Service Platform",
+  "description": "Approuter (XSUAA login, routing, CSRF, sessions) for the Neko Platform",
   "private": true,
   "license": "Apache-2.0",
   "engines": { "node": ">=20" },

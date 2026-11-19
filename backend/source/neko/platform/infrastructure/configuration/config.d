@@ -31,7 +31,7 @@ import neko.platform.domain.enumerations;
 enum vcapServiceName = "neko-platform-config";
 
 struct PlatformConfig {
-  string serviceName = "Neko Service Platform";
+  string serviceName = "Neko Platform";
   /// "development" | "production" — informational, shown in the cockpit.
   string environment = "development";
   string host = "127.0.0.1";

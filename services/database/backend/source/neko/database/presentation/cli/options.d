@@ -117,6 +117,7 @@ CliOptions parseCliOptions(string[] args) {
 string cliUsage(string program) {
     return "Usage: " ~ program ~ ` [options] [DIRECTORY]
        ` ~ program ~ ` --socket PATH [--user NAME] [--tenant NAME] [options]
+       ` ~ program ~ ` cloud [--server URL] [--tenant NAME] [--user NAME] COMMAND ...   (see cloud --help)
 
 Local mode: opens the database in DIRECTORY (created if missing) and runs SQL against it, without a server.
 The directory has the same layout as a tenant of the server; only one process may open it at a time,

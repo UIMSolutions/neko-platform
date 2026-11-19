@@ -5,6 +5,6 @@
 *****************************************************************************************************************/
 module neko.authorization.ports.messaging;
 
-public {
+public:
   import neko.authorization.ports.messaging.decisions;
-}
+

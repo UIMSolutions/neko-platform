@@ -5,10 +5,10 @@
 *****************************************************************************************************************/
 /// Die Seiten des Admin-Clients. Jede zeigt nur, was die Rechte der Anmeldung erlauben; geprüft wird trotzdem
 /// immer auf dem Server.
-module neko.database.presentation.gui.pages;
+module neko.database.presentation.gui.views.pages;
 
-import neko.database.presentation.gui.api;
-import neko.database.presentation.gui.widgets;
+import neko.database.presentation.gui.models.api;
+import neko.database.presentation.gui.views.widgets;
 import std.algorithm : canFind, filter, map, sort;
 import std.array : array, join;
 import std.conv : to;
@@ -389,6 +389,11 @@ final class BackupsPage : Page {
         bar.packStart(button("Create backup", &create), false, false, 0);
         bar.packStart(button("Restore", &restore), false, false, 0);
         bar.packStart(button("Delete", &remove), false, false, 0);
+        bar.packStart(button("Retention…", () {
+                import neko.database.presentation.gui.views.cloud : editBackupRetention;
+
+                editBackupRetention(this.client, this.window, this.signedOut);
+            }), false, false, 0);
         grid = new DataGrid();
         box = pageBox();
         box.packStart(bar, false, false, 0);

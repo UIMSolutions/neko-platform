@@ -1,0 +1,39 @@
+<mvc:View controllerName="hdb.client.controller.Bindings" height="100%" xmlns="sap.m" xmlns:mvc="sap.ui.core.mvc" xmlns:f="sap.f" xmlns:core="sap.ui.core">
+	<f:DynamicPage toggleHeaderOnTitleClick="false" showFooter="false" busy="{view>/busy}">
+		<f:title>
+			<f:DynamicPageTitle>
+				<f:heading><Title text="{i18n>bindings}"/></f:heading>
+				<f:actions>
+					<Button text="{i18n>bindApplication}" type="Emphasized" icon="sap-icon://chain-link" press=".onCreate"/>
+					<Button icon="sap-icon://refresh" tooltip="{i18n>refresh}" type="Transparent" press=".onRefresh"/>
+				</f:actions>
+				<f:navigationActions>
+					<Button icon="sap-icon://decline" tooltip="{i18n>close}" type="Transparent" press=".onClose"/>
+				</f:navigationActions>
+			</f:DynamicPageTitle>
+		</f:title>
+		<f:content>
+			<VBox>
+				<MessageStrip text="{i18n>bindingsHint}" type="Information" class="sapUiSmallMarginBottom"/>
+				<Table id="list" items="{path: 'cloud>/Bindings'}" noDataText="{i18n>noBindings}" sticky="ColumnHeaders">
+					<columns>
+						<Column><Text text="{i18n>binding}"/></Column>
+						<Column><Text text="{i18n>application}"/></Column>
+						<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>technicalUser}"/></Column>
+						<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>role}"/></Column>
+						<Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>created}"/></Column>
+						<Column hAlign="End" width="4rem"><Text text=""/></Column>
+					</columns>
+					<ColumnListItem>
+						<Text text="{cloud>name}"/>
+						<Text text="{cloud>application}"/>
+						<Text text="{cloud>user}"/>
+						<Text text="{cloud>role}"/>
+						<Text text="{cloud>createdAt}"/>
+						<Button icon="sap-icon://disconnected" tooltip="{i18n>unbind}" type="Transparent" press=".onDelete"/>
+					</ColumnListItem>
+				</Table>
+			</VBox>
+		</f:content>
+	</f:DynamicPage>
+</mvc:View>

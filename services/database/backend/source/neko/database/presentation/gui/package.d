@@ -8,9 +8,6 @@
 module neko.database.presentation.gui;
 
 public:
-    import neko.database.presentation.gui.api;
-    import neko.database.presentation.gui.transport;
-    import neko.database.presentation.gui.login;
-    import neko.database.presentation.gui.pages;
-    import neko.database.presentation.gui.widgets;
-    import neko.database.presentation.gui.window;
+    import neko.database.presentation.gui.models;
+    import neko.database.presentation.gui.views;
+    import neko.database.presentation.gui.controllers;

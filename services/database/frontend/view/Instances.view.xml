@@ -1,0 +1,47 @@
+<mvc:View controllerName="hdb.client.controller.Instances" height="100%" xmlns="sap.m" xmlns:mvc="sap.ui.core.mvc" xmlns:f="sap.f" xmlns:core="sap.ui.core">
+	<f:DynamicPage toggleHeaderOnTitleClick="false" showFooter="false" busy="{view>/busy}">
+		<f:title>
+			<f:DynamicPageTitle>
+				<f:heading><Title text="{i18n>instances}"/></f:heading>
+				<f:actions>
+					<Button text="{i18n>createInstance}" type="Emphasized" icon="sap-icon://add" press=".onCreate" visible="{app>/canManageInstances}"/>
+					<Button icon="sap-icon://refresh" tooltip="{i18n>refresh}" type="Transparent" press=".onRefresh"/>
+				</f:actions>
+				<f:navigationActions>
+					<Button icon="sap-icon://decline" tooltip="{i18n>close}" type="Transparent" press=".onClose"/>
+				</f:navigationActions>
+			</f:DynamicPageTitle>
+		</f:title>
+		<f:content>
+			<VBox>
+				<MessageStrip text="{i18n>instancesHint}" type="Information" class="sapUiSmallMarginBottom"/>
+				<Table id="list" items="{path: 'cloud>/Instances', parameters: {$$operationMode: 'Server'}}" noDataText="{i18n>noInstances}" sticky="ColumnHeaders" growing="true">
+					<columns>
+						<Column><Text text="{i18n>instance}"/></Column>
+						<Column><Text text="{i18n>status}"/></Column>
+						<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>performanceClass}"/></Column>
+						<Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>sizing}"/></Column>
+						<Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>options}"/></Column>
+						<Column hAlign="End" minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>users}"/></Column>
+						<Column hAlign="End" width="22rem"><Text text=""/></Column>
+					</columns>
+					<ColumnListItem>
+						<ObjectIdentifier title="{cloud>name}" text="{cloud>description}"/>
+						<ObjectStatus text="{cloud>status}" state="{path: 'cloud>status', formatter: '.formatter.statusState'}"/>
+						<Text text="{cloud>performanceClass}"/>
+						<Text text="{parts: ['cloud>memoryGb', 'cloud>vcpus', 'cloud>storageGb'], formatter: '.formatter.sizing'}"/>
+						<Text text="{= (${cloud>nseEnabled} ? 'NSE' : '') + (${cloud>ecnNodes} > 0 ? ' · ECN ' + ${cloud>ecnNodes} : '') }"/>
+						<Text text="{cloud>users}"/>
+						<HBox justifyContent="End" visible="{app>/canManageInstances}">
+							<Button text="{i18n>start}" type="Transparent" visible="{= ${cloud>status} !== 'running' }" press=".onStart"/>
+							<Button text="{i18n>stop}" type="Transparent" visible="{= ${cloud>status} === 'running' }" press=".onStop"/>
+							<Button text="{i18n>resize}" type="Transparent" press=".onResize"/>
+							<Button text="{i18n>advisors}" type="Transparent" press=".onAdvisors"/>
+							<Button icon="sap-icon://delete" tooltip="{i18n>delete}" type="Transparent" press=".onDelete"/>
+						</HBox>
+					</ColumnListItem>
+				</Table>
+			</VBox>
+		</f:content>
+	</f:DynamicPage>
+</mvc:View>

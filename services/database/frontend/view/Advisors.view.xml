@@ -1,0 +1,38 @@
+<mvc:View controllerName="hdb.client.controller.Advisors" height="100%" xmlns="sap.m" xmlns:mvc="sap.ui.core.mvc" xmlns:f="sap.f" xmlns:core="sap.ui.core">
+	<f:DynamicPage toggleHeaderOnTitleClick="false" showFooter="false" busy="{view>/busy}">
+		<f:title>
+			<f:DynamicPageTitle>
+				<f:heading><Title text="{i18n>advisors}"/></f:heading>
+				<f:actions>
+					<Button text="{i18n>runAdvisors}" type="Emphasized" icon="sap-icon://lightbulb" press=".onRun"/>
+					<Button icon="sap-icon://refresh" tooltip="{i18n>refresh}" type="Transparent" press=".onRefresh"/>
+				</f:actions>
+				<f:navigationActions>
+					<Button icon="sap-icon://decline" tooltip="{i18n>close}" type="Transparent" press=".onClose"/>
+				</f:navigationActions>
+			</f:DynamicPageTitle>
+		</f:title>
+		<f:content>
+			<VBox>
+				<MessageStrip text="{i18n>advisorsHint}" type="Information" class="sapUiSmallMarginBottom"/>
+				<Table id="list" items="{path: 'cloud>/Recommendations'}" noDataText="{i18n>noRecommendations}" sticky="ColumnHeaders" growing="true">
+					<columns>
+						<Column width="9rem"><Text text="{i18n>advisor}"/></Column>
+						<Column width="7rem"><Text text="{i18n>severity}"/></Column>
+						<Column><Text text="{i18n>recommendation}"/></Column>
+						<Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>action}"/></Column>
+					</columns>
+					<ColumnListItem>
+						<Text text="{cloud>advisor}"/>
+						<ObjectStatus text="{cloud>severity}" state="{path: 'cloud>severity', formatter: '.formatter.severityState'}"/>
+						<VBox>
+							<Text text="{cloud>title}" class="sapUiTinyMarginBottom"/>
+							<Text text="{cloud>detail}"/>
+						</VBox>
+						<Text text="{cloud>action}"/>
+					</ColumnListItem>
+				</Table>
+			</VBox>
+		</f:content>
+	</f:DynamicPage>
+</mvc:View>

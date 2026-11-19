@@ -3,9 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.database.presentation.gui.transport;
+module neko.database.presentation.gui.models.transport;
 
-import neko.database.presentation.gui.api : HttpReply, IHttpTransport;
+import neko.database.presentation.gui.models.api : HttpReply, IHttpTransport;
 import core.time : seconds;
 import std.exception : enforce;
 import etc.c.curl : CurlOption;

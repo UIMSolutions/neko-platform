@@ -1,0 +1,85 @@
+<mvc:View controllerName="hdb.client.controller.Monitoring" height="100%" xmlns="sap.m" xmlns:mvc="sap.ui.core.mvc" xmlns:f="sap.f">
+	<f:DynamicPage toggleHeaderOnTitleClick="false" showFooter="false" busy="{view>/busy}">
+		<f:title>
+			<f:DynamicPageTitle>
+				<f:heading><Title text="{i18n>monitoring}"/></f:heading>
+				<f:actions>
+					<Button text="{i18n>issueSummary}" type="Emphasized" icon="sap-icon://stethoscope" press=".onSummary"/>
+					<Button text="{i18n>traceSettings}" icon="sap-icon://action-settings" press=".onSettings" visible="{app>/canWorkloads}"/>
+					<Button text="{i18n>clearTrace}" icon="sap-icon://delete" press=".onClear" visible="{app>/canWorkloads}"/>
+					<Button icon="sap-icon://refresh" tooltip="{i18n>refresh}" type="Transparent" press=".onRefresh"/>
+				</f:actions>
+				<f:navigationActions>
+					<Button icon="sap-icon://decline" tooltip="{i18n>close}" type="Transparent" press=".onClose"/>
+				</f:navigationActions>
+			</f:DynamicPageTitle>
+		</f:title>
+		<f:content>
+			<VBox>
+				<FlexBox wrap="Wrap" class="sapUiSmallMarginBottom">
+					<VBox class="sapUiLargeMarginEnd sapUiSmallMarginBottom">
+						<Label text="{i18n>statements}"/>
+						<Title text="{view>/overview/statements}" titleStyle="H2"/>
+					</VBox>
+					<VBox class="sapUiLargeMarginEnd sapUiSmallMarginBottom">
+						<Label text="{i18n>errors}"/>
+						<ObjectNumber number="{view>/overview/errors}" state="{= ${view>/overview/errors} > 0 ? 'Error' : 'None' }" class="sapMObjectNumberLarge"/>
+					</VBox>
+					<VBox class="sapUiLargeMarginEnd sapUiSmallMarginBottom">
+						<Label text="{i18n>expensiveStatements}"/>
+						<Title text="{view>/overview/expensive}" titleStyle="H2"/>
+					</VBox>
+					<VBox class="sapUiLargeMarginEnd sapUiSmallMarginBottom">
+						<Label text="{i18n>violations}"/>
+						<ObjectNumber number="{view>/overview/violations}" state="{= ${view>/overview/violations} > 0 ? 'Warning' : 'None' }" class="sapMObjectNumberLarge"/>
+					</VBox>
+					<VBox class="sapUiLargeMarginEnd sapUiSmallMarginBottom">
+						<Label text="{i18n>averageDuration}"/>
+						<Title text="{path: 'view>/overview/current/avgMs', formatter: '.formatter.ms'}" titleStyle="H2"/>
+					</VBox>
+					<VBox class="sapUiLargeMarginEnd sapUiSmallMarginBottom">
+						<Label text="{i18n>memory}"/>
+						<Title text="{path: 'view>/last/memoryBytes', formatter: '.formatter.bytes'}" titleStyle="H2"/>
+					</VBox>
+					<VBox class="sapUiLargeMarginEnd sapUiSmallMarginBottom">
+						<Label text="{i18n>cpu}"/>
+						<Title text="{path: 'view>/last/cpuPercent', formatter: '.formatter.percent'}" titleStyle="H2"/>
+					</VBox>
+					<VBox class="sapUiLargeMarginEnd sapUiSmallMarginBottom">
+						<Label text="{i18n>cores}"/>
+						<Title text="{view>/overview/workers}" titleStyle="H2"/>
+					</VBox>
+				</FlexBox>
+				<MessageStrip text="{view>/summary}" type="{= ${view>/summaryErrors} > 0 ? 'Warning' : 'Success' }" visible="{= !!${view>/summary} }" showIcon="true" class="sapUiSmallMarginBottom"/>
+				<SegmentedButton selectedKey="{view>/kind}" selectionChange=".onKind" class="sapUiSmallMarginBottom">
+					<items>
+						<SegmentedButtonItem key="" text="{i18n>allEntries}"/>
+						<SegmentedButtonItem key="error" text="{i18n>errors}"/>
+						<SegmentedButtonItem key="expensive" text="{i18n>expensiveStatements}"/>
+						<SegmentedButtonItem key="violation" text="{i18n>violations}"/>
+						<SegmentedButtonItem key="sql" text="{i18n>sqlTrace}"/>
+					</items>
+				</SegmentedButton>
+				<Table id="list" items="{path: 'cloud>/Traces', sorter: {path: 'id', descending: true}}" noDataText="{i18n>noTraces}" sticky="ColumnHeaders" growing="true" growingThreshold="50">
+					<columns>
+						<Column width="11rem"><Text text="{i18n>time}"/></Column>
+						<Column width="7rem"><Text text="{i18n>kind}"/></Column>
+						<Column minScreenWidth="Tablet" demandPopin="true" width="8rem"><Text text="{i18n>user}"/></Column>
+						<Column hAlign="End" width="6rem"><Text text="{i18n>duration}"/></Column>
+						<Column><Text text="{i18n>statement}"/></Column>
+					</columns>
+					<ColumnListItem>
+						<Text text="{cloud>time}"/>
+						<ObjectStatus text="{cloud>kind}" state="{path: 'cloud>kind', formatter: '.formatter.traceState'}"/>
+						<Text text="{cloud>user}"/>
+						<Text text="{path: 'cloud>durationMs', formatter: '.formatter.ms'}"/>
+						<VBox>
+							<Text text="{cloud>statement}"/>
+							<Text text="{cloud>error}" visible="{= !!${cloud>error} }" class="sapUiTinyMarginTop sapMMsgStripError"/>
+						</VBox>
+					</ColumnListItem>
+				</Table>
+			</VBox>
+		</f:content>
+	</f:DynamicPage>
+</mvc:View>

@@ -3,12 +3,13 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.database.presentation.gui.window;
+module neko.database.presentation.gui.controllers.window;
 
-import neko.database.presentation.gui.api;
-import neko.database.presentation.gui.login : signIn;
-import neko.database.presentation.gui.pages;
-import neko.database.presentation.gui.widgets;
+import neko.database.presentation.gui.models.api;
+import neko.database.presentation.gui.controllers.login : signIn;
+import neko.database.presentation.gui.views.pages;
+import neko.database.presentation.gui.views.widgets;
+import neko.database.presentation.gui.views.cloud;
 import gtk.Box;
 import gtk.Button;
 import gtk.HeaderBar;
@@ -66,6 +67,8 @@ final class AdminWindow : MainWindow {
         Page[] list;
         void delegate() expired = &sessionExpired;
         if (me.isSystem) {
+            if (me.can("viewInstances"))
+                list ~= instancesPage(client, this, expired);
             if (me.can("viewTenants"))
                 list ~= new TenantsPage(client, this, expired);
         } else {
@@ -74,7 +77,18 @@ final class AdminWindow : MainWindow {
             list ~= new StatsPage(client, this, expired);
             if (me.can("manageBackups"))
                 list ~= new BackupsPage(client, this, expired);
+            if (me.can("monitor")) {
+                list ~= new MonitoringPage(client, this, expired);
+                list ~= advisorsPage(client, this, expired);
+            }
+            if (me.can("monitor") || me.can("manageWorkloads"))
+                list ~= workloadsPage(client, this, expired);
+            list ~= viewsPage(client, this, expired);
+            if (me.can("manageBindings"))
+                list ~= bindingsPage(client, this, expired);
+            list ~= productsPage(client, this, expired);
         }
+        list ~= new AssistantPage(client, this, expired);
         if (me.can("manageAccess"))
             list ~= new UsersPage(client, this, expired);
         if (me.can("viewLogs")) {

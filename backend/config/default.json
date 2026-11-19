@@ -1,5 +1,5 @@
 {
-  "serviceName": "Neko Service Platform",
+  "serviceName": "Neko Platform",
   "environment": "development",
   "host": "127.0.0.1",
   "transport": "tcp",

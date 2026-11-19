@@ -1,4 +1,4 @@
-# Neko Service Platform
+# Neko Platform
 
 A service platform for organisations that separate their IT into **security
 domains** — `open` → `restricted` → `confidential` → `secret`. Every domain runs

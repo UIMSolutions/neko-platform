@@ -1,7 +1,7 @@
 {
   "name": "neko-platform-ui",
   "version": "1.0.0",
-  "description": "SAP Fiori 3 (OpenUI5) cockpit of the Neko Service Platform",
+  "description": "SAP Fiori 3 (OpenUI5) cockpit of the Neko Platform",
   "private": true,
   "license": "Apache-2.0",
   "scripts": {

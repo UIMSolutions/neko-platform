@@ -3,7 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// hdb-cli: SQL-Shell. Lokal läuft die Datenbank wie in neko.database.embedded im eigenen Prozess, ohne Anmeldung und
+/// hdb-cli: SQL-Shell und Cloud-Verwaltung (hdb-cli cloud --help). Lokal läuft die Datenbank wie in neko.database.embedded im eigenen Prozess, ohne Anmeldung und
 /// Rollen; mit --socket ist hdb-cli Client eines laufenden Servers. dub run --config=cli -- --help
 module cli;
 
@@ -12,6 +12,9 @@ import neko.database.presentation.cli;
 
 int main(string[] args) @safe {
     auto program = args.length ? baseName(args[0]) : "hdb-cli";
+    // hdb-cli cloud …: Verwaltung eines laufenden Servers über REST (Instanzen, Workloads, Advisor, …)
+    if (args.length > 1 && args[1] == "cloud")
+        return runCloud(program, args[2 .. $]);
     auto output = new ConsoleOutput;
     CliOptions options;
     try

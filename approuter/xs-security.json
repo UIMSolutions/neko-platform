@@ -1,7 +1,7 @@
 {
   "xsappname": "neko-platform",
   "tenant-mode": "dedicated",
-  "description": "Neko Service Platform (one instance per security domain)",
+  "description": "Neko Platform (one instance per security domain)",
   "scopes": [
     { "name": "$XSAPPNAME.Viewer", "description": "Display the service catalogue and the transfer log" },
     { "name": "$XSAPPNAME.Admin", "description": "Register and operate services, export and import transfer packages" }

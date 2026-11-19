@@ -4,8 +4,8 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Application-wide validators.
-module uim.platform.identity_directory.application.validations;
+module neko.directory.application.validations;
 
 public {
-  import uim.platform.identity_directory.application.validations.contacts;
+  import neko.directory.application.validations.contacts;
 }

@@ -1,0 +1,37 @@
+/****************************************************************************************************************
+* Copyright: © 2018-2026 Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*) 
+* License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file. 
+* Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
+*****************************************************************************************************************/
+module neko.directory.infrastructure.persistence.repositories.api_clients;
+// import neko.directory.domain.entities.api_client;
+
+// import neko.directory.domain.ports.repositories.api_clients;
+import neko.directory;
+
+mixin(ShowModule!());
+
+@safe:
+/// In-memory adapter for API client persistence.
+class ApiClientRepository : TenantRepository!(ApiClient, ApiClientId), IApiClientRepository {
+  bool existsByClient(TenantId tenantId, string clientId) {
+    return findByTenant(tenantId).any!(c => c.clientId == clientId);
+  }
+
+  ApiClient findByClient(TenantId tenantId, string clientId) {
+    foreach (c; findByTenant(tenantId)) {
+      if (c.clientId == clientId)
+        return c;
+    }
+    return ApiClient.init;
+  }
+
+  void removeByClient(TenantId tenantId, string clientId) {
+    remove(findByClient(tenantId, clientId));
+  }
+}
+
+///
+unittest {
+    assert(tenantRepositoryTest(new ApiClientRepository()));
+}

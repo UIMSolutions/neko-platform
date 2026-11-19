@@ -1,85 +1,85 @@
 extends layout
 
 block content
-  div.card.bg-base-100.shadow
-    div.card-body
-      div.flex.items-center.justify-between.gap-2
-        h2.card-title Tenants
-        button.btn.btn-primary.btn-sm(type="button", onclick="tenant_modal.showModal()")
-          i(data-lucide="building-2", class="w-4 h-4")
-          | New tenant
-      p.text-sm.opacity-70 Each tenant has its own tables, users and backups. Users sign in with the tenant name. As a system administrator you manage tenants, but you can't see their data.
-      div.overflow-x-auto
-        table.table
-          thead
+  article.round.border
+    div.toolbar
+      h6.max Tenants
+      button.small(type="button", onclick="tenant_modal.showModal()")
+        i domain_add
+        span New tenant
+    p.small-text.muted Each tenant has its own tables, users and backups. Users sign in with the tenant name. As a system administrator you manage tenants, but you can't see their data.
+    div.scroll-box
+      table.stripes
+        thead
+          tr
+            th Tenant
+            th Label
+            th.right-align Users
+            th Networks
+            th Status
+            th.right-align Actions
+        tbody
+          - foreach (t; rows)
             tr
-              th Tenant
-              th Label
-              th.text-right Users
-              th Networks
-              th Status
-              th.text-right Actions
-          tbody
-            - foreach (t; rows)
-              tr
-                td
-                  span.font-mono #{t.name}
-                td
-                  form.flex.gap-2(action="/admin/tenants/#{t.name}/update", method="POST")
-                    - if (t.active)
-                      input(type="hidden", name="active", value="1")
-                    input.input.input-sm.w-48(type="text", name="label", value=t.label, maxlength="100", aria-label="Label of #{t.name}")
-                    button.btn.btn-ghost.btn-xs(type="submit") Save
-                td.text-right #{t.users}
-                td
-                  details
-                    summary.cursor-pointer.text-sm #{t.networkCount == 0 ? "All" : t.networkCount == 1 ? "1 network" : t.networkCount.to!string ~ " networks"}
-                    form.mt-2(action="/admin/tenants/#{t.name}/networks", method="POST")
-                      textarea.textarea.textarea-sm.w-56.font-mono(name="networks", rows="4", spellcheck="false", aria-label="Allowed networks of #{t.name}") #{t.networksText}
-                      button.btn.btn-ghost.btn-xs.mt-1(type="submit") Save
-                td
+              td
+                span.mono #{t.name}
+              td
+                form.toolbar(action="/admin/tenants/#{t.name}/update", method="POST")
                   - if (t.active)
-                    span.badge.badge-success.badge-sm Active
-                  - else
-                    span.badge.badge-ghost.badge-sm Disabled
-                td.text-right.whitespace-nowrap
-                  - if (t.active)
-                    form.inline(action="/admin/tenants/#{t.name}/update", method="POST", data-confirm="Disable tenant #{t.name}? Its users are signed out and can't sign in until you enable it again.")
-                      input(type="hidden", name="label", value=t.label)
-                      button.btn.btn-ghost.btn-xs(type="submit") Disable
-                  - else
-                    form.inline(action="/admin/tenants/#{t.name}/update", method="POST")
-                      input(type="hidden", name="label", value=t.label)
-                      input(type="hidden", name="active", value="1")
-                      button.btn.btn-ghost.btn-xs(type="submit") Enable
-                    form.inline(action="/admin/tenants/#{t.name}/delete", method="POST", data-confirm-name=t.name, data-confirm-what="tenant #{t.name} with all its users, tables and backups")
-                      button.btn.btn-ghost.btn-xs.text-error(type="submit") Delete
-            - if (rows.length == 0)
-              tr
-                td.opacity-60(colspan="6") No tenants yet
-      p.text-sm.opacity-70 Disable a tenant before you delete it. Deleting removes its users, tables and backups for good.
+                    input(type="hidden", name="active", value="1")
+                  div.field.small.border
+                    input(type="text", name="label", value=t.label, maxlength="100", aria-label="Label of #{t.name}")
+                  button.small.transparent(type="submit") Save
+              td.right-align #{t.users}
+              td
+                details
+                  summary.small-text #{t.networkCount == 0 ? "All" : t.networkCount == 1 ? "1 network" : t.networkCount.to!string ~ " networks"}
+                  form(action="/admin/tenants/#{t.name}/networks", method="POST")
+                    div.field.textarea.small.border
+                      textarea.mono(name="networks", rows="4", spellcheck="false", aria-label="Allowed networks of #{t.name}") #{t.networksText}
+                    button.small.transparent(type="submit") Save
+              td
+                - if (t.active)
+                  span.chip.small.primary Active
+                - else
+                  span.chip.small Disabled
+              td.right-align.nowrap
+                - if (t.active)
+                  form.inline(action="/admin/tenants/#{t.name}/update", method="POST", data-confirm="Disable tenant #{t.name}? Its users are signed out and can't sign in until you enable it again.")
+                    input(type="hidden", name="label", value=t.label)
+                    button.small.transparent(type="submit") Disable
+                - else
+                  form.inline(action="/admin/tenants/#{t.name}/update", method="POST")
+                    input(type="hidden", name="label", value=t.label)
+                    input(type="hidden", name="active", value="1")
+                    button.small.transparent(type="submit") Enable
+                  form.inline(action="/admin/tenants/#{t.name}/delete", method="POST", data-confirm-name=t.name, data-confirm-what="tenant #{t.name} with all its users, tables and backups")
+                    button.small.transparent.error-text(type="submit") Delete
+          - if (rows.length == 0)
+            tr
+              td.muted(colspan="6") No tenants yet
+    p.small-text.muted Disable a tenant before you delete it. Deleting removes its users, tables and backups for good.
 
-  dialog#tenant_modal.modal
-    div.modal-box
-      h3.font-bold.text-lg.mb-4 New tenant
-      form(action="/admin/tenants", method="POST")
-        label.block.mb-3
-          span.block.text-sm.mb-1 Tenant name
-          input.input.w-full.font-mono(type="text", name="tenant", required=true, maxlength="32", pattern="[a-z0-9][a-z0-9_\\-]*", autocomplete="off", autocapitalize="none", spellcheck="false")
-          span.block.text-xs.opacity-60.mt-1 Lowercase letters, digits, '_' and '-'. Users type it when they sign in, and it can't be changed later.
-        label.block.mb-3
-          span.block.text-sm.mb-1 Label (optional)
-          input.input.w-full(type="text", name="label", maxlength="100", autocomplete="off")
-        div.divider.text-sm First administrator
-        label.block.mb-3
-          span.block.text-sm.mb-1 User name
-          input.input.w-full.font-mono(type="text", name="user", required=true, value="admin", autocomplete="off")
-        label.block.mb-3
-          span.block.text-sm.mb-1 Password (at least 12 characters)
-          input.input.w-full(type="password", name="password", required=true, minlength="12", autocomplete="new-password")
-        label.block.mb-3
-          span.block.text-sm.mb-1 Repeat password
-          input.input.w-full(type="password", name="confirm", required=true, minlength="12", autocomplete="new-password")
-        div.modal-action
-          button.btn.btn-ghost(type="button", onclick="tenant_modal.close()") Cancel
-          button.btn.btn-primary(type="submit") Create tenant
+  dialog#tenant_modal
+    h5 New tenant
+    form(action="/admin/tenants", method="POST")
+      div.field.label.border
+        input.mono(type="text", name="tenant", required=true, maxlength="32", pattern="[a-z0-9][a-z0-9_\\-]*", autocomplete="off", autocapitalize="none", spellcheck="false")
+        label Tenant name
+        span.helper Lowercase letters, digits, '_' and '-'. Users type it when they sign in, and it can't be changed later.
+      div.field.label.border
+        input(type="text", name="label", maxlength="100", autocomplete="off")
+        label Label (optional)
+      p.small-text.bold First administrator
+      div.field.label.border
+        input.mono(type="text", name="user", required=true, value="admin", autocomplete="off")
+        label User name
+      div.field.label.border
+        input(type="password", name="password", required=true, minlength="12", autocomplete="new-password")
+        label Password (at least 12 characters)
+      div.field.label.border
+        input(type="password", name="confirm", required=true, minlength="12", autocomplete="new-password")
+        label Repeat password
+      nav.right-align
+        button.transparent(type="button", onclick="tenant_modal.close()") Cancel
+        button(type="submit") Create tenant

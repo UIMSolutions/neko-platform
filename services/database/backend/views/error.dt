@@ -1,4 +1,6 @@
 extends layout
 
 block content
-  a.btn.btn-sm(href="/admin") Back to dashboard
+  a.button.border(href="/admin")
+    i arrow_back
+    span Back to dashboard

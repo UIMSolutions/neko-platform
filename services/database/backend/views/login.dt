@@ -1,33 +1,42 @@
 doctype html
-html(lang="en", data-theme="dark")
+html(lang="en")
   head
     meta(charset="utf-8")
     meta(name="viewport", content="width=device-width, initial-scale=1")
     title Sign in - hdb Admin
     link(rel="icon", href="data:,")
-    link(href="https://cdn.jsdelivr.net/npm/daisyui@5.7.50/daisyui.css", rel="stylesheet", type="text/css")
-    script(src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4")
+    link(href="https://cdn.jsdelivr.net/npm/beercss@3.13.3/dist/cdn/beer.min.css", rel="stylesheet")
+    link(href="/admin.css", rel="stylesheet")
+    script(type="module", src="https://cdn.jsdelivr.net/npm/beercss@3.13.3/dist/cdn/beer.min.js")
 
-  body.bg-base-200.min-h-screen.flex.items-center.justify-center.p-4
-    div.card.bg-base-100.shadow.w-full.max-w-sm
-      div.card-body
-        h1.card-title.text-2xl.mb-2 hdb Admin
+  //- Ohne hx-boost: nach der Anmeldung lädt die Admin-Oberfläche mit ihrem eigenen Gerüst (htmx, admin.js)
+  body.dark
+    main.responsive.login
+      article.round.border.login-card
+        header
+          nav
+            i.primary-text database
+            h5.max hdb Admin
         - if (loginNotice.length)
-          div.alert.alert-success(role="status")
+          article.round.primary-container.notice(role="status")
+            i check_circle
             span #{loginNotice}
         - if (loginError.length)
-          div.alert.alert-error(role="alert")
+          article.round.error-container.notice(role="alert")
+            i error
             span #{loginError}
         form(action="/admin/login", method="POST")
           - if (!singleTenant)
-            label.block.mb-3
-              span.block.text-sm.mb-1 Tenant
-              input.input.w-full.font-mono(type="text", name="tenant", value=tenantValue, placeholder="default", autocomplete="organization", autocapitalize="none", spellcheck="false")
-              span.block.text-xs.opacity-60.mt-1 Leave empty for the default tenant. System administrators use "system".
-          label.block.mb-3
-            span.block.text-sm.mb-1 User name
-            input.input.w-full(type="text", name="user", required=true, autofocus=true, autocomplete="username")
-          label.block.mb-4
-            span.block.text-sm.mb-1 Password
-            input.input.w-full(type="password", name="password", required=true, autocomplete="current-password")
-          button.btn.btn-primary.w-full(type="submit") Sign in
+            div.field.label.border
+              input.mono(type="text", name="tenant", value=tenantValue, autocomplete="organization", autocapitalize="none", spellcheck="false")
+              label Tenant
+              span.helper Leave empty for the default tenant. System administrators use "system".
+          div.field.label.border
+            input(type="text", name="user", required=true, autofocus=true, autocomplete="username")
+            label User name
+          div.field.label.border
+            input(type="password", name="password", required=true, autocomplete="current-password")
+            label Password
+          button.responsive(type="submit")
+            i login
+            span Sign in

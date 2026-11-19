@@ -25,7 +25,7 @@ docs/
 
 # Build output
 backend/build/
-services/*/backend/build/
+services/*
 backend/dist/
 
 # Runtime data (JSON documents per security domain)

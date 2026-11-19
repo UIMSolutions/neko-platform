@@ -20,7 +20,7 @@ dependency "uim-framework:oop" version="~>26.11.1"
 // dub build          ./build/hdb
 configuration "application" {
     targetType "executable"
-    targetName "hdb"
+    targetName "neko-database"
     mainSourceFile "source/app.d"
     dependency "vibe-d" version="~>0.10.5"
     dependency "uim-framework:oop" version="~>26.11.1"
@@ -62,7 +62,7 @@ configuration "gui" {
 // dub build --config=library
 configuration "library" {
     targetType "library"
-    targetName "hdb"
+    targetName "neko-database"
     dependency "vibe-d" version="~>0.10.5"
     dependency "uim-framework:oop" version="~>26.11.1"
     dependency "neko-platform:service" path="../../.."

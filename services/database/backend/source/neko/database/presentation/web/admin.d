@@ -283,6 +283,7 @@ final class SqlAdminUi {
         router.post("/admin/backups", &createBackup);
         router.post("/admin/backups/upload", &uploadBackup);
         router.post("/admin/backups/schedule", &updateSchedule);
+        router.post("/admin/backups/retention", &updateRetention);
         router.get("/admin/backups/:backup/download", &downloadBackup);
         router.post("/admin/backups/:backup/restore", &restoreBackup);
         router.post("/admin/backups/:backup/delete", &deleteBackup);
@@ -694,6 +695,13 @@ final class SqlAdminUi {
             backups.updateSchedule(req.form.get("enabled", "") == "1", req.form.get("intervalHours", "").to!int,
                 req.form.get("keepScheduled", "").to!int, req.form.get("keepSafety", "").to!int);
             return "Schedule saved";
+        });
+    }
+
+    private void updateRetention(HTTPServerRequest req, HTTPServerResponse res) {
+        act(req, res, "/admin/backups", {
+            auto days = backups.updateRetention(req.form.get("retentionDays", "").to!int).retentionDays;
+            return days ? "Automatic backups are kept for " ~ days.to!string ~ " days" : "Automatic backups are kept by count only";
         });
     }
 

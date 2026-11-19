@@ -1,6 +1,0 @@
-extends layout
-
-block content
-  a.button.border(href="/admin")
-    i arrow_back
-    span Back to dashboard

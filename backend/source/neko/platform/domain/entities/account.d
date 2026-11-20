@@ -24,6 +24,9 @@ struct UserAccount {
   /// Names of the assigned roles, sorted, without duplicates. What the
   /// account may do is the union of their rights.
   string[] roles;
+  /// Keys of the sites the account works on, sorted; empty = every site.
+  /// Site rights (sites.*, files.*) only apply to these sites.
+  string[] sites;
   bool active = true;
   /// Produced by the password hasher port; never the password itself.
   string passwordHash;
@@ -34,6 +37,24 @@ struct UserAccount {
 
   bool hasRole(string name) const pure nothrow {
     return roles.canFind(name);
+  }
+
+  /// Not limited to some sites.
+  bool allSites() const pure nothrow {
+    return sites.length == 0;
+  }
+
+  bool mayAccessSite(string key) const pure nothrow {
+    return allSites || sites.canFind(key);
+  }
+
+  /// Empty = every site.
+  void limitToSites(const(SiteKey)[] keys, SysTime now) {
+    string[] list;
+    foreach (k; keys)
+      list ~= k.value;
+    sites = list.sort.uniq.array;
+    modifiedAt = now;
   }
 
   /// Holds the built-in administrator role.
@@ -105,6 +126,9 @@ unittest {
   assert(a.isActiveAdmin);
   a.setActive(false, now);
   assert(!a.isActiveAdmin);
+  assert(a.allSites && a.mayAccessSite("shop"));
+  a.limitToSites([SiteKey("shop"), SiteKey("blog"), SiteKey("shop")], now);
+  assert(a.sites == ["blog", "shop"] && a.mayAccessSite("shop") && !a.mayAccessSite("main"));
 
   bool rejected;
   try

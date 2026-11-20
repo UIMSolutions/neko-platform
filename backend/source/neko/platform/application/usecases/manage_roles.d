@@ -99,6 +99,11 @@ class ManageRolesUseCase : IManageRolesUseCase {
       Role existing;
       if (!roles.tryGet(role.name.value, existing))
         roles.save(role);
+      else if (existing.builtIn && existing.upgradeBuiltIn(role)) {
+        roles.save(existing);
+        emit("role.upgraded", existing.name.value, "system", "Granted the new rights of this version to "
+            ~ existing.name.value ~ " (" ~ rightList(existing) ~ ")");
+      }
     }
   }
 

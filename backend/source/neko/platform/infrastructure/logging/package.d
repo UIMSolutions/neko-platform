@@ -13,24 +13,9 @@ import neko.platform.ports.messaging;
 
 /// Map a configured level name to vibe.d; unknown names fall back to info.
 void configureLogging(string level) {
-  LogLevel l;
-  switch (level) {
-  case "trace":
-    l = LogLevel.trace;
-    break;
-  case "debug":
-    l = LogLevel.debug_;
-    break;
-  case "warn":
-    l = LogLevel.warn;
-    break;
-  case "error":
-    l = LogLevel.error;
-    break;
-  default:
-    l = LogLevel.info;
-  }
-  setLogLevel(l);
+  import neko.platform.infrastructure.monitoring : parseLogLevel;
+
+  setLogLevel(parseLogLevel(level));
 }
 
 /// Writes every domain event to the log and keeps the latest ones in memory
@@ -38,6 +23,7 @@ void configureLogging(string level) {
 class LoggingEventPublisher : IEventPublisher {
   private PlatformEvent[] buffer;
   private size_t capacity;
+  private long[string] counts;
 
   this(size_t capacity = 100) {
     this.capacity = capacity;
@@ -46,8 +32,14 @@ class LoggingEventPublisher : IEventPublisher {
   void publish(PlatformEvent event) {
     logInfo("[event] %s %s by %s: %s", event.type, event.subject, event.actor, event.message);
     buffer ~= event;
+    counts[event.type]++;
     if (buffer.length > capacity)
       buffer = buffer[$ - capacity .. $];
+  }
+
+  /// Events per type since the start.
+  long[string] countsByType() {
+    return counts.dup;
   }
 
   /// Newest first.

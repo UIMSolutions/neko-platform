@@ -22,7 +22,8 @@ import core.sys.posix.sys.stat : S_IFMT, S_IFSOCK;
 import vibe.core.log : logInfo, logWarn;
 import vibe.data.json;
 import vibe.http.router : URLRouter;
-import vibe.http.server : HTTPListener, HTTPServerErrorPageHandler, HTTPServerRequest, HTTPServerResponse;
+import vibe.http.server : HTTPListener, HTTPServerErrorPageHandler, HTTPServerRequest, HTTPServerRequestHandler,
+  HTTPServerResponse;
 import neko.platform.presentation.unix.listener : listenOnUnixSocket;
 
 @safe:
@@ -48,13 +49,14 @@ class UnixSocketController {
     router.get("/api/v1/socket", &info);
   }
 
-  /// Start serving `router` on the socket. Throws if already listening, if the
+  /// Start serving `handler` (the router, possibly wrapped) on the socket. Throws if already listening, if the
   /// path is not absolute, or if a non-socket file occupies the path.
   /// `errorPages` renders error responses (null = vibe.d default).
-  void start(URLRouter router, HTTPServerErrorPageHandler errorPages = null) {
+  void start(HTTPServerRequestHandler handler, HTTPServerErrorPageHandler errorPages = null,
+      ulong maxRequestSize = 0) {
     if (_listening)
       throw new Exception("Unix socket " ~ _path ~ " is already listening");
-    listener = listenOnUnixSocket(_path, router, _mode, errorPages);
+    listener = listenOnUnixSocket(_path, handler, _mode, errorPages, maxRequestSize);
     _listening = true;
     since = Clock.currTime;
   }

@@ -65,6 +65,8 @@ struct UserDto {
   string[] roles;
   /// Effective access right keys: the union of the rights of the roles.
   string[] rights;
+  /// Site keys the account is limited to; empty = every site.
+  string[] sites;
   bool active;
   string createdAt;
   string modifiedAt;
@@ -86,6 +88,16 @@ struct UserDto {
 
   string label() const pure nothrow {
     return displayName.length > 0 ? displayName : userName;
+  }
+
+  bool allSites() const pure nothrow {
+    return sites.length == 0;
+  }
+
+  bool mayAccessSite(string key) const pure nothrow {
+    import std.algorithm : canFind;
+
+    return allSites || sites.canFind(key);
   }
 }
 
@@ -117,6 +129,117 @@ struct AccessRightDto {
   string label;
   string description;
   string area;
+}
+
+struct SiteContentDto {
+  string language;
+  string title;
+  string tagline;
+  /// Plain text; blank lines separate paragraphs.
+  string body;
+
+  /// The paragraphs of `body`.
+  string[] paragraphs() const pure {
+    import std.algorithm : filter, map, splitter;
+    import std.array : array, replace;
+    import std.string : strip;
+
+    return body.replace("\r\n", "\n").splitter("\n\n").map!(p => p.strip).filter!(p => p.length > 0).array;
+  }
+}
+
+/// A site (tenant) with its languages and home page content.
+struct SiteDto {
+  string key;
+  string name;
+  string[] hosts;
+  /// The first one is the default language.
+  string[] languages;
+  string defaultLanguage;
+  bool isDefault;
+  /// Per language (only the site's languages).
+  SiteContentDto[] content;
+  /// Files and their bytes.
+  long files;
+  long bytes;
+  string createdAt;
+  string modifiedAt;
+
+  SiteContentDto contentFor(string language) const pure nothrow {
+    foreach (c; content)
+      if (c.language == language)
+        return c;
+    return SiteContentDto(language);
+  }
+
+  bool hasContent(string language) const pure nothrow {
+    auto c = contentFor(language);
+    return c.title.length > 0 || c.body.length > 0;
+  }
+}
+
+/// Metadata of a file in a site's library.
+struct FileDto {
+  string id;
+  string site;
+  string name;
+  string contentType;
+  /// "document" | "image" | "audio" | "video" | "archive" | "other"
+  string kind;
+  long size;
+  string sha256;
+  string description;
+  bool isPublic;
+  /// Shown in place by browsers (raster images, audio, video, PDF).
+  bool inline;
+  string uploadedBy;
+  string createdAt;
+  string modifiedAt;
+
+  /// Address on the public site (only served while the file is public).
+  string publicUrl() const pure {
+    import std.uri : encodeComponent;
+
+    return "/media/" ~ site ~ "/" ~ id ~ "/" ~ (() @trusted => encodeComponent(name))();
+  }
+}
+
+/// A file and how to get its content (see IBlobStore.localPath).
+struct FileContent {
+  FileDto file;
+  /// Local path to stream from; "" → `data`.
+  string localPath;
+  immutable(ubyte)[] data;
+}
+
+struct SiteUsageDto {
+  string site;
+  string name;
+  long files;
+  long bytes;
+}
+
+struct StorageDto {
+  SiteUsageDto[] sites;
+  long files;
+  long bytes;
+  /// Free bytes on the volume; -1 if unknown.
+  long available;
+  string location;
+}
+
+/// What the public home page of a site shows.
+struct SitePageDto {
+  SiteDto site;
+  /// Language of `content`.
+  string language;
+  SiteContentDto content;
+  /// Public files of the site, newest first.
+  FileDto[] images;
+  /// Audio and video.
+  FileDto[] media;
+  /// Everything else.
+  FileDto[] documents;
 }
 
 /// ISO 8601 in UTC with fixed millisecond precision ("2026-11-16T21:25:30.885Z"),
@@ -181,6 +304,7 @@ UserDto toDto(const UserAccount a) {
   d.displayName = a.displayName;
   d.email = a.email;
   d.roles = a.roles.dup;
+  d.sites = a.sites.dup;
   d.active = a.active;
   d.createdAt = isoTime(a.createdAt);
   d.modifiedAt = isoTime(a.modifiedAt);
@@ -218,4 +342,84 @@ RoleDto toDto(const Role r, long members) {
 
 AccessRightDto toDto(const AccessRightInfo i) {
   return AccessRightDto(i.key, i.label, i.description, i.area);
+}
+
+/// With file count and bytes of the site.
+SiteDto toDto(const Site s, long files, long bytes) {
+  import std.algorithm : canFind;
+
+  SiteDto d;
+  d.key = s.key.value;
+  d.name = s.name;
+  d.hosts = s.hosts.dup;
+  d.languages = s.languages.dup;
+  d.defaultLanguage = s.defaultLanguage;
+  d.isDefault = s.isDefault;
+  foreach (c; s.content)
+    if (s.languages.canFind(c.language))
+      d.content ~= SiteContentDto(c.language, c.title, c.tagline, c.body);
+  d.files = files;
+  d.bytes = bytes;
+  d.createdAt = isoTime(s.createdAt);
+  d.modifiedAt = isoTime(s.modifiedAt);
+  return d;
+}
+
+SiteContentDto toDto(const SiteContent c) {
+  return SiteContentDto(c.language, c.title, c.tagline, c.body);
+}
+
+FileDto toDto(const StoredFile f) {
+  FileDto d;
+  d.id = f.id.value;
+  d.site = f.site.value;
+  d.name = f.name;
+  d.contentType = f.contentType;
+  d.kind = f.kind.to!string;
+  d.size = f.size;
+  d.sha256 = f.sha256;
+  d.description = f.description;
+  d.isPublic = f.isPublic;
+  d.inline = f.inlineSafe;
+  d.uploadedBy = f.uploadedBy;
+  d.createdAt = isoTime(f.createdAt);
+  d.modifiedAt = isoTime(f.modifiedAt);
+  return d;
+}
+
+/// 1536 → "1.5 KB"
+string byteSize(long bytes) pure {
+  import std.format : format;
+
+  if (bytes < 0)
+    return "–";
+  if (bytes < 1024)
+    return format("%s B", bytes);
+  immutable units = ["KB", "MB", "GB", "TB"];
+  double v = bytes;
+  size_t u;
+  for (v /= 1024; v >= 1024 && u + 1 < units.length; v /= 1024)
+    u++;
+  return format(v < 10 ? "%.1f %s" : "%.0f %s", v, units[u]);
+}
+
+///
+unittest {
+  assert(byteSize(0) == "0 B" && byteSize(1536) == "1.5 KB" && byteSize(50 * 1024 * 1024) == "50 MB");
+  assert(SiteContentDto("en", "", "", "One\r\n\r\n\n Two \n\n").paragraphs == ["One", "Two"]);
+}
+
+struct IpRuleDto {
+  string id;
+  string network;
+  string action;
+  string scope_;
+  string note;
+  string createdBy;
+  string createdAt;
+}
+
+IpRuleDto toDto(const IpRule r) {
+  return IpRuleDto(r.id.value, r.network.toString, r.action.to!string, r.scope_.to!string, r.note, r.createdBy,
+    isoTime(r.createdAt));
 }

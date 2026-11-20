@@ -1,0 +1,41 @@
+//- Edit dialog of a file. Needs page, form (FileForm).
+- import neko.platform.application.dtos : byteSize;
+- import neko.platform.presentation.web.icons : icon;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered
+    .modal-content
+      form(hx-post="/files/#{form.file.id}", hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title Edit #{form.file.name}
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          - if (form.file.kind == "image" && form.file.inline)
+            img.img-fluid.rounded.mb-3.file-preview(src="/files/#{form.file.id}/view", alt=form.file.description)
+          .mb-3
+            label.form-label.required(for="f-name") Name
+            input#f-name.form-control(type="text", name="name", value=form.name, required=true, maxlength="200")
+            .form-hint The type follows the extension (now #{form.file.contentType}).
+          .mb-3
+            label.form-label(for="f-desc") Description / alt text
+            input#f-desc.form-control(type="text", name="description", value=form.description, maxlength="500")
+          label.form-check.form-switch
+            input.form-check-input(type="checkbox", name="isPublic", checked=form.isPublic)
+            span.form-check-label Public: shown on the site #{form.file.site} and downloadable without signing in
+          .datagrid.mt-3
+            .datagrid-item
+              .datagrid-title Size
+              .datagrid-content= byteSize(form.file.size)
+            .datagrid-item
+              .datagrid-title SHA-256
+              .datagrid-content
+                code.small.text-break= form.file.sha256
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | Save

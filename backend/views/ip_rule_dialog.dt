@@ -1,0 +1,47 @@
+//- Add an IP rule. Needs page, form (IpRuleForm), me (own address).
+- import neko.platform.presentation.web.icons : icon;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered
+    .modal-content
+      form(hx-post="/security/rules", hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title New IP rule
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          .mb-3
+            label.form-label.required(for="ip-net") Address or network
+            input#ip-net.form-control(type="text", name="network", value=form.network, required=true, maxlength="64", autocomplete="off", spellcheck="false", placeholder="10.0.0.0/8, 2001:db8::/32, 192.0.2.7")
+            .form-hint Your address: #{me.length ? me : "local (unix socket)"}
+          .mb-3
+            .form-label List
+            .form-selectgroup
+              label.form-selectgroup-item
+                input.form-selectgroup-input(type="radio", name="action", value="allow", checked=(form.action != "deny"))
+                span.form-selectgroup-label
+                  | !{icon("circle-check")}
+                  | Allow
+              label.form-selectgroup-item
+                input.form-selectgroup-input(type="radio", name="action", value="deny", checked=(form.action == "deny"))
+                span.form-selectgroup-label
+                  | !{icon("ban")}
+                  | Deny
+          .mb-3
+            label.form-label(for="ip-scope") Applies to
+            select#ip-scope.form-select(name="scope")
+              option(value="admin", selected=(form.scope_ == "admin")) Management pages (sign-in, /status, /sites, …)
+              option(value="api", selected=(form.scope_ == "api")) APIs (REST, OData, /api, /metrics)
+              option(value="all", selected=(form.scope_ == "all")) Everything, also the public site
+            .form-hint As soon as one allow rule exists for an area, only listed networks reach it.
+          .mb-3
+            label.form-label(for="ip-note") Note
+            input#ip-note.form-control(type="text", name="note", value=form.note, maxlength="200", placeholder="Office network")
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | Add

@@ -1,0 +1,41 @@
+//- Create / settings dialog of a site. Needs page, form (SiteForm).
+- import neko.platform.presentation.web.icons : icon;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered.modal-lg
+    .modal-content
+      form(hx-post=(form.existing ? "/sites/" ~ form.key : "/sites"), hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title= form.existing ? "Settings of " ~ form.key : "New site"
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          .row
+            - if (!form.existing)
+              .col-md-4.mb-3
+                label.form-label.required(for="s-key") Key
+                input#s-key.form-control(type="text", name="key", value=form.key, required=true, minlength="2", maxlength="32", autocomplete="off", autocapitalize="none", spellcheck="false")
+                .form-hint Fixed once created: a-z, 0-9, -
+            div.mb-3(class=(form.existing ? "col-md-12" : "col-md-8"))
+              label.form-label.required(for="s-name") Name
+              input#s-name.form-control(type="text", name="name", value=form.name, required=true, maxlength="128")
+          .mb-3
+            label.form-label(for="s-hosts") Host names
+            textarea#s-hosts.form-control(name="hosts", rows="3", autocapitalize="none", spellcheck="false", placeholder="www.example.org")= form.hosts
+            .form-hint One per line, without port. Requests for these names get this site; a name belongs to one site only.
+          .row
+            .col-md-4.mb-3
+              label.form-label.required(for="s-lang") Default language
+              input#s-lang.form-control(type="text", name="defaultLanguage", value=form.defaultLanguage, required=true, maxlength="16", autocapitalize="none", spellcheck="false")
+            .col-md-8.mb-3
+              label.form-label(for="s-langs") Further languages
+              input#s-langs.form-control(type="text", name="languages", value=form.languages, maxlength="200", autocapitalize="none", spellcheck="false", placeholder="de, fr, pt-BR")
+          .form-hint Language tags such as en, de, de-CH, pt-BR. Visitors get the language of their browser if the site has it (or choose one); otherwise the default language. Content of a removed language is kept until it is added again.
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | #{form.existing ? "Save" : "Create"}

@@ -8,6 +8,7 @@
 module neko.platform.ports.usecases;
 
 import neko.platform.application.dtos;
+import neko.platform.domain.entities.iprule : NetworkDecision, RequestArea;
 
 @safe:
 
@@ -71,7 +72,8 @@ interface IManageRolesUseCase {
   RoleDto update(string name, UpdateRoleRequest request, string actor);
   /// Built-in roles and roles still assigned to accounts cannot be removed.
   void remove(string name, string actor);
-  /// Adds missing built-in roles (start-up); existing ones stay as they are.
+  /// Adds missing built-in roles (start-up). Existing ones keep their changes;
+  /// they only gain rights that are new in this version.
   void ensureBuiltIns();
 }
 
@@ -90,4 +92,61 @@ interface IAuthenticateUseCase {
   bool tryActive(string id, out UserDto user);
   /// Creates an administrator if there are no accounts at all.
   BootstrapResult ensureAdministrator(string userName, string password);
+}
+
+/// Sites (tenants). An actor that is a user account limited to some sites
+/// only sees and changes those; creating, removing and choosing the default
+/// site needs access to every site.
+interface IManageSitesUseCase {
+  /// The sites the actor may access, the default site first.
+  SiteDto[] list(string actor);
+  SiteDto get(string key, string actor);
+  SiteDto create(CreateSiteRequest request, string actor);
+  /// Name, host names and languages.
+  SiteDto update(string key, UpdateSiteRequest request, string actor);
+  /// The home page text in one language.
+  SiteDto updateContent(string key, UpdateSiteContentRequest request, string actor);
+  SiteDto makeDefault(string key, string actor);
+  /// Not the default site, and only once it has no files and no account is
+  /// limited to it.
+  void remove(string key, string actor);
+  /// Creates the default site if there is none (start-up); returns its key.
+  string ensureDefaultSite(string name, string language);
+
+  /// The public home page for a request: the site claiming `host`, else the
+  /// default site; the language from `requestedLanguage` (?lang=), the
+  /// Accept-Language header or the site default.
+  SitePageDto page(string host, string requestedLanguage, string acceptLanguage);
+  /// The same for a site given by key (previews).
+  SitePageDto pageOf(string key, string requestedLanguage, string acceptLanguage);
+}
+
+/// The file library of each site: documents, images, audio and video.
+interface IManageFilesUseCase {
+  /// Newest first.
+  FileDto[] list(string site, string actor);
+  FileDto get(string id, string actor);
+  FileDto upload(UploadFileRequest request, string actor);
+  FileDto update(string id, UpdateFileRequest request, string actor);
+  void remove(string id, string actor);
+  /// Metadata and content of a file (for downloads by signed-in users).
+  FileContent open(string id, string actor);
+  /// A public file of `site`, for the public pages; false if there is none.
+  bool tryOpenPublic(string site, string id, out FileContent content);
+  /// Files and bytes per site (all sites), and the free space.
+  StorageDto storage();
+}
+
+/// IP allow and deny lists. `actorAddress` is the address of the caller (""
+/// for the CLI); a change that would lock the caller out of the management
+/// pages is refused.
+interface IManageNetworkUseCase {
+  /// Deny rules first, then by area and network.
+  IpRuleDto[] list();
+  IpRuleDto add(AddIpRuleRequest request, string actor, string actorAddress);
+  void remove(string id, string actor, string actorAddress);
+  /// The policy for one request (cached rules; hot path of the firewall).
+  NetworkDecision check(string address, RequestArea area);
+  /// True if an allow rule lists the address (no rate limit, no ban).
+  bool isAllowlisted(string address);
 }

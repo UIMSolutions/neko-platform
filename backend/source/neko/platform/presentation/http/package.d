@@ -7,6 +7,9 @@
 /// info endpoints, error rendering.
 module neko.platform.presentation.http;
 
+public import neko.platform.presentation.http.monitor;
+public import neko.platform.presentation.http.firewall;
+
 import std.algorithm : among, startsWith;
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;

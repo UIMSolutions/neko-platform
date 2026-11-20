@@ -10,7 +10,7 @@ module app;
 import core.time : minutes;
 import std.array : join;
 import vibe.core.core : runApplication;
-import vibe.core.log : LogLevel;
+import vibe.core.log : LogLevel, registerLogger;
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse, HTTPServerSettings, listenHTTP;
 import neko.platform;
@@ -48,10 +48,39 @@ int serve(PlatformContainer c) {
   auto config = c.config;
   auto router = new URLRouter;
 
+  // Logging and monitoring: the recent log for /monitoring, daily log files,
+  // request metrics (and the access log) for every request.
+  auto level = parseLogLevel(config.logLevel);
+  auto logBuffer = new LogBuffer(500, level);
+  registerLogger(cast(shared) logBuffer);
+  auto logDir = config.effectiveLogDir(selfDomain);
+  DailyLogFile accessFile;
+  if (logDir.length) {
+    registerLogger(cast(shared) new FileLogWriter(new DailyLogFile(logDir, "platform", "log", config.logRetentionDays),
+      level));
+    if (config.accessLog)
+      accessFile = new DailyLogFile(logDir, "access", "ndjson", config.logRetentionDays);
+  }
+  auto metrics = new RequestMetrics;
+
+  // Network security: client addresses (trusted proxies), traffic per
+  // client, IP lists, bans, rate limit and the web application firewall
+  // in front of the router; the request monitor in front of everything.
+  auto addresses = new ClientAddresses(config.proxyList);
+  auto traffic = new TrafficMonitor;
+  auto bans = new BanList(config.banAfterViolations, config.banMinutes.minutes);
+  auto firewall = new Firewall(router, addresses, c.network, new WafInspector,
+    new RateLimiter(config.rateLimitPerMinute), bans, traffic, parseFirewallMode(config.firewallMode),
+    config.restPath, config.odataPath);
+  auto handler = new RequestMonitor(firewall, metrics, config.accessLog, accessFile, config.restPath,
+    config.odataPath, addresses, traffic);
+
   // Order matters: middleware first, the static catch-all last.
   auto security = new SecurityMiddleware(config);
   security.registerRoutes(router);
   (new Health_Controller(config, selfDomain)).registerRoutes(router);
+  router.get("/metrics", &(new MetricsController(metrics, logBuffer, c.events, c.files, config.metricsToken,
+    selfDomain.label, traffic, bans)).handle);
   UnixSocketController socket;
   if (config.transport == "unix") {
     socket = new UnixSocketController(config.effectiveSocketPath(selfDomain));
@@ -60,31 +89,39 @@ int serve(PlatformContainer c) {
   router.registerPlatformRestApi(c.services, c.health, c.transfers, c.overview, config.restPath);
   new PlatformODataController(c.services, c.health, c.transfers, c.overview, config.odataPath).registerRoutes(router);
 
-  // Server-rendered pages with sign-in: vibe.d web interfaces with access
+  // The public site at "/" (by host name, else the default site) and the
+  // server-rendered pages with sign-in: vibe.d web interfaces with access
   // rights from roles; Tabler + htmx, assets embedded.
   bootstrapAdministrator(c);
   auto sessions = new WebSessions(c.passwords, c.clock, config.sessionIdleMinutes.minutes);
   auto guard = new WebGuard(sessions, c.authentication, config.serviceName, selfDomain.label);
-  router.registerWebPages(
-    new AuthWeb(guard, c.authentication, c.users, c.roles, new LoginThrottle(c.clock)),
-    new StatusWeb(guard, c.overview, c.services, c.events),
-    new UsersWeb(guard, c.users, c.roles),
-    new RolesWeb(guard, c.roles));
+  WebPages pages;
+  pages.auth = new AuthWeb(guard, c.authentication, c.users, c.roles, new LoginThrottle(c.clock));
+  pages.status = new StatusWeb(guard, c.overview, c.services, c.events);
+  pages.monitoring = new MonitoringWeb(guard, metrics, logBuffer, c.events, c.files, logDir, config.accessLog);
+  pages.security = new SecurityWeb(guard, c.network, traffic, bans, FirewallInfo(config.firewallMode,
+    config.rateLimitPerMinute, config.banAfterViolations, config.banMinutes, config.trustedProxies), c.events);
+  pages.sites = new SitesWeb(guard, c.sites);
+  pages.files = new FilesWeb(guard, c.files, c.sites, config.maxUploadBytes);
+  pages.users = new UsersWeb(guard, c.users, c.roles, c.sites);
+  pages.roles = new RolesWeb(guard, c.roles);
+  pages.site = new PublicSiteController(guard, c.sites, c.files);
+  router.registerWebPages(pages);
   auto errorPages = webErrorPages(guard, (string path) @safe => security.isApi(path));
 
+  // The Fiori app (/index.html, …): static catch-all, registered last.
   auto frontend = new FrontendController(config.frontendDir);
   frontend.registerRoutes(router);
-  if (!frontend.available)
-    router.get("/", (HTTPServerRequest req, HTTPServerResponse res) { res.redirect("/status"); });
 
   auto worker = new HealthCheckWorker(c.health, config.healthCheckIntervalSeconds);
   worker.start();
 
-  logInfo("%s — domain %s (export=%s, import=%s), storage %s, config from %s", config.serviceName,
-    selfDomain.label, selfDomain.canExport, selfDomain.canImport, c.store.describe, config.sources.join(" → "));
+  logInfo("%s — domain %s (export=%s, import=%s), storage %s, files %s, logs %s, config from %s",
+    config.serviceName, selfDomain.label, selfDomain.canExport, selfDomain.canImport, c.store.describe,
+    c.blobs.describe, logDir.length ? logDir : "console only", config.sources.join(" → "));
 
   if (socket !is null) {
-    socket.start(router, errorPages);
+    socket.start(handler, errorPages, config.maxRequestBytes);
     scope (exit)
       socket.stop();
     logEndpoints(config, frontend);
@@ -95,7 +132,8 @@ int serve(PlatformContainer c) {
   settings.port = config.effectivePort(selfDomain);
   settings.bindAddresses = [config.host];
   settings.errorPageHandler = errorPages;
-  auto listener = listenHTTP(settings, router);
+  settings.maxRequestSize = config.maxRequestBytes; // uploads
+  auto listener = listenHTTP(settings, handler);
   scope (exit)
     listener.stopListening();
   logEndpoints(config, frontend);
@@ -118,8 +156,11 @@ void bootstrapAdministrator(PlatformContainer c) {
 void logEndpoints(PlatformConfig config, FrontendController frontend) {
   logInfo("  REST   %s{overview,services,transfers}", config.restPath);
   logInfo("  OData  %s/$metadata", config.odataPath);
-  logInfo("  Web    /login, /status, /users, /roles, /account (sign-in, access rights by role); /health, /api/v1/info%s",
-    config.transport == "unix" ? ", /api/v1/socket" : "");
+  logInfo("  Site   / (default site, or the site claiming the host name), /media/* (public files)");
+  logInfo("  Web    /login, /status, /monitoring, /security, /sites, /files, /users, /roles, /account (rights by role)");
+  logInfo("  Guard  firewall %s, rate limit %s/min, IP rules in %s", config.firewallMode,
+    config.rateLimitPerMinute, config.storage == "file" ? "iprules.json" : "memory");
+  logInfo("  Ops    /health, /metrics (Prometheus), /api/v1/info%s", config.transport == "unix" ? ", /api/v1/socket" : "");
   if (frontend.available)
     logInfo("  Fiori  /index.html (%s)", frontend.location);
   else

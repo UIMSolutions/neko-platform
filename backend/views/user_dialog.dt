@@ -1,4 +1,5 @@
-//- Create / edit dialog (htmx fragment for #dialog-host). Needs page, form (UserForm), roleList (RoleDto[]).
+//- Create / edit dialog (htmx fragment for #dialog-host). Needs page, form (UserForm), roleList (RoleDto[]),
+//- siteList (SiteDto[]: the sites the signed-in user works on).
 //- Roles with rights the signed-in user does not hold cannot be handed out (greyed out).
 - import neko.platform.presentation.web.icons : icon;
 - import neko.platform.presentation.web.support : mayAssign;
@@ -48,6 +49,22 @@
                           code.small.ms-1= r.name
                         .small.text-secondary= r.description
               .form-hint Rights add up: a user holds every right of each of its roles.
+            .mb-3
+              - auto every = form.sites.length == 0 && page.user.allSites;
+              .form-label Sites
+              label.form-check
+                input.form-check-input(type="radio", name="scope", value="all", checked=every, disabled=!page.user.allSites)
+                span.form-check-label(class=(page.user.allSites ? "" : "opacity-50")) Every site, also sites created later
+              label.form-check
+                input.form-check-input(type="radio", name="scope", value="some", checked=!every)
+                span.form-check-label Only these sites:
+              .d-flex.flex-wrap.gap-3.ms-4
+                - foreach (s; siteList)
+                  label.form-check.mb-0
+                    input.form-check-input(type="checkbox", name="sites", value=s.key, checked=form.hasSite(s.key))
+                    span.form-check-label #{s.name} 
+                      code.small= s.key
+              .form-hint Site rights (sites.*, files.*) only apply to these sites; the user does not see the others.
             label.form-check.form-switch
               input.form-check-input(type="checkbox", name="active", checked=form.active)
               span.form-check-label Active (may sign in)

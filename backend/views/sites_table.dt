@@ -1,0 +1,71 @@
+//- The site cards; swapped as a whole after every change. Needs page, list (SiteDto[]).
+- import std.array : join;
+- import std.conv : to;
+- import neko.platform.application.dtos : byteSize;
+- import neko.platform.presentation.web.icons : icon;
+#sites-table
+  - if (list.length == 0)
+    .empty
+      p.empty-title No sites
+      p.empty-subtitle.text-secondary You do not work on any site.
+  .row.row-cards
+    - foreach (s; list)
+      .col-12
+        .card(class=(s.isDefault ? "card-active" : ""))
+          .card-header
+            div
+              h3.card-title
+                | #{s.name}
+                code.small.ms-2.fw-normal= s.key
+                - if (s.isDefault)
+                  span.badge.bg-primary.text-primary-fg.ms-2
+                    | !{icon("home")}
+                    | default site
+              .card-subtitle.text-secondary.small
+                - if (s.hosts.length)
+                  | #{s.hosts.join(", ")}
+                - else if (s.isDefault)
+                  | answers every host name no other site claims
+                - else
+                  | no host name — only reachable as a preview
+            .card-actions.d-flex.gap-1
+              a.btn.btn-ghost-secondary.btn-icon(href="/?site=" ~ s.key, target="_blank", rel="noopener", title="Open the site", aria-label="Open site #{s.key}")
+                | !{icon("external-link")}
+              - if (page.isFilesRead)
+                a.btn.btn-ghost-secondary.btn-icon(href="/files?site=" ~ s.key, title="Files", aria-label="Files of #{s.key}")
+                  | !{icon("files")}
+              - if (page.isSitesManage)
+                button.btn.btn-ghost-secondary.btn-icon(hx-get="/sites/#{s.key}/edit", hx-target="#dialog-host", title="Settings", aria-label="Settings of #{s.key}")
+                  | !{icon("settings")}
+                - if (page.user.allSites && !s.isDefault)
+                  button.btn.btn-ghost-secondary.btn-icon(hx-post="/sites/#{s.key}/default", hx-target="#sites-table", hx-swap="outerHTML", hx-confirm="Make #{s.key} the default site (shown at / for every unknown host name)?", title="Make default", aria-label="Make #{s.key} the default site")
+                    | !{icon("star")}
+                  button.btn.btn-ghost-danger.btn-icon(hx-post="/sites/#{s.key}/delete", hx-target="#sites-table", hx-swap="outerHTML", hx-confirm="Remove site #{s.key}?", title="Remove", aria-label="Remove site #{s.key}")
+                    | !{icon("trash")}
+          .card-body
+            .row.g-3
+              .col-md-8
+                .form-label.mb-2 Languages and content
+                .d-flex.flex-wrap.gap-2
+                  - foreach (i, lang; s.languages)
+                    - auto done = s.hasContent(lang);
+                    - auto label = lang ~ (i == 0 ? " (default)" : "");
+                    - if (page.isSitesManage)
+                      button.btn.btn-sm(class=(done ? "" : "btn-outline-warning"), hx-get="/sites/#{s.key}/content?lang=#{lang}", hx-target="#dialog-host", title=(done ? "Edit the content" : "No content yet — the default language is shown"))
+                        | !{icon(done ? "language" : "alert-triangle")}
+                        | #{label}
+                    - else
+                      span.badge(class=(done ? "bg-green-lt" : "bg-yellow-lt"))= label
+                - auto home = s.contentFor(s.defaultLanguage);
+                - if (home.title.length)
+                  .mt-3
+                    .fw-medium= home.title
+                    .text-secondary.small= home.tagline
+              .col-md-4
+                .datagrid
+                  .datagrid-item
+                    .datagrid-title Files
+                    .datagrid-content #{s.files.to!string} · #{byteSize(s.bytes)}
+                  .datagrid-item
+                    .datagrid-title Changed (UTC)
+                    .datagrid-content= s.modifiedAt.length >= 16 ? s.modifiedAt[0 .. 10] ~ " " ~ s.modifiedAt[11 .. 16] : "–"

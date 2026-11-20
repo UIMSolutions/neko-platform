@@ -1,0 +1,13 @@
+extends layout
+//- Security: firewall, network traffic, IP lists, bans. Needs the values of security_live.dt.
+block actions
+  - import neko.platform.presentation.web.icons : icon;
+  - if (page.isSecurityManage)
+    button.btn.btn-primary(hx-get="/security/rules/new", hx-target="#dialog-host")
+      | !{icon("plus")}
+      | IP rule
+block content
+  p.text-secondary Every request passes the IP lists, bans, the rate limit and the web application firewall before it reaches the platform. Figures are kept in memory since the last start; IP rules are stored with the data of this #{page.domain} instance.
+  include security_live
+  h3.mt-4.mb-3 IP allow and deny lists
+  include ip_rules_table

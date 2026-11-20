@@ -17,14 +17,15 @@ import std.conv : octal;
 import std.string : toStringz;
 import vibe.core.log : logInfo;
 import vibe.http.router : URLRouter;
-import vibe.http.server : HTTPListener, HTTPServerErrorPageHandler, HTTPServerSettings, listenHTTP;
+import vibe.http.server : HTTPListener, HTTPServerErrorPageHandler, HTTPServerRequestHandler, HTTPServerSettings,
+  listenHTTP;
 
 @safe:
 
 /// Listen on `path`. A stale socket left by a crashed instance is removed;
 /// any other existing file at that path is an error (never delete data).
-HTTPListener listenOnUnixSocket(string path, URLRouter router, uint mode = octal!"660",
-    HTTPServerErrorPageHandler errorPages = null) {
+HTTPListener listenOnUnixSocket(string path, HTTPServerRequestHandler handler, uint mode = octal!"660",
+    HTTPServerErrorPageHandler errorPages = null, ulong maxRequestSize = 0) {
   if (path.length == 0 || path[0] != '/')
     throw new Exception("Unix socket path must be absolute: '" ~ path ~ "'");
 
@@ -41,7 +42,9 @@ HTTPListener listenOnUnixSocket(string path, URLRouter router, uint mode = octal
   settings.bindAddresses = [path];
   if (errorPages !is null)
     settings.errorPageHandler = errorPages;
-  auto listener = listenHTTP(settings, router);
+  if (maxRequestSize > 0)
+    settings.maxRequestSize = maxRequestSize;
+  auto listener = listenHTTP(settings, handler);
   () @trusted { chmod(path.toStringz, mode); }();
   logInfo("Listening on unix socket %s (mode %o)", path, mode);
   return listener;

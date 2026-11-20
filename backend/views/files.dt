@@ -1,0 +1,44 @@
+extends layout
+//- File library of a site. Needs page, siteList (SiteDto[]), view (FileView), list (FileDto[]), limit (max size text).
+block content
+  - import neko.platform.presentation.web.icons : icon;
+  - if (siteList.length == 0)
+    .empty
+      p.empty-title No sites
+      p.empty-subtitle.text-secondary You do not work on any site.
+  - else
+    .card.mb-3
+      .card-body
+        .row.g-3.align-items-end
+          .col-md-4
+            form(method="get", action="/files")
+              label.form-label(for="f-site") Site
+              .input-group
+                select#f-site.form-select(name="site")
+                  - foreach (s; siteList)
+                    option(value=s.key, selected=(s.key == view.site)) #{s.name} (#{s.key})
+                button.btn(type="submit") Show
+          - if (page.isFilesManage)
+            .col-md-8
+              form#upload-form(hx-post="/files/upload", hx-encoding="multipart/form-data", hx-target="#files-table", hx-swap="outerHTML", hx-disabled-elt="find button")
+                input(type="hidden", name="site", value=view.site)
+                input(type="hidden", name="kind", value=view.kind)
+                label.form-label(for="f-files") Upload to #{view.site}
+                .input-group
+                  input#f-files.form-control(type="file", name="files", multiple=true, required=true)
+                  button.btn.btn-primary(type="submit")
+                    | !{icon("cloud-upload")}
+                    | Upload
+                .d-flex.flex-wrap.gap-3.mt-2.align-items-center
+                  label.form-check.mb-0
+                    input.form-check-input(type="checkbox", name="isPublic")
+                    span.form-check-label Public (shown on the site)
+                  input.form-control.form-control-sm.w-auto.flex-fill(type="text", name="description", maxlength="500", placeholder="Description / alt text (optional)")
+                  span.text-secondary.small Up to #{limit} per file
+                progress.progress.progress-sm.mt-2.d-none(value="0", max="100", data-upload-progress)
+    .btn-list.mb-3
+      - foreach (k; [["", "All", "files"], ["document", "Documents", "file-text"], ["image", "Images", "photo"], ["video", "Video", "movie"], ["audio", "Audio", "music"], ["archive", "Archives", "file-zip"], ["other", "Other", "file"]])
+        a.btn.btn-sm(href="/files?site=" ~ view.site ~ (k[0].length ? "&kind=" ~ k[0] : ""), class=(view.kind == k[0] ? "btn-primary" : ""))
+          | !{icon(k[2])}
+          | #{k[1]}
+    include files_table

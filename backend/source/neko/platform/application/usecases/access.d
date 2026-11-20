@@ -39,3 +39,54 @@ void requireCovers(IUserRepository users, IRoleRepository roles, string actor, c
   throw new PolicyViolationException("You cannot " ~ what ~ ": it needs rights you do not hold ("
       ~ missing.join(", ") ~ ")");
 }
+
+// ── site scope (multi-tenancy) ───────────────────────────────────────────
+
+/// The sites `actor` is limited to. False if it may access every site: an
+/// account without site limits, or an actor that is no account.
+bool tryActorSites(IUserRepository users, string actor, out string[] sites) {
+  UserAccount account;
+  try {
+    if (!users.tryGetByName(UserName(actor).value, account))
+      return false;
+  } catch (ValidationException)
+    return false;
+  sites = account.sites.dup;
+  return !account.allSites;
+}
+
+bool mayAccessSite(IUserRepository users, string actor, string site) {
+  import std.algorithm : canFind;
+
+  string[] limited;
+  return !tryActorSites(users, actor, limited) || limited.canFind(site);
+}
+
+/// Sites outside the actor's scope do not exist for it.
+void requireSite(IUserRepository users, string actor, string site) {
+  if (!mayAccessSite(users, actor, site))
+    throw new NotFoundException("Site", site);
+}
+
+/// Throws unless `actor` may access every site.
+void requireAllSites(IUserRepository users, string actor, string what) {
+  string[] limited;
+  if (tryActorSites(users, actor, limited))
+    throw new PolicyViolationException("You cannot " ~ what ~ ": it needs access to every site, and you work on "
+        ~ limited.join(", ") ~ " only");
+}
+
+/// Throws unless `actor` reaches every site of `wanted` (empty = every site).
+void requireSiteScope(IUserRepository users, string actor, const(string)[] wanted, string what) {
+  import std.algorithm : canFind;
+
+  string[] limited;
+  if (!tryActorSites(users, actor, limited))
+    return;
+  if (wanted.length == 0)
+    throw new PolicyViolationException("You cannot " ~ what ~ ": it gives access to every site, and you work on "
+        ~ limited.join(", ") ~ " only");
+  auto outside = wanted.filter!(w => !limited.canFind(w)).array;
+  if (outside.length)
+    throw new PolicyViolationException("You cannot " ~ what ~ ": you do not work on " ~ outside.join(", "));
+}

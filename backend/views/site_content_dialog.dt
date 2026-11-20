@@ -1,0 +1,43 @@
+//- Home page content of a site in one language. Needs page, form (ContentForm).
+- import neko.platform.presentation.web.icons : icon;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered.modal-lg
+    .modal-content
+      form(hx-post="/sites/#{form.site.key}/content", hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        input(type="hidden", name="language", value=form.language)
+        .modal-header
+          h5#dialog-title.modal-title Content of #{form.site.name}
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          ul.nav.nav-tabs.mb-3
+            - foreach (i, lang; form.site.languages)
+              li.nav-item
+                - if (lang == form.language)
+                  span.nav-link.active(aria-current="page")
+                    | #{lang}#{i == 0 ? " (default)" : ""}
+                - else
+                  a.nav-link(href="#", hx-get="/sites/#{form.site.key}/content?lang=#{lang}", hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+                    | #{lang}#{i == 0 ? " (default)" : ""}
+          - auto dir = form.language == "ar" || form.language == "he" || form.language == "fa" || form.language == "ur" ? "rtl" : "auto";
+          .mb-3
+            label.form-label(for="c-title") Title
+            input#c-title.form-control(type="text", name="title", value=form.title, maxlength="160", lang=form.language, dir=dir)
+          .mb-3
+            label.form-label(for="c-tagline") Tagline
+            input#c-tagline.form-control(type="text", name="tagline", value=form.tagline, maxlength="300", lang=form.language, dir=dir)
+          .mb-3
+            label.form-label(for="c-body") Text
+            textarea#c-body.form-control(name="body", rows="9", maxlength="20000", lang=form.language, dir=dir)= form.body
+            .form-hint Plain text; an empty line starts a new paragraph. Public files of the site are shown below the text.
+          - if (form.language != form.site.defaultLanguage)
+            .form-hint Leave title and text empty to show the #{form.site.defaultLanguage} content in this language.
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | Save #{form.language}

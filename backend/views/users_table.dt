@@ -10,6 +10,7 @@
           th User
           th E-mail
           th Roles
+          th Sites
           th Status
           th.text-nowrap Last sign-in (UTC)
           - if (page.isUsersManage)
@@ -31,6 +32,11 @@
             td
               - foreach (r; u.roles)
                 span.badge.me-1(class=(r == "admin" ? "bg-primary text-primary-fg" : "bg-primary-lt"), title=r)= roleLabel(r)
+            td
+              - if (u.allSites)
+                span.text-secondary all
+              - foreach (k; u.sites)
+                span.badge.bg-azure-lt.me-1= k
             td
               - if (u.active)
                 span.badge.bg-green-lt active

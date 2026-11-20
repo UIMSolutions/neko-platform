@@ -24,6 +24,7 @@ import neko.platform.domain : AuthenticationException, PlatformException;
 import neko.platform.ports.usecases : IAuthenticateUseCase, IManageRolesUseCase, IManageUsersUseCase;
 import neko.platform.presentation.web.guard;
 import neko.platform.presentation.web.sessions;
+import neko.platform.presentation.http.firewall : clientAddressOf;
 
 @safe:
 
@@ -67,7 +68,7 @@ class AuthWeb {
     }
     auto name = user.strip;
     next = safeNext(next);
-    auto key = name.toLower ~ "|" ~ req.clientAddress.toAddressString;
+    auto key = name.toLower ~ "|" ~ clientAddressOf(req); // the real client, also behind a proxy
 
     auto locked = throttle.lockedFor(key);
     if (locked > Duration.zero) {

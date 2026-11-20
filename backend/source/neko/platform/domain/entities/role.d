@@ -24,6 +24,10 @@ struct Role {
   AccessRight[] rights;
   /// Shipped with the platform: cannot be removed.
   bool builtIn;
+  /// The catalogue the rights were decided on. Rights added by a later
+  /// version are not in it; for built-in roles they are granted on start-up
+  /// if the shipped role has them (see `upgradeBuiltIn`).
+  AccessRight[] knownRights;
   SysTime createdAt;
   SysTime modifiedAt;
 
@@ -56,7 +60,23 @@ struct Role {
     if (isAdministrator)
       throw new InvalidStateTransitionException("The rights of the administrator role cannot be changed");
     this.rights = rights.dup.sort.uniq.array;
+    knownRights = allAccessRights;
     modifiedAt = now;
+  }
+
+  /// Grant the rights of `shipped` (the built-in role of this version) that
+  /// are new since this role was last decided on. Returns true if it changed;
+  /// rights taken away by an administrator stay away.
+  bool upgradeBuiltIn(const Role shipped) {
+    auto all = allAccessRights;
+    if (covers(knownRights, all))
+      return false;
+    foreach (right; shipped.rights)
+      if (!knownRights.canFind(right) && !rights.canFind(right))
+        rights ~= right;
+    rights = rights.sort.uniq.array;
+    knownRights = all;
+    return true;
   }
 }
 
@@ -90,13 +110,18 @@ Role[] builtInRoles(SysTime now) {
     r.createdAt = now;
     r.describe(label, description, now);
     r.rights = rights.sort.uniq.array;
+    r.knownRights = allAccessRights;
     return r;
   }
 
   return [
     make(adminRole, "Administrator", "Every access right, including users and roles", allAccessRights),
-    make(auditorRole, "Auditor", "Reads everything, including events, users and roles; changes nothing",
-      [AccessRight.statusRead, AccessRight.eventsRead, AccessRight.usersRead, AccessRight.rolesRead]),
+    make(auditorRole, "Auditor", "Reads everything, including events, monitoring, users and roles; changes nothing",
+      [AccessRight.statusRead, AccessRight.eventsRead, AccessRight.monitoringRead, AccessRight.sitesRead,
+        AccessRight.filesRead, AccessRight.securityRead, AccessRight.usersRead, AccessRight.rolesRead]),
+    make(editorRole, "Editor", "Site content and files",
+      [AccessRight.statusRead, AccessRight.sitesRead, AccessRight.sitesManage, AccessRight.filesRead,
+        AccessRight.filesManage]),
     make(viewerRole, "Viewer", "Status page", [AccessRight.statusRead]),
   ];
 }
@@ -121,4 +146,19 @@ unittest {
   catch (InvalidStateTransitionException)
     locked = true;
   assert(locked);
+}
+
+/// Built-in roles stored by an older version gain the new rights once.
+unittest {
+  auto shipped = builtInRoles(SysTime.init)[1]; // auditor
+  Role old;
+  old.name = RoleName(auditorRole);
+  old.builtIn = true;
+  old.rights = [AccessRight.statusRead, AccessRight.usersRead]; // events.read taken away by an admin
+  old.knownRights = firstAccessRights.dup;
+  assert(old.upgradeBuiltIn(shipped));
+  assert(old.grants(AccessRight.monitoringRead) && old.grants(AccessRight.filesRead));
+  assert(!old.grants(AccessRight.eventsRead) && !old.grants(AccessRight.rolesRead));
+  old.grant([AccessRight.statusRead], SysTime.init);
+  assert(!old.upgradeBuiltIn(shipped) && old.rights == [AccessRight.statusRead]);
 }

@@ -1,0 +1,102 @@
+//- The public home page of a site. Needs view (SitePageDto), signedIn, visitor (PageContext), preview (site key or "").
+- import neko.platform.application.dtos : byteSize;
+- import neko.platform.presentation.web.icons : icon;
+- import neko.platform.presentation.web.support : isRightToLeft, languageName, siteText;
+- auto lang = view.language;
+- string t(string key) { return siteText(lang, key); }
+- string link(string l) { return "/?lang=" ~ l ~ (preview.length ? "&site=" ~ preview : ""); }
+doctype html
+html(lang=lang, dir=(isRightToLeft(lang) ? "rtl" : "ltr"))
+  head
+    include head
+    title= view.content.title.length && view.content.title != view.site.name ? view.content.title ~ " · " ~ view.site.name : view.site.name
+    meta(name="description", content=view.content.tagline)
+    - foreach (l; view.site.languages)
+      link(rel="alternate", hreflang=l, href=link(l))
+  body.public-site
+    .page
+      header.navbar.navbar-expand-sm.d-print-none
+        .container-xl
+          a.navbar-brand.d-flex.align-items-center.gap-2(href=link(lang))
+            span.text-primary
+              | !{icon("world")}
+            span= view.site.name
+          .navbar-nav.flex-row.order-md-last.align-items-center.gap-2
+            - if (view.site.languages.length > 1)
+              .nav-item.dropdown
+                a.nav-link.dropdown-toggle(href="#", data-bs-toggle="dropdown", aria-label=t("language"))
+                  | !{icon("language")}
+                  span.ms-1= languageName(lang)
+                .dropdown-menu.dropdown-menu-end
+                  - foreach (l; view.site.languages)
+                    a.dropdown-item(href=link(l), hreflang=l, lang=l, class=(l == lang ? "active" : ""))= languageName(l)
+            .nav-item.d-flex
+              include theme_toggle
+            .nav-item
+              - if (signedIn)
+                a.btn.btn-sm(href="/start")
+                  | !{icon("layout-dashboard")}
+                  | #{t("manage")}
+              - else
+                a.btn.btn-sm(href="/login")
+                  | !{icon("login")}
+                  | #{t("signIn")}
+      .page-wrapper
+        - if (preview.length)
+          .container-xl.pt-3
+            .alert.alert-info.mb-0
+              | Preview of the site #{view.site.key}. Visitors reach it under #{view.site.hosts.length ? view.site.hosts[0] : "its host names"}.
+        .page-body
+          .container-xl
+            //- the text may be the default language's (no translation yet)
+            - auto textLang = view.content.language.length ? view.content.language : lang;
+            .site-hero.py-5(lang=textLang, dir=(isRightToLeft(textLang) ? "rtl" : "ltr"))
+              h1.display-5.fw-bold= view.content.title.length ? view.content.title : view.site.name
+              - if (view.content.tagline.length)
+                p.lead.text-secondary= view.content.tagline
+            - auto paragraphs = view.content.paragraphs;
+            - if (paragraphs.length)
+              .site-text.mb-5(lang=textLang, dir=(isRightToLeft(textLang) ? "rtl" : "ltr"))
+                - foreach (p; paragraphs)
+                  p= p
+            - if (view.images.length)
+              h2.h3.mb-3= t("images")
+              .row.row-cards.mb-5
+                - foreach (f; view.images)
+                  .col-6.col-md-4.col-lg-3
+                    a.card.card-link(href=f.publicUrl, target="_blank", rel="noopener")
+                      img.card-img-top.site-image(src=f.publicUrl, alt=(f.description.length ? f.description : f.name), loading="lazy")
+                      - if (f.description.length)
+                        .card-body.p-2.small.text-secondary= f.description
+            - if (view.media.length)
+              h2.h3.mb-3= t("media")
+              .row.row-cards.mb-5
+                - foreach (f; view.media)
+                  .col-md-6
+                    .card
+                      - if (f.kind == "video")
+                        video.card-img-top(src=f.publicUrl, controls=true, preload="metadata")
+                      - else
+                        .card-body.pb-0
+                          audio.w-100(src=f.publicUrl, controls=true, preload="metadata")
+                      .card-body
+                        .fw-medium= f.name
+                        - if (f.description.length)
+                          .small.text-secondary= f.description
+            - if (view.documents.length)
+              h2.h3.mb-3= t("documents")
+              .card.mb-5
+                .list-group.list-group-flush
+                  - foreach (f; view.documents)
+                    a.list-group-item.list-group-item-action.d-flex.align-items-center.gap-3(href=f.publicUrl)
+                      span.text-secondary
+                        | !{icon("file-text")}
+                      .flex-fill
+                        .fw-medium= f.name
+                        - if (f.description.length)
+                          .small.text-secondary= f.description
+                      span.text-secondary.small.text-nowrap= byteSize(f.size)
+                      | !{icon("download")}
+      footer.footer.footer-transparent.d-print-none
+        .container-xl.text-secondary.small
+          | © #{view.site.name}

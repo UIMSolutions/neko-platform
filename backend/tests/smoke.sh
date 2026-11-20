@@ -49,7 +49,7 @@ check "open platform refuses secret services (exit code)" "1" "$code"
 check "… with a policy message" "cannot host secret" "$(cat "$WORK/err")"
 
 echo "HTTP (open on :$OPEN_PORT, secret on unix socket)"
-NEKO_PORT=$OPEN_PORT NEKO_ADMIN_PASSWORD=smoke-admin-pw "$BIN/platform-open" >"$WORK/open.log" 2>&1 & PIDS+=($!)
+NEKO_PORT=$OPEN_PORT NEKO_ADMIN_PASSWORD=smoke-admin-pw NEKO_TRUSTED_PROXIES=127.0.0.1 "$BIN/platform-open" >"$WORK/open.log" 2>&1 & PIDS+=($!)
 NEKO_TRANSPORT=unix NEKO_UNIX_SOCKET="$SOCKET" NEKO_ENFORCE_SCOPES=true \
   "$BIN/platform-secret" >"$WORK/secret.log" 2>&1 & PIDS+=($!)
 for _ in $(seq 50); do
@@ -143,6 +143,73 @@ check "menu hides pages without rights" "0" "$(curl -s -b "$WORK/vic" $O/account
 check "role rights change at once" "200" \
   "$(post "$WORK/cookies" /roles/ops -d 'label=Operators&rights=status.read&rights=users.read&rights=roles.read')"
 check "… vic now sees roles" "200" "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/vic" $O/roles)"
+
+echo "Sites, files, monitoring"
+check "/ shows the default site without sign-in" "This is the default site" "$(curl -s $O/)"
+check "create site 'shop' (host shop.test, de + en)" "200" \
+  "$(post "$WORK/cookies" /sites --data-urlencode 'key=shop' --data-urlencode 'name=Shop' \
+    --data-urlencode 'hosts=shop.test' --data-urlencode 'defaultLanguage=de' --data-urlencode 'languages=en')"
+check "German content" "200" "$(post "$WORK/cookies" /sites/shop/content --data-urlencode 'language=de' \
+  --data-urlencode 'title=Willkommen' --data-urlencode 'body=Hallo')"
+check "English content" "200" "$(post "$WORK/cookies" /sites/shop/content -d 'language=en&title=Welcome')"
+check "host name selects the site, Accept-Language the language" "Welcome" \
+  "$(curl -s -H 'Host: shop.test' -H 'Accept-Language: en-GB,en;q=0.9' $O/)"
+check "?lang= overrides" "Willkommen" "$(curl -s -H 'Host: shop.test' -H 'Accept-Language: en' "$O/?lang=de")"
+check "Content-Language header" "de" \
+  "$(curl -s -o /dev/null -D - -H 'Host: shop.test' $O/ | tr -d '\r' | sed -n 's/^Content-Language: //p')"
+check "unknown hosts get the default site" "This is the default site" "$(curl -s -H 'Host: other.test' $O/)"
+printf 'GIF89a' > "$WORK/logo.gif"; printf '<script>alert(1)</script>' > "$WORK/page.html"
+check "upload two files (multipart)" "200" "$(post "$WORK/cookies" /files/upload -F site=shop -F isPublic=on \
+  -F "files=@$WORK/logo.gif" -F "files=@$WORK/page.html")"
+check "files are stored on disk per site" "2" "$(ls "$WORK/data/open/files/shop" | wc -l | tr -d ' ')"
+media=$(curl -s -H 'Host: shop.test' $O/ | grep -o '/media/shop/[^"]*page.html' | head -1)
+check "public HTML is only offered as a download" "attachment; filename=\"page.html\"" \
+  "$(curl -s -o /dev/null -D - "$O$media" | tr -d '\r' | sed -n 's/^Content-Disposition: //p')"
+check "… as application/octet-stream" "application/octet-stream" "$(curl -s -o /dev/null -w '%{content_type}' "$O$media")"
+check "create editor 'eve' limited to shop" "200" "$(post "$WORK/cookies" /users \
+  -d 'userName=eve&roles=editor&scope=some&sites=shop&active=on&password=eve-password-1&confirm=eve-password-1')"
+curl -s -o /dev/null -c "$WORK/eve" -d 'user=eve&password=eve-password-1' $O/login
+check "eve only sees her site" "1" "$(curl -s -b "$WORK/eve" $O/sites | grep -c 'fw-normal">' || true)"
+check "eve cannot open the default site's settings (error toast)" '"error":true' \
+  "$(curl -s -o /dev/null -D - -b "$WORK/eve" -H 'HX-Request: true' $O/sites/main/edit | grep -i '^HX-Trigger')"
+post "$WORK/cookies" /files/upload -F site=main -F "files=@$WORK/logo.gif" >/dev/null
+mainfile=$(curl -s -b "$WORK/cookies" "$O/files?site=main" | grep -o '/files/[^/]*/download' | head -1)
+check "… nor download its files" "404" "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/eve" "$O$mainfile")"
+check "… which the administrator can" "200" "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/cookies" "$O$mainfile")"
+check "eve has no monitoring" "403" "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/eve" $O/monitoring)"
+check "monitoring page" "Requests per minute" "$(curl -s -b "$WORK/cookies" $O/monitoring)"
+check "metrics (Prometheus, local scraper)" "neko_http_requests_total" "$(curl -s $O/metrics)"
+check "… with the files per site" 'neko_site_files{domain="open",site="shop"} 2' "$(curl -s $O/metrics)"
+check "CLI lists the sites" "shop.test" "$("$BIN/platform-open" sites list)"
+check "a site with files cannot be removed" "still has 2 files" \
+  "$("$BIN/platform-open" sites remove shop 2>&1 || true)"
+
+echo "Firewall, IP lists, traffic"
+code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
+check "SQL injection refused" "403" "$(code -H 'X-Forwarded-For: 198.51.100.1' "$O/?q=1%27%20OR%20%271%27=%271")"
+check "XSS in a form refused" "403" \
+  "$(code -H 'X-Forwarded-For: 198.51.100.1' -H "Origin: $O" -d 'user=%3Cscript%3Ex%3C/script%3E&password=x' $O/login)"
+check "scanner probe refused" "403" "$(code -H 'X-Forwarded-For: 198.51.100.1' $O/wp-login.php)"
+check "API callers get JSON" '"code":"Forbidden"' \
+  "$(curl -s -H 'X-Forwarded-For: 198.51.100.1' "$O/rest/v1/services?f=../../etc/passwd")"
+check "passwords are not inspected" "401" \
+  "$(code -H 'X-Forwarded-For: 198.51.100.2' -H "Origin: $O" --data-urlencode 'user=admin' --data-urlencode "password=' or 1=1 --" $O/login)"
+check "security page" "Firewall events" "$(curl -s -b "$WORK/cookies" $O/security)"
+check "… lists the attacker" "198.51.100.1" "$(curl -s -b "$WORK/cookies" $O/security/live)"
+check "eve has no security page" "403" "$(code -b "$WORK/eve" $O/security)"
+check "allow list refuses to lock out the caller" "lock you out" \
+  "$(curl -s -b "$WORK/cookies" -H "Origin: $O" -H "HX-Request: true" -H "X-CSRF-Token: $csrf" \
+    -d 'network=10.0.0.0/8&action=allow&scope=admin' $O/security/rules)"
+"$BIN/platform-open" firewall allow 127.0.0.1 --scope=admin --note=local >/dev/null
+"$BIN/platform-open" firewall deny 203.0.113.0/24 --scope=all >/dev/null
+sleep 6 # the server re-reads the rules within 5 seconds
+check "CLI deny rule blocks everything" "403" "$(code -H 'X-Forwarded-For: 203.0.113.9' $O/)"
+check "allow list closes the management pages to others" "403" "$(code -H 'X-Forwarded-For: 192.0.2.1' $O/login)"
+check "… but not the public site" "200" "$(code -H 'X-Forwarded-For: 192.0.2.1' $O/)"
+check "… while listed addresses get in" "200" "$(code -b "$WORK/cookies" $O/security)"
+check "firewall check (CLI)" "blocked" "$("$BIN/platform-open" firewall check 192.0.2.1)"
+check "traffic metrics" "neko_network_bytes_total" "$(curl -s $O/metrics)"
+check "firewall metrics" 'neko_firewall_events_total{domain="open",rule="sqli"}' "$(curl -s $O/metrics)"
 
 echo
 if [[ $failures -gt 0 ]]; then

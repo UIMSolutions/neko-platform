@@ -62,6 +62,32 @@ struct PlatformConfig {
   string adminPassword = "";
   /// Web sessions end after this many minutes without a request.
   int sessionIdleMinutes = 60;
+  /// Largest file that can be uploaded to a site's library.
+  long maxUploadBytes = 50 * 1024 * 1024;
+  /// Bytes per site; 0 = no quota.
+  long siteQuotaBytes = 0;
+  /// Language of the default site created on the first start.
+  string defaultLanguage = "en";
+  /// Log files (application log, access log): "" = <dataDir>/<domain>/logs
+  /// with storage "file" (none with "memory"); "none" = no log files.
+  string logDir = "";
+  /// Log files older than this many days are removed (0 = keep all).
+  int logRetentionDays = 14;
+  /// One line per HTTP request (log and access-YYYY-MM-DD.ndjson).
+  bool accessLog = true;
+  /// GET /metrics (Prometheus): "" = only from the local host; otherwise the
+  /// scraper sends "Authorization: Bearer <metricsToken>".
+  string metricsToken = "";
+  /// Web application firewall: "block", "detect" (log only) or "off".
+  string firewallMode = "block";
+  /// Requests per client address and minute; 0 = no limit.
+  int rateLimitPerMinute = 600;
+  /// Firewall findings within 10 minutes that ban an address; 0 = never.
+  int banAfterViolations = 20;
+  int banMinutes = 15;
+  /// Reverse proxies (addresses or CIDR, comma separated) whose
+  /// X-Forwarded-For header names the real client, e.g. the approuter.
+  string trustedProxies = "";
 
   /// Where the values came from (diagnostics).
   string[] sources = ["defaults"];
@@ -89,6 +115,25 @@ struct PlatformConfig {
     str("adminScope", adminScope);
     str("adminUser", adminUser);
     str("adminPassword", adminPassword);
+    str("defaultLanguage", defaultLanguage);
+    str("logDir", logDir);
+    str("metricsToken", metricsToken);
+    str("firewallMode", firewallMode);
+    str("trustedProxies", trustedProxies);
+    if ("rateLimitPerMinute" in values)
+      rateLimitPerMinute = asNumber!int(values["rateLimitPerMinute"], "rateLimitPerMinute");
+    if ("banAfterViolations" in values)
+      banAfterViolations = asNumber!int(values["banAfterViolations"], "banAfterViolations");
+    if ("banMinutes" in values)
+      banMinutes = asNumber!int(values["banMinutes"], "banMinutes");
+    if ("maxUploadBytes" in values)
+      maxUploadBytes = asNumber!long(values["maxUploadBytes"], "maxUploadBytes");
+    if ("siteQuotaBytes" in values)
+      siteQuotaBytes = asNumber!long(values["siteQuotaBytes"], "siteQuotaBytes");
+    if ("logRetentionDays" in values)
+      logRetentionDays = asNumber!int(values["logRetentionDays"], "logRetentionDays");
+    if ("accessLog" in values)
+      accessLog = asBool(values["accessLog"]);
     if ("sessionIdleMinutes" in values)
       sessionIdleMinutes = asNumber!int(values["sessionIdleMinutes"], "sessionIdleMinutes");
     if ("port" in values)
@@ -126,6 +171,59 @@ struct PlatformConfig {
       throw new Exception("maxPayloadBytes must be positive");
     if (sessionIdleMinutes <= 0)
       throw new Exception("sessionIdleMinutes must be positive");
+    if (maxUploadBytes <= 0 || siteQuotaBytes < 0)
+      throw new Exception("maxUploadBytes must be positive and siteQuotaBytes >= 0");
+    if (logRetentionDays < 0)
+      throw new Exception("logRetentionDays must be >= 0");
+    if (firewallMode != "block" && firewallMode != "detect" && firewallMode != "off")
+      throw new Exception("firewallMode must be 'block', 'detect' or 'off', not '" ~ firewallMode ~ "'");
+    if (rateLimitPerMinute < 0 || banAfterViolations < 0 || banMinutes <= 0)
+      throw new Exception("rateLimitPerMinute and banAfterViolations must be >= 0, banMinutes > 0");
+    foreach (p; proxyList)
+      try {
+        import neko.platform.domain.types.ipnetwork : IpNetwork;
+
+        IpNetwork(p);
+      } catch (Exception e)
+        throw new Exception("trustedProxies: " ~ e.msg);
+    try {
+      import neko.platform.domain.types.language : LanguageTag;
+
+      LanguageTag(defaultLanguage);
+    } catch (Exception e)
+      throw new Exception("defaultLanguage: " ~ e.msg);
+  }
+
+  /// The entries of `trustedProxies`.
+  string[] proxyList() const {
+    import std.algorithm : filter;
+
+    string[] result;
+    foreach (p; trustedProxies.splitter(','))
+      if (p.strip.length)
+        result ~= p.strip;
+    return result;
+  }
+
+  /// Directory of the log files; "" = no log files.
+  string effectiveLogDir(SecurityDomain domain) const {
+    if (logDir == "none")
+      return "";
+    if (logDir.length > 0)
+      return buildPath(logDir, domain.label);
+    return storage == "file" ? buildPath(effectiveDataDir(domain), "logs") : "";
+  }
+
+  /// Where uploaded files are kept (storage "file").
+  string effectiveFilesDir(SecurityDomain domain) const {
+    return buildPath(effectiveDataDir(domain), "files");
+  }
+
+  /// The largest request body the server accepts (uploads included).
+  ulong maxRequestBytes() const {
+    import std.algorithm : max;
+
+    return cast(ulong) max(maxPayloadBytes * 2, maxUploadBytes + 1024 * 1024, 2 * 1024 * 1024);
   }
 
   ushort effectivePort(SecurityDomain domain) const {
@@ -165,6 +263,18 @@ struct PlatformConfig {
     j["maxPayloadBytes"] = maxPayloadBytes;
     j["adminUser"] = adminUser; // the password is never shown
     j["sessionIdleMinutes"] = sessionIdleMinutes;
+    j["maxUploadBytes"] = maxUploadBytes;
+    j["siteQuotaBytes"] = siteQuotaBytes;
+    j["defaultLanguage"] = defaultLanguage;
+    j["logDir"] = effectiveLogDir(domain);
+    j["logRetentionDays"] = logRetentionDays;
+    j["accessLog"] = accessLog;
+    j["metricsProtected"] = metricsToken.length > 0; // the token is never shown
+    j["firewallMode"] = firewallMode;
+    j["rateLimitPerMinute"] = rateLimitPerMinute;
+    j["banAfterViolations"] = banAfterViolations;
+    j["banMinutes"] = banMinutes;
+    j["trustedProxies"] = trustedProxies;
     j["sources"] = Json(sources.map!(s => Json(s)).array);
     return j;
   }
@@ -194,7 +304,13 @@ PlatformConfig loadConfig(SecurityDomain domain) {
     ["NEKO_ADMIN_SCOPE", "adminScope"], ["NEKO_HEALTH_INTERVAL", "healthCheckIntervalSeconds"],
     ["NEKO_HEALTH_TIMEOUT", "healthTimeoutSeconds"], ["NEKO_MAX_PAYLOAD", "maxPayloadBytes"],
     ["NEKO_ADMIN_USER", "adminUser"], ["NEKO_ADMIN_PASSWORD", "adminPassword"],
-    ["NEKO_SESSION_IDLE_MINUTES", "sessionIdleMinutes"],
+    ["NEKO_SESSION_IDLE_MINUTES", "sessionIdleMinutes"], ["NEKO_MAX_UPLOAD", "maxUploadBytes"],
+    ["NEKO_SITE_QUOTA", "siteQuotaBytes"], ["NEKO_DEFAULT_LANGUAGE", "defaultLanguage"],
+    ["NEKO_LOG_DIR", "logDir"], ["NEKO_LOG_RETENTION_DAYS", "logRetentionDays"],
+    ["NEKO_ACCESS_LOG", "accessLog"], ["NEKO_METRICS_TOKEN", "metricsToken"],
+    ["NEKO_FIREWALL_MODE", "firewallMode"], ["NEKO_RATE_LIMIT", "rateLimitPerMinute"],
+    ["NEKO_BAN_AFTER", "banAfterViolations"], ["NEKO_BAN_MINUTES", "banMinutes"],
+    ["NEKO_TRUSTED_PROXIES", "trustedProxies"],
   ];
   foreach (pair; variables) {
     auto value = (() @trusted => environment.get(pair[0], ""))();

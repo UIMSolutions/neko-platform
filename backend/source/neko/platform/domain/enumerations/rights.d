@@ -19,6 +19,20 @@ enum AccessRight {
   statusRead,
   /// Recent platform events (audit trail) on the status page.
   eventsRead,
+  /// Monitoring: request metrics, errors, log, storage.
+  monitoringRead,
+  /// List sites (tenants), their languages and content.
+  sitesRead,
+  /// Create, configure and remove sites; edit their content.
+  sitesManage,
+  /// Browse and download the files of the sites.
+  filesRead,
+  /// Upload, change and remove files.
+  filesManage,
+  /// Firewall events, network traffic, IP lists and bans.
+  securityRead,
+  /// Change IP lists, ban and unban addresses.
+  securityManage,
   /// List user accounts.
   usersRead,
   /// Create, change, reset and remove user accounts.
@@ -46,6 +60,20 @@ immutable AccessRightInfo[] accessRights = [
     "Key figures, capabilities and the service catalogue", "Status"),
   AccessRightInfo(AccessRight.eventsRead, "events.read", "View events",
     "Recent platform events (audit trail), incl. sign-ins", "Status"),
+  AccessRightInfo(AccessRight.monitoringRead, "monitoring.read", "View monitoring",
+    "Request metrics, errors, the recent log and storage usage", "Status"),
+  AccessRightInfo(AccessRight.sitesRead, "sites.read", "View sites",
+    "List sites, their host names, languages and content", "Sites"),
+  AccessRightInfo(AccessRight.sitesManage, "sites.manage", "Manage sites",
+    "Edit site content; with access to all sites also create, configure and remove sites", "Sites"),
+  AccessRightInfo(AccessRight.filesRead, "files.read", "View files",
+    "Browse and download documents, images and media of the sites", "Files"),
+  AccessRightInfo(AccessRight.filesManage, "files.manage", "Manage files",
+    "Upload, rename, publish and remove files", "Files"),
+  AccessRightInfo(AccessRight.securityRead, "security.read", "View security",
+    "Firewall events, network traffic per client, IP allow/deny lists and bans", "Security"),
+  AccessRightInfo(AccessRight.securityManage, "security.manage", "Manage security",
+    "Change the IP allow and deny lists; ban and unban addresses", "Security"),
   AccessRightInfo(AccessRight.usersRead, "users.read", "View users",
     "List user accounts and their roles", "Users"),
   AccessRightInfo(AccessRight.usersManage, "users.manage", "Manage users",
@@ -85,6 +113,14 @@ AccessRight[] allAccessRights() pure nothrow {
 enum adminRole = "admin";
 enum auditorRole = "auditor";
 enum viewerRole = "viewer";
+enum editorRole = "editor";
+
+/// The rights of the first version. Roles stored without `knownRights` were
+/// decided on this catalogue (see Role.knownRights).
+immutable AccessRight[] firstAccessRights = [
+  AccessRight.statusRead, AccessRight.eventsRead, AccessRight.usersRead, AccessRight.usersManage,
+  AccessRight.rolesRead, AccessRight.rolesManage,
+];
 
 ///
 unittest {

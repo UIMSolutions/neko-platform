@@ -12,5 +12,7 @@ public:
   import neko.platform.infrastructure.configuration;
   import neko.platform.infrastructure.container;
   import neko.platform.infrastructure.logging;
+  import neko.platform.infrastructure.monitoring;
+  import neko.platform.infrastructure.firewall;
   import neko.platform.infrastructure.security;
   import neko.platform.infrastructure.workers;

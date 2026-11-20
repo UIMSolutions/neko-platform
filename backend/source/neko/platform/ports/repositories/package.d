@@ -44,3 +44,29 @@ interface IRoleRepository {
   void save(Role role);
   bool remove(string name);
 }
+
+interface ISiteRepository {
+  Site[] all();
+  bool tryGet(string key, out Site site);
+  /// Insert or replace.
+  void save(Site site);
+  bool remove(string key);
+}
+
+/// Metadata of the files; the content is in an IBlobStore.
+interface IFileRepository {
+  StoredFile[] all();
+  StoredFile[] ofSite(string site);
+  bool tryGet(FileId id, out StoredFile file);
+  /// Insert or replace.
+  void save(StoredFile file);
+  bool remove(FileId id);
+}
+
+interface IIpRuleRepository {
+  IpRule[] all();
+  bool tryGet(IpRuleId id, out IpRule rule);
+  /// Insert or replace.
+  void save(IpRule rule);
+  bool remove(IpRuleId id);
+}

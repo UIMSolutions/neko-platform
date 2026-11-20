@@ -6,17 +6,19 @@
 /// Tabler icons as inline SVG, compiled into the binary from
 /// backend/assets/vendor/icons — no icon font, nothing to fetch.
 ///
-/// In templates: `!= icon("users")`. Add an icon by copying its outline SVG
+/// In templates: `| !{icon("users")}`. Add an icon by copying its outline SVG
 /// (see backend/assets/vendor/README.md) and listing its name below.
 module neko.platform.presentation.web.icons;
 
 @safe:
 
 private enum string[] names = [
-  "activity-heartbeat", "alert-circle", "alert-triangle", "apps", "arrows-exchange", "ban", "check",
-  "circle-check", "code", "download", "hexagons", "info-circle", "key", "layout-dashboard", "lock", "login",
-  "logout", "moon", "pencil", "player-play", "plus", "server", "settings", "shield-check", "shield-lock", "sun",
-  "trash", "upload", "user", "user-circle", "user-plus", "users", "x",
+  "activity-heartbeat", "alert-circle", "alert-triangle", "apps", "arrows-exchange", "ban", "chart-line", "check",
+  "circle-check", "clock", "cloud-upload", "code", "database", "download", "external-link", "eye", "eye-off", "file",
+  "file-text", "file-zip", "files", "folder", "hexagons", "home", "info-circle", "key", "language",
+  "layout-dashboard", "list-details", "lock", "login", "logout", "moon", "movie", "music", "pencil", "photo",
+  "player-play", "plus", "refresh", "server", "settings", "shield-check", "shield-lock", "star", "sun", "trash",
+  "upload", "user", "user-circle", "user-plus", "users", "world", "x",
 ];
 
 /// The SVG markup of the named icon; "" for unknown names.

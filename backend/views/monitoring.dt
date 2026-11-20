@@ -1,0 +1,5 @@
+extends layout
+//- Monitoring. Needs the values of monitoring_live.dt.
+block content
+  p.text-secondary Figures since the last start of this instance (#{page.domain}). Prometheus can scrape the same at /metrics.
+  include monitoring_live

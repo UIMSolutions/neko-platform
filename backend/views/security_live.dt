@@ -1,0 +1,171 @@
+//- Live part of the security page; replaces itself every 10 seconds (htmx).
+//- Needs page, stats (TrafficSnapshot), active (Ban[]), rules (IpRuleDto[]), me (own address), settings (FirewallInfo).
+- import std.algorithm : canFind, sort;
+- import std.conv : to;
+- import vibe.data.json : Json;
+- import neko.platform.application.dtos : byteSize;
+- import neko.platform.presentation.web.icons : icon;
+- import neko.platform.presentation.web.monitoring : barChart;
+- string clock(T)(T t) { auto s = t.toUTC.toISOExtString; return s.length >= 19 ? s[11 .. 19] : s; }
+- string stamp(T)(T t) { auto s = t.toUTC.toISOExtString; return s.length >= 16 ? s[0 .. 10] ~ " " ~ s[11 .. 16] : s; }
+- bool banned(string a) { foreach (b; active) if (b.client == a) return true; return false; }
+- string vals(string address) { return Json(["address": Json(address), "minutes": Json("60")]).toString; }
+- auto modeColor = settings.mode == "block" ? "green" : settings.mode == "detect" ? "yellow" : "red";
+#security-live(hx-get="/security/live", hx-trigger="every 10s", hx-swap="outerHTML")
+  .row.row-deck.row-cards
+    - foreach (t; [["Firewall", settings.mode, "shield-check", modeColor, settings.mode == "block" ? "refuses findings" : settings.mode == "detect" ? "logs findings, refuses nothing" : "IP lists only"], ["Blocked", stats.blocked.to!string, "ban", stats.blocked > 0 ? "red" : "secondary", stats.detected.to!string ~ " detected only"], ["Clients", stats.clients.to!string, "users", "azure", "distinct addresses since the start"], ["Traffic out", byteSize(stats.bytesOut), "arrows-exchange", "primary", byteSize(stats.bytesIn) ~ " in (requests)"], ["Bans", active.length.to!string, "lock", active.length > 0 ? "orange" : "secondary", "after " ~ settings.banAfter.to!string ~ " findings in 10 min, " ~ settings.banMinutes.to!string ~ " min"]])
+      .col-sm-6.col-lg
+        .card.card-sm
+          .card-body
+            .row.align-items-center
+              .col-auto
+                span.avatar(class="bg-" ~ t[3] ~ "-lt")
+                  | !{icon(t[2])}
+              .col
+                .h2.mb-0= t[1]
+                .text-secondary= t[0]
+                .small.text-secondary= t[4]
+    .w-100.m-0
+    - foreach (c; [["Bytes in per minute", "in"], ["Bytes out per minute", "out"]])
+      .col-lg-6
+        .card
+          .card-header
+            h3.card-title= c[0]
+            .card-subtitle.ms-2.text-secondary last 60 minutes
+          .card-body
+            | !{barChart(c[1] == "in" ? stats.bytesInPerMinute : stats.bytesOutPerMinute, c[0], "", "", true)}
+            .d-flex.justify-content-between.small.text-secondary.mt-1
+              span 60 min ago
+              span now
+
+    .col-12
+      .card
+        .card-header
+          h3.card-title Clients
+          .card-subtitle.ms-2.text-secondary the busiest addresses · your address: #{me.length ? me : "local"}
+        - if (stats.top.length == 0)
+          .card-body
+            p.text-secondary.mb-0 No traffic yet.
+        - else
+          .table-responsive
+            table.table.table-vcenter.card-table.table-sm
+              thead
+                tr
+                  th Address
+                  th.text-end Requests
+                  th.text-end In
+                  th.text-end Out
+                  th.text-end 4xx
+                  th.text-end 5xx
+                  th.text-end Blocked
+                  th Last seen (UTC)
+                  th Last request
+                  - if (page.isSecurityManage)
+                    th.w-1
+              tbody
+                - foreach (c; stats.top)
+                  tr
+                    td.text-nowrap
+                      code= c.address
+                      - if (c.address == me || (me.length == 0 && c.address == "local"))
+                        span.badge.bg-primary-lt.ms-1 you
+                      - if (banned(c.address))
+                        span.badge.bg-red-lt.ms-1 banned
+                    td.text-end= c.requests.to!string
+                    td.text-end.text-nowrap= byteSize(c.bytesIn)
+                    td.text-end.text-nowrap= byteSize(c.bytesOut)
+                    td.text-end.text-secondary= c.clientErrors.to!string
+                    td.text-end(class=(c.serverErrors > 0 ? "text-red" : "text-secondary"))= c.serverErrors.to!string
+                    td.text-end
+                      - if (c.blocked > 0)
+                        span.text-red
+                          | !{icon("ban")}
+                          | #{c.blocked.to!string}
+                      - else
+                        span.text-secondary 0
+                    td.text-nowrap.text-secondary= clock(c.lastSeen)
+                    td.text-truncate.small(title=c.lastUserAgent)
+                      code= c.lastPath
+                    - if (page.isSecurityManage)
+                      td.text-nowrap
+                        - if (c.address != "local" && c.address != me)
+                          .d-flex.gap-1.justify-content-end
+                            button.btn.btn-ghost-secondary.btn-icon(hx-get="/security/rules/new?action=allow&network=" ~ c.address, hx-target="#dialog-host", title="Add to the allow list", aria-label="Allow #{c.address}")
+                              | !{icon("circle-check")}
+                            - if (banned(c.address))
+                              button.btn.btn-ghost-secondary.btn-icon(hx-post="/security/unban", hx-vals=vals(c.address), hx-target="#security-live", hx-swap="outerHTML", title="Lift the ban", aria-label="Unban #{c.address}")
+                                | !{icon("lock")}
+                            - else
+                              button.btn.btn-ghost-danger.btn-icon(hx-post="/security/ban", hx-vals=vals(c.address), hx-target="#security-live", hx-swap="outerHTML", hx-confirm="Ban #{c.address} for 60 minutes?", title="Ban for 60 minutes", aria-label="Ban #{c.address}")
+                                | !{icon("ban")}
+                            button.btn.btn-ghost-danger.btn-icon(hx-get="/security/rules/new?action=deny&network=" ~ c.address, hx-target="#dialog-host", title="Add to the deny list", aria-label="Deny #{c.address}")
+                              | !{icon("x")}
+
+    .col-lg-8
+      .card
+        .card-header
+          h3.card-title Firewall events
+          .card-subtitle.ms-2.text-secondary the latest #{stats.events.length.to!string}
+        - if (stats.events.length == 0)
+          .card-body
+            p.text-secondary.mb-0 Nothing suspicious since the start.
+        - else
+          .table-responsive.log-view
+            table.table.table-sm.card-table
+              thead
+                tr
+                  th Time (UTC)
+                  th Client
+                  th Rule
+                  th Request
+                  th Detail
+              tbody
+                - foreach (e; stats.events)
+                  tr
+                    td.text-nowrap.text-secondary= clock(e.at)
+                    td
+                      code= e.client.length ? e.client : "local"
+                    td.text-nowrap
+                      span.badge(class=(e.blocked ? "bg-red-lt" : "bg-yellow-lt"), title=(e.blocked ? "blocked" : "detected only"))
+                        | !{icon(e.blocked ? "ban" : "eye")}
+                        | #{e.rule}
+                    td.text-truncate
+                      code #{e.method} #{e.path}
+                    td.small= e.detail
+    .col-lg-4
+      .d-flex.flex-column.gap-3.w-100
+        .card
+          .card-header
+            h3.card-title Findings by rule
+          - auto ruleNames = stats.byRule.keys;
+          - ruleNames.sort;
+          - if (ruleNames.length == 0)
+            .card-body
+              p.text-secondary.mb-0 None.
+          - else
+            table.table.table-sm.card-table
+              tbody
+                - foreach (r; ruleNames)
+                  tr
+                    td
+                      code= r
+                    td.text-end= stats.byRule[r].to!string
+        .card
+          .card-header
+            h3.card-title Bans
+          - if (active.length == 0)
+            .card-body
+              p.text-secondary.mb-0 No address is banned.
+          - else
+            table.table.table-sm.card-table
+              tbody
+                - foreach (b; active)
+                  tr
+                    td
+                      code= b.client
+                      .small.text-secondary until #{stamp(b.until)} · #{b.manual ? "manual" : "automatic"} · #{b.reason}
+                    - if (page.isSecurityManage)
+                      td.w-1
+                        button.btn.btn-sm(hx-post="/security/unban", hx-vals=vals(b.client), hx-target="#security-live", hx-swap="outerHTML") Lift
+          .card-footer.small.text-secondary
+            | Rate limit: #{settings.rateLimit > 0 ? settings.rateLimit.to!string ~ " requests per minute and address" : "off"}#{settings.trustedProxies.length ? " · trusted proxies: " ~ settings.trustedProxies : ""}

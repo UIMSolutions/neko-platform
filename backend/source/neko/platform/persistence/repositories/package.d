@@ -155,6 +155,105 @@ class DocumentRoleRepository : IRoleRepository {
   }
 }
 
+class DocumentSiteRepository : ISiteRepository {
+  mixin DocumentCollection!(Site, SiteRecord, sitesCollection);
+
+  Site[] all() {
+    return loadAll();
+  }
+
+  bool tryGet(string key, out Site site) {
+    return find(key, site);
+  }
+
+  void save(Site site) {
+    put(site.key.value, site);
+  }
+
+  bool remove(string key) {
+    auto docs = store.load(sitesCollection);
+    if (key !in docs)
+      return false;
+    docs.remove(key);
+    store.store(sitesCollection, docs);
+    return true;
+  }
+}
+
+class DocumentFileRepository : IFileRepository {
+  mixin DocumentCollection!(StoredFile, FileRecord, filesCollection);
+
+  StoredFile[] all() {
+    return loadAll();
+  }
+
+  StoredFile[] ofSite(string site) {
+    StoredFile[] result;
+    foreach (f; loadAll())
+      if (f.site.value == site)
+        result ~= f;
+    return result;
+  }
+
+  bool tryGet(FileId id, out StoredFile file) {
+    return find(id.value, file);
+  }
+
+  void save(StoredFile file) {
+    put(file.id.value, file);
+  }
+
+  bool remove(FileId id) {
+    auto docs = store.load(filesCollection);
+    if (id.value !in docs)
+      return false;
+    docs.remove(id.value);
+    store.store(filesCollection, docs);
+    return true;
+  }
+}
+
+class DocumentIpRuleRepository : IIpRuleRepository {
+  mixin DocumentCollection!(IpRule, IpRuleRecord, ipRulesCollection);
+
+  IpRule[] all() {
+    return loadAll();
+  }
+
+  bool tryGet(IpRuleId id, out IpRule rule) {
+    return find(id.value, rule);
+  }
+
+  void save(IpRule rule) {
+    put(rule.id.value, rule);
+  }
+
+  bool remove(IpRuleId id) {
+    auto docs = store.load(ipRulesCollection);
+    if (id.value !in docs)
+      return false;
+    docs.remove(id.value);
+    store.store(ipRulesCollection, docs);
+    return true;
+  }
+}
+
+///
+unittest {
+  import neko.platform.persistence.storages : MemoryDocumentStore;
+
+  auto rules = new DocumentIpRuleRepository(new MemoryDocumentStore);
+  IpRule r;
+  r.id = IpRuleId("1");
+  r.network = IpNetwork("2001:DB8::/32");
+  r.action = IpAction.allow;
+  r.scope_ = NetworkScope.api;
+  rules.save(r);
+  IpRule back;
+  assert(rules.tryGet(IpRuleId("1"), back) && back.network.toString == "2001:db8::/32");
+  assert(back.action == IpAction.allow && back.scope_ == NetworkScope.api && rules.remove(IpRuleId("1")));
+}
+
 ///
 unittest {
   import neko.platform.persistence.storages : MemoryDocumentStore;

@@ -15,6 +15,9 @@ enum servicesCollection = "services";
 enum transfersCollection = "transfers";
 enum usersCollection = "users";
 enum rolesCollection = "roles";
+enum sitesCollection = "sites";
+enum filesCollection = "files";
+enum ipRulesCollection = "iprules";
 
 struct ServiceRecord {
   string id;
@@ -60,6 +63,8 @@ struct UserRecord {
   string modifiedAt;
   @optional string lastLoginAt;
   @optional string passwordChangedAt;
+  /// Site keys the account is limited to; missing or empty = every site.
+  @optional string[] sites;
 }
 
 struct RoleRecord {
@@ -71,4 +76,55 @@ struct RoleRecord {
   @optional bool builtIn;
   string createdAt;
   string modifiedAt;
+  /// The catalogue the rights were decided on; missing = the first version.
+  @optional string[] knownRights;
+}
+
+struct SiteContentRecord {
+  string language;
+  @optional string title;
+  @optional string tagline;
+  @optional string body;
+}
+
+struct SiteRecord {
+  string key;
+  string name;
+  @optional string[] hosts;
+  /// The first one is the default language.
+  @optional string[] languages;
+  @optional SiteContentRecord[] content;
+  @optional bool isDefault;
+  string createdAt;
+  string modifiedAt;
+}
+
+/// Metadata of a file; the content is <dataDir>/<domain>/files/<site>/<id>.
+struct FileRecord {
+  string id;
+  string site;
+  string name;
+  long size;
+  @optional string sha256;
+  @optional string description;
+  @optional bool isPublic;
+  @optional string uploadedBy;
+  string createdAt;
+  string modifiedAt;
+  /// Informational; the content type is derived from the name when read.
+  @optional string contentType;
+}
+
+/// An entry of the IP allow / deny list.
+struct IpRuleRecord {
+  string id;
+  /// CIDR or single address.
+  string network;
+  /// "allow" | "deny"
+  string action;
+  /// "all" | "admin" | "api"
+  string scope_;
+  @optional string note;
+  @optional string createdBy;
+  string createdAt;
 }

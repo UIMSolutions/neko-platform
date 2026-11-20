@@ -1,0 +1,185 @@
+//- Live part of the monitoring page; replaces itself every 10 seconds (htmx).
+//- Needs page, stats (MetricsSnapshot), filter (log level), lines (LogEntry[]), warnings, errors,
+//- eventCounts (long[string]), storage (StorageDto), runtime (RuntimeInfo).
+- import std.algorithm : sort, sum;
+- import std.conv : to;
+- import std.format : format;
+- import neko.platform.application.dtos : byteSize;
+- import neko.platform.infrastructure.monitoring : latencyBuckets, uptimeText;
+- import neko.platform.presentation.web.icons : icon;
+- import neko.platform.presentation.web.monitoring : requestBars;
+- string ms(double v) { return v == double.infinity ? "> 5 s" : v >= 1000 ? format("%.1f s", v / 1000) : format("%.0f ms", v); }
+- string clock(T)(T t) { auto s = t.toISOExtString; return s.length >= 19 ? s[11 .. 19] : s; }
+- auto lastFive = stats.perMinute.length >= 5 ? stats.perMinute[$ - 5 .. $].sum : 0;
+#live(hx-get="/monitoring/live?level=" ~ filter, hx-trigger="every 10s", hx-swap="outerHTML")
+  .row.row-deck.row-cards
+    - auto errorColor = stats.byClass[5] > 0 ? "red" : "secondary";
+    - foreach (t; [["Uptime", uptimeText(stats.uptime), "clock", "primary", "since " ~ stats.startedAt.toISOExtString[0 .. 10] ~ " " ~ stats.startedAt.toISOExtString[11 .. 16] ~ " UTC"], ["Requests", stats.requests.to!string, "activity-heartbeat", "azure", format("%.1f / min (last 5 min)", lastFive / 5.0)], ["Server errors", stats.byClass[5].to!string, "alert-triangle", errorColor, format("%.2f %% of requests · %s client errors", stats.errorRate * 100, stats.byClass[4])], ["Latency", ms(stats.averageMilliseconds), "chart-line", "green", "average · p95 " ~ ms(stats.percentile(0.95))], ["Log", errors.to!string ~ " / " ~ warnings.to!string, "list-details", errors > 0 ? "red" : warnings > 0 ? "yellow" : "secondary", "errors / warnings since the start"]])
+      .col-sm-6.col-lg
+        .card.card-sm
+          .card-body
+            .row.align-items-center
+              .col-auto
+                span.avatar(class="bg-" ~ t[3] ~ "-lt")
+                  | !{icon(t[2])}
+              .col
+                .h2.mb-0= t[1]
+                .text-secondary= t[0]
+                .small.text-secondary= t[4]
+
+    .w-100.m-0
+    .col-lg-8
+      .card
+        .card-header
+          h3.card-title Requests per minute
+          .card-subtitle.ms-2.text-secondary last 60 minutes · #{stats.inFlight.to!string} in progress
+        .card-body
+          | !{requestBars(stats.perMinute)}
+          .d-flex.justify-content-between.small.text-secondary.mt-1
+            span 60 min ago
+            span now
+    .col-lg-4
+      .card
+        .card-header
+          h3.card-title Latency
+        .table-responsive
+          table.table.table-sm.card-table
+            thead
+              tr
+                th Up to
+                th.text-end Requests
+            tbody
+              - foreach (i, n; stats.latency)
+                tr
+                  td= i < latencyBuckets.length ? ms(latencyBuckets[i]) : "more"
+                  td.text-end= n.to!string
+
+    .col-12
+      .card
+        .card-header
+          h3.card-title By area
+        .table-responsive
+          table.table.table-vcenter.card-table.table-sm
+            thead
+              tr
+                th Area
+                th.text-end Requests
+                th.text-end 4xx
+                th.text-end 5xx
+                th.text-end Average
+                th.text-end Slowest
+            tbody
+              - foreach (a; stats.areas)
+                tr
+                  td
+                    code= a.area
+                  td.text-end= a.requests.to!string
+                  td.text-end.text-secondary= a.clientErrors.to!string
+                  td.text-end
+                    - if (a.serverErrors > 0)
+                      span.text-red
+                        | !{icon("alert-triangle")}
+                        | #{a.serverErrors.to!string}
+                    - else
+                      span.text-secondary 0
+                  td.text-end= ms(a.averageMilliseconds)
+                  td.text-end= ms(a.maxMilliseconds)
+
+    - foreach (list; [["Failed requests (5xx)", "failures"], ["Slow requests (≥ 1 s)", "slow"]])
+      - auto samples = list[1] == "failures" ? stats.failures : stats.slow;
+      .col-lg-6
+        .card
+          .card-header
+            h3.card-title= list[0]
+          - if (samples.length == 0)
+            .card-body
+              p.text-secondary.mb-0 None since the start.
+          - else
+            .table-responsive
+              table.table.table-sm.card-table
+                thead
+                  tr
+                    th Time (UTC)
+                    th Request
+                    th.text-end Status
+                    th.text-end Duration
+                tbody
+                  - foreach (r; samples)
+                    tr
+                      td.text-nowrap.text-secondary= clock(r.at)
+                      td.text-truncate
+                        code #{r.method} #{r.path}
+                      td.text-end= r.status.to!string
+                      td.text-end.text-nowrap= ms(r.milliseconds)
+
+    .col-lg-6
+      .card
+        .card-header
+          h3.card-title Storage
+          .card-subtitle.ms-2.text-secondary= storage.location
+        .table-responsive
+          table.table.table-sm.card-table
+            thead
+              tr
+                th Site
+                th.text-end Files
+                th.text-end Size
+            tbody
+              - foreach (u; storage.sites)
+                tr
+                  td #{u.name} 
+                    code.small= u.site
+                  td.text-end= u.files.to!string
+                  td.text-end= byteSize(u.bytes)
+              tr.fw-bold
+                td Total
+                td.text-end= storage.files.to!string
+                td.text-end= byteSize(storage.bytes)
+        .card-footer.small.text-secondary
+          | Free on the volume: #{byteSize(storage.available)}
+    .col-lg-6
+      .card
+        .card-header
+          h3.card-title Runtime and events
+        .card-body
+          .datagrid.mb-3
+            .datagrid-item
+              .datagrid-title Heap in use
+              .datagrid-content= byteSize(cast(long) runtime.heapUsed)
+            .datagrid-item
+              .datagrid-title Heap free
+              .datagrid-content= byteSize(cast(long) runtime.heapFree)
+            .datagrid-item
+              .datagrid-title Log files
+              .datagrid-content= runtime.logLocation.length ? runtime.logLocation : "off"
+            .datagrid-item
+              .datagrid-title Access log
+              .datagrid-content= runtime.accessLog ? "on" : "off"
+          - auto types = eventCounts.keys;
+          - types.sort;
+          - if (types.length == 0)
+            p.text-secondary.mb-0 No platform events since the start.
+          - foreach (t; types)
+            span.badge.bg-secondary-lt.me-1.mb-1 #{t}: #{eventCounts[t].to!string}
+
+    .col-12
+      .card
+        .card-header
+          h3.card-title Recent log
+          .card-actions.btn-group
+            - foreach (l; ["debug", "info", "warn", "error"])
+              a.btn.btn-sm(href="/monitoring?level=" ~ l, class=(filter == l ? "btn-primary" : ""))= l
+        - if (lines.length == 0)
+          .card-body
+            p.text-secondary.mb-0 No log lines at this level.
+        - else
+          .table-responsive.log-view
+            table.table.table-sm.card-table.font-monospace.small
+              tbody
+                - foreach (e; lines)
+                  - auto lvl = e.levelName;
+                  tr
+                    td.text-nowrap.text-secondary= clock(e.at.toUTC)
+                    td
+                      span.badge(class=(lvl == "error" ? "bg-red-lt" : lvl == "warn" ? "bg-yellow-lt" : lvl == "debug" ? "bg-secondary-lt" : "bg-azure-lt"))= lvl
+                    td.text-break= e.text

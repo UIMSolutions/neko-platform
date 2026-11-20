@@ -37,8 +37,12 @@ struct NavItem {
 /// Pages a user may see, in menu order (the account page is always there).
 immutable NavItem[] navigation = [
   NavItem("status", "Status", "/status", "activity-heartbeat", AccessRight.statusRead),
+  NavItem("monitoring", "Monitoring", "/monitoring", "chart-line", AccessRight.monitoringRead),
+  NavItem("sites", "Sites", "/sites", "world", AccessRight.sitesRead),
+  NavItem("files", "Files", "/files", "files", AccessRight.filesRead),
+  NavItem("security", "Security", "/security", "shield-check", AccessRight.securityRead),
   NavItem("users", "Users", "/users", "users", AccessRight.usersRead),
-  NavItem("roles", "Roles & rights", "/roles", "shield-lock", AccessRight.rolesRead),
+  NavItem("roles", "Roles", "/roles", "shield-lock", AccessRight.rolesRead),
 ];
 
 /// Data for layout.dt (header, navigation, CSRF token) and the vibe.web.auth
@@ -47,7 +51,7 @@ struct PageContext {
   string serviceName;
   string domain;
   string title;
-  /// Key of the highlighted navigation entry ("status", "users", "roles", "account").
+  /// Key of the highlighted navigation entry ("status", "sites", "files", "users", …).
   string active;
   UserDto user;
   string csrf;
@@ -222,6 +226,8 @@ unittest {
   page.user.rights = ["status.read", "roles.read"];
   assert(page.isStatusRead && page.isRolesRead && !page.isUsersRead && !page.isRolesManage);
   assert(page.menu.length == 2 && page.menu[1].key == "roles" && page.home == "/status");
+  page.user.rights = ["files.read"];
+  assert(page.isFilesRead && !page.isFilesManage && page.home == "/files");
   page.user.rights = null;
   assert(page.menu.length == 0 && page.home == "/account");
 }

@@ -56,6 +56,8 @@ struct CreateUserRequest {
   /// Role names; empty = ["viewer"].
   @optional string[] roles;
   @optional bool active = true;
+  /// Site keys the account is limited to; empty = every site.
+  @optional string[] sites;
 }
 
 /// Partial update; null fields are left unchanged.
@@ -65,6 +67,8 @@ struct UpdateUserRequest {
   /// Replaces all roles of the account.
   @optional Nullable!(string[]) roles;
   @optional Nullable!bool active;
+  /// Replaces the site scope; empty = every site.
+  @optional Nullable!(string[]) sites;
 }
 
 struct CreateRoleRequest {
@@ -81,4 +85,59 @@ struct UpdateRoleRequest {
   @optional Nullable!string description;
   /// Replaces all rights of the role.
   @optional Nullable!(string[]) rights;
+}
+
+struct CreateSiteRequest {
+  string key;
+  string name;
+  @optional string[] hosts;
+  /// Default "en".
+  @optional string defaultLanguage;
+  /// Further languages.
+  @optional string[] languages;
+}
+
+/// Partial update; null fields are left unchanged.
+struct UpdateSiteRequest {
+  @optional Nullable!string name;
+  @optional Nullable!(string[]) hosts;
+  /// Set together with `languages` (both or neither).
+  @optional Nullable!string defaultLanguage;
+  @optional Nullable!(string[]) languages;
+}
+
+struct UpdateSiteContentRequest {
+  string language;
+  @optional string title;
+  @optional string tagline;
+  @optional string body;
+}
+
+struct UploadFileRequest {
+  string site;
+  /// Original file name (sanitised; the content type follows its extension).
+  string name;
+  /// The uploaded content: a local temporary file …
+  @optional string sourcePath;
+  /// … or the bytes themselves (CLI, tests).
+  @optional immutable(ubyte)[] data;
+  @optional string description;
+  @optional bool isPublic;
+}
+
+/// Partial update; null fields are left unchanged.
+struct UpdateFileRequest {
+  @optional Nullable!string name;
+  @optional Nullable!string description;
+  @optional Nullable!bool isPublic;
+}
+
+struct AddIpRuleRequest {
+  /// Address or CIDR network ("10.0.0.0/8", "2001:db8::/32").
+  string network;
+  /// "allow" | "deny"
+  string action;
+  /// "all" | "admin" | "api"
+  @optional string scope_ = "admin";
+  @optional string note;
 }

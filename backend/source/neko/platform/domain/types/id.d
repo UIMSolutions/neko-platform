@@ -40,3 +40,5 @@ unittest {
   tid.value = "transfer-456";
   assert(!tid.isEmpty());
 }
+/// A file of a site's library.
+alias FileId = Id!"file";

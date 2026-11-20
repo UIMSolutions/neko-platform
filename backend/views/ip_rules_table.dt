@@ -1,0 +1,44 @@
+//- IP allow / deny lists; swapped as a whole after every change. Needs page, rules (IpRuleDto[]), me.
+- import neko.platform.presentation.web.icons : icon;
+- import neko.platform.presentation.web.support : shortTime;
+.card#ip-rules
+  - if (rules.length == 0)
+    .card-body
+      p.text-secondary.mb-0 No IP rules: every address may reach every area (the firewall still applies). Add allow rules to limit the management pages or the APIs to known networks.
+  - else
+    .table-responsive
+      table.table.table-vcenter.card-table
+        thead
+          tr
+            th List
+            th Network
+            th Applies to
+            th Note
+            th.text-nowrap Added (UTC)
+            - if (page.isSecurityManage)
+              th.w-1
+        tbody
+          - foreach (r; rules)
+            tr
+              td
+                - if (r.action == "allow")
+                  span.badge.bg-green-lt
+                    | !{icon("circle-check")}
+                    | allow
+                - else
+                  span.badge.bg-red-lt
+                    | !{icon("ban")}
+                    | deny
+              td
+                code= r.network
+              td= r.scope_ == "all" ? "everything (also the public site)" : r.scope_ == "admin" ? "management pages" : "APIs (REST, OData, /api, /metrics)"
+              td.text-secondary= r.note
+              td.text-nowrap.text-secondary
+                div= shortTime(r.createdAt)
+                .small= r.createdBy
+              - if (page.isSecurityManage)
+                td
+                  button.btn.btn-ghost-danger.btn-icon(hx-post="/security/rules/#{r.id}/delete", hx-target="#ip-rules", hx-swap="outerHTML", hx-confirm="Remove #{r.network} from the #{r.action} list?", title="Remove", aria-label="Remove #{r.network}")
+                    | !{icon("trash")}
+  .card-footer.small.text-secondary
+    | A deny rule blocks matching addresses. Where allow rules exist for an area, only the listed networks reach it. Changes that would lock you out (#{me.length ? me : "local"}) are refused; the CLI (firewall …) always works.

@@ -6,7 +6,7 @@
 /// Converters between stored records and domain entities.
 module neko.platform.persistence.mappers;
 
-import std.algorithm : map, sort, uniq;
+import std.algorithm : canFind, map, sort, uniq;
 import std.array : array;
 import std.conv : to;
 import std.datetime.systime : SysTime;
@@ -87,7 +87,7 @@ UserRecord toRecord(const UserAccount a) {
   return UserRecord(a.id.value, a.userName.value, a.displayName, a.email, a.roles.dup,
     a.roles.length > 0 ? a.roles[0] : "", a.active,
     a.passwordHash, timeToText(a.createdAt), timeToText(a.modifiedAt), timeToText(a.lastLoginAt),
-    timeToText(a.passwordChangedAt));
+    timeToText(a.passwordChangedAt), a.sites.dup);
 }
 
 UserAccount toEntity(const UserRecord r) {
@@ -111,12 +111,13 @@ UserAccount toEntity(const UserRecord r) {
   a.modifiedAt = textToTime(r.modifiedAt);
   a.lastLoginAt = textToTime(r.lastLoginAt);
   a.passwordChangedAt = textToTime(r.passwordChangedAt);
+  a.sites = r.sites.dup;
   return a;
 }
 
 RoleRecord toRecord(const Role r) {
   return RoleRecord(r.name.value, r.label, r.description, r.rights.map!(x => x.key).array, r.builtIn,
-    timeToText(r.createdAt), timeToText(r.modifiedAt));
+    timeToText(r.createdAt), timeToText(r.modifiedAt), r.knownRights.map!(x => x.key).array);
 }
 
 Role toEntity(const RoleRecord r) {
@@ -131,10 +132,96 @@ Role toEntity(const RoleRecord r) {
       role.rights ~= right;
   }
   role.rights = role.rights.sort.uniq.array;
+  role.knownRights = r.knownRights.length > 0 ? parseKnown(r.knownRights) : firstAccessRights.dup;
   role.builtIn = r.builtIn;
   role.createdAt = textToTime(r.createdAt);
   role.modifiedAt = textToTime(r.modifiedAt);
   return role;
+}
+
+SiteRecord toRecord(const Site s) {
+  SiteContentRecord[] content;
+  foreach (c; s.content)
+    content ~= SiteContentRecord(c.language, c.title, c.tagline, c.body);
+  return SiteRecord(s.key.value, s.name, s.hosts.dup, s.languages.dup, content, s.isDefault,
+    timeToText(s.createdAt), timeToText(s.modifiedAt));
+}
+
+Site toEntity(const SiteRecord r) {
+  Site s;
+  s.key = SiteKey(r.key);
+  s.name = r.name.length ? r.name : r.key;
+  s.hosts = r.hosts.dup;
+  // Invalid tags (edited by hand) are dropped; a site always has a language.
+  foreach (l; r.languages)
+    try {
+      auto tag = LanguageTag(l).value;
+      if (!s.languages.canFind(tag))
+        s.languages ~= tag;
+    } catch (ValidationException) {
+    }
+  if (s.languages.length == 0)
+    s.languages = ["en"];
+  foreach (c; r.content)
+    try
+      s.content ~= SiteContent(LanguageTag(c.language).value, c.title, c.tagline, c.body);
+    catch (ValidationException) {
+    }
+  s.isDefault = r.isDefault;
+  s.createdAt = textToTime(r.createdAt);
+  s.modifiedAt = textToTime(r.modifiedAt);
+  return s;
+}
+
+FileRecord toRecord(const StoredFile f) {
+  return FileRecord(f.id.value, f.site.value, f.name, f.size, f.sha256, f.description, f.isPublic, f.uploadedBy,
+    timeToText(f.createdAt), timeToText(f.modifiedAt), f.contentType);
+}
+
+StoredFile toEntity(const FileRecord r) {
+  StoredFile f;
+  f.id = FileId(r.id);
+  f.site = SiteKey(r.site);
+  f.name = r.name;
+  f.contentType = contentTypeFor(r.name);
+  f.kind = kindOf(f.contentType);
+  f.size = r.size;
+  f.sha256 = r.sha256;
+  f.description = r.description;
+  f.isPublic = r.isPublic;
+  f.uploadedBy = r.uploadedBy;
+  f.createdAt = textToTime(r.createdAt);
+  f.modifiedAt = textToTime(r.modifiedAt);
+  return f;
+}
+
+IpRuleRecord toRecord(const IpRule r) {
+  return IpRuleRecord(r.id.value, r.network.toString, r.action.to!string, r.scope_.to!string, r.note, r.createdBy,
+    timeToText(r.createdAt));
+}
+
+/// Throws for unreadable networks (a hand-edited file): better to fail at start
+/// than to silently drop a deny rule.
+IpRule toEntity(const IpRuleRecord r) {
+  IpRule rule;
+  rule.id = IpRuleId(r.id);
+  rule.network = IpNetwork(r.network);
+  rule.action = toEnum(r.action, IpAction.deny);
+  rule.scope_ = toEnum(r.scope_, NetworkScope.all);
+  rule.note = r.note;
+  rule.createdBy = r.createdBy;
+  rule.createdAt = textToTime(r.createdAt);
+  return rule;
+}
+
+private AccessRight[] parseKnown(const(string)[] keys) {
+  AccessRight[] result;
+  foreach (k; keys) {
+    AccessRight right;
+    if (tryParseAccessRight(k, right))
+      result ~= right;
+  }
+  return result.sort.uniq.array;
 }
 
 ///
@@ -170,4 +257,23 @@ unittest {
   auto ops = toEntity(rec);
   assert(ops.label == "ops" && ops.rights == [AccessRight.statusRead, AccessRight.usersRead]);
   assert(toRecord(ops).rights == ["status.read", "users.read"]);
+}
+
+///
+unittest {
+  SiteRecord rec;
+  rec.key = "shop";
+  rec.languages = ["DE", "bad tag!", "en", "de"];
+  rec.content = [SiteContentRecord("de", "Willkommen"), SiteContentRecord("x_y", "lost")];
+  auto site = toEntity(rec);
+  assert(site.name == "shop" && site.languages == ["de", "en"] && site.content.length == 1);
+  assert(toRecord(site).languages == ["de", "en"]);
+
+  FileRecord f;
+  f.id = "1";
+  f.site = "shop";
+  f.name = "intro.mp4";
+  f.contentType = "text/html"; // never trusted
+  auto file = toEntity(f);
+  assert(file.contentType == "video/mp4" && file.kind == FileKind.video);
 }

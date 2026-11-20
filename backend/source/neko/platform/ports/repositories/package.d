@@ -35,3 +35,12 @@ interface IUserRepository {
   void save(UserAccount account);
   bool remove(AccountId id);
 }
+
+interface IRoleRepository {
+  Role[] all();
+  /// `name` in canonical (lower case) form.
+  bool tryGet(string name, out Role role);
+  /// Insert or replace.
+  void save(Role role);
+  bool remove(string name);
+}

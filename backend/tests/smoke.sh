@@ -8,7 +8,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-BIN="$ROOT/backend/build"
+BIN="${BIN:-$ROOT/backend/build}" # BIN=build for the binaries of a root `dub build`
 WORK="$(mktemp -d)"
 OPEN_PORT=${OPEN_PORT:-18180}
 SECRET_PORT=${SECRET_PORT:-18183}
@@ -107,7 +107,42 @@ check "sign-in" "303" \
   "$(curl -s -o /dev/null -w '%{http_code}' -c "$WORK/cookies" -d 'user=admin&password=smoke-admin-pw' $O/login)"
 check "status page" "self" "$(curl -s -b "$WORK/cookies" $O/status)"
 check "user management" "admin" "$(curl -s -b "$WORK/cookies" $O/users)"
-check "embedded Beer CSS" "200" "$(curl -s -o /dev/null -w '%{http_code}' $O/ui/beer-5.0.3.min.css)"
+check "roles page lists the built-in roles" "auditor" "$(curl -s -b "$WORK/cookies" $O/roles)"
+check "embedded Tabler CSS" "200" "$(curl -s -o /dev/null -w '%{http_code}' $O/ui/tabler-1.7.3.min.css)"
+check "embedded Tabler JS" "200" "$(curl -s -o /dev/null -w '%{http_code}' $O/ui/tabler-1.7.3.min.js)"
+
+echo "Roles and access rights"
+csrf=$(curl -s -b "$WORK/cookies" $O/account | python3 -c \
+  "import sys,re; print(re.search(r'X-CSRF-Token(?:&quot;|\")\s*:\s*(?:&quot;|\")([^&\"]+)', sys.stdin.read()).group(1))")
+post() { # post <cookies> <path> <form data…>
+  local jar=$1 path=$2; shift 2
+  curl -s -o /dev/null -w '%{http_code}' -b "$jar" -H "Origin: $O" -H "HX-Request: true" \
+    -H "X-CSRF-Token: $csrf" "$@" "$O$path"
+}
+check "POST without CSRF token refused" "403" \
+  "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/cookies" -H "Origin: $O" -d 'name=ops' $O/roles)"
+check "create role 'ops'" "200" \
+  "$(post "$WORK/cookies" /roles -d 'name=ops&label=Operators&rights=status.read&rights=users.read')"
+check "create user 'vic' with role ops" "200" \
+  "$(post "$WORK/cookies" /users -d 'userName=vic&roles=ops&active=on&password=vic-password-1&confirm=vic-password-1')"
+check "role in use cannot be removed" "in use" \
+  "$(curl -s -b "$WORK/cookies" -H "Origin: $O" -H "HX-Request: true" -H "X-CSRF-Token: $csrf" -D - \
+    -X POST $O/roles/ops/delete | grep -i '^HX-Trigger' | sed 's/still assigned/in use/')"
+check "vic signs in" "303" \
+  "$(curl -s -o /dev/null -w '%{http_code}' -c "$WORK/vic" -d 'user=vic&password=vic-password-1' $O/login)"
+check "vic lands on the first page with rights" "/status" \
+  "$(curl -s -o /dev/null -w '%{redirect_url}' -b "$WORK/vic" $O/start)"
+check "vic sees the status page" "200" "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/vic" $O/status)"
+check "… without events (no events.read)" "0" "$(curl -s -b "$WORK/vic" $O/status | grep -c 'Recent events' || true)"
+check "vic lists users (users.read)" "200" "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/vic" $O/users)"
+check "vic cannot open the user dialog (no users.manage)" "403" \
+  "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/vic" $O/users/new)"
+check "vic cannot see roles (no roles.read)" "403" "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/vic" $O/roles)"
+check "… and gets an explanation" "do not grant" "$(curl -s -b "$WORK/vic" $O/roles)"
+check "menu hides pages without rights" "0" "$(curl -s -b "$WORK/vic" $O/account | grep -c 'href="/roles"' || true)"
+check "role rights change at once" "200" \
+  "$(post "$WORK/cookies" /roles/ops -d 'label=Operators&rights=status.read&rights=users.read&rights=roles.read')"
+check "… vic now sees roles" "200" "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/vic" $O/roles)"
 
 echo
 if [[ $failures -gt 0 ]]; then

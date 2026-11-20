@@ -53,8 +53,8 @@ struct CreateUserRequest {
   string password;
   @optional string displayName;
   @optional string email;
-  /// "viewer" (default) | "admin"
-  @optional string role;
+  /// Role names; empty = ["viewer"].
+  @optional string[] roles;
   @optional bool active = true;
 }
 
@@ -62,6 +62,23 @@ struct CreateUserRequest {
 struct UpdateUserRequest {
   @optional Nullable!string displayName;
   @optional Nullable!string email;
-  @optional Nullable!string role;
+  /// Replaces all roles of the account.
+  @optional Nullable!(string[]) roles;
   @optional Nullable!bool active;
+}
+
+struct CreateRoleRequest {
+  string name;
+  @optional string label;
+  @optional string description;
+  /// Access right keys ("users.read").
+  @optional string[] rights;
+}
+
+/// Partial update; null fields are left unchanged.
+struct UpdateRoleRequest {
+  @optional Nullable!string label;
+  @optional Nullable!string description;
+  /// Replaces all rights of the role.
+  @optional Nullable!(string[]) rights;
 }

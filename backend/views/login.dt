@@ -1,34 +1,44 @@
 //- Sign-in page. Needs page (PageContext, anonymous), error, userName, next.
+- import neko.platform.presentation.web.icons : icon;
 doctype html
 html(lang="en")
   head
     include head
     title Sign in · #{page.serviceName} (#{page.domain})
-  body.sign-in(data-domain=page.domain)
-    main.responsive
-      article.round.large-padding
-        nav
-          i.extra.primary-text hub
-          div.max
-            h5.no-margin= page.serviceName
-            span.chip.small.border.domain-chip= page.domain
-          button.circle.transparent(type="button", data-theme-toggle=true, title="Light / dark")
-            i dark_mode
-        - if (error.length)
-          article.error-container.round.small-padding(role="alert")
-            nav
-              i error
-              span= error
-        form(method="post", action="/login")
-          input(type="hidden", name="next", value=next)
-          .field.label.prefix.border
-            i person
-            input(type="text", name="user", value=userName, required=true, autofocus=true, autocomplete="username", autocapitalize="none", spellcheck="false", placeholder=" ")
-            label User name
-          .field.label.prefix.border
-            i lock
-            input(type="password", name="password", required=true, autocomplete="current-password", placeholder=" ")
-            label Password
-          button.responsive.large-margin(type="submit")
-            i login
-            span Sign in
+  body.d-flex.flex-column(data-domain=page.domain)
+    .page.page-center
+      .container.container-tight.py-4
+        .text-center.mb-4
+          span.text-primary.brand-mark
+            | !{icon("hexagons")}
+          h1.h2.mt-2.mb-1= page.serviceName
+          span.badge.domain-badge= page.domain
+        .card.card-md.domain-card
+          .card-body
+            .d-flex.align-items-center.mb-4
+              h2.h3.mb-0.me-auto Sign in
+              include theme_toggle
+            - if (error.length)
+              .alert.alert-danger(role="alert")
+                .d-flex.gap-2
+                  | !{icon("alert-circle")}
+                  div= error
+            form(method="post", action="/login", autocomplete="on")
+              input(type="hidden", name="next", value=next)
+              .mb-3
+                label.form-label(for="user") User name
+                .input-icon
+                  span.input-icon-addon
+                    | !{icon("user")}
+                  input#user.form-control(type="text", name="user", value=userName, required=true, autofocus=true, autocomplete="username", autocapitalize="none", spellcheck="false")
+              .mb-3
+                label.form-label(for="password") Password
+                .input-icon
+                  span.input-icon-addon
+                    | !{icon("lock")}
+                  input#password.form-control(type="password", name="password", required=true, autocomplete="current-password")
+              .form-footer
+                button.btn.btn-primary.w-100(type="submit")
+                  | !{icon("login")}
+                  | Sign in
+        .text-center.text-secondary.mt-3.small Accounts belong to this #{page.domain} instance only.

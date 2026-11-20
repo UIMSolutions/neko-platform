@@ -18,6 +18,7 @@ public:
   import neko.platform.presentation.cli.args;
   import neko.platform.presentation.cli.commands;
   import neko.platform.presentation.cli.output;
+  import neko.platform.presentation.cli.roles;
   import neko.platform.presentation.cli.services;
   import neko.platform.presentation.cli.transfers;
   import neko.platform.presentation.cli.users;

@@ -1,0 +1,22 @@
+//- Error page (403 missing access right, 404, …). Needs page (anonymous), code, message.
+- import std.conv : to;
+- import neko.platform.presentation.web.icons : icon;
+doctype html
+html(lang="en")
+  head
+    include head
+    title #{page.title} · #{page.serviceName} (#{page.domain})
+  body.d-flex.flex-column(data-domain=page.domain)
+    .page.page-center
+      .container.container-tight.py-4
+        .empty
+          .empty-header= code.to!string
+          p.empty-title= page.title
+          p.empty-subtitle.text-secondary= message
+          .empty-action.d-flex.gap-2.justify-content-center
+            a.btn.btn-primary(href="/start")
+              | !{icon("layout-dashboard")}
+              | Back to my start page
+            a.btn(href="/account")
+              | !{icon("user-circle")}
+              | My account

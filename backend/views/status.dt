@@ -1,4 +1,5 @@
 extends layout
-//- Status page. Needs page, info (OverviewDto), catalogue (ServiceDto[]), recent (PlatformEvent[]).
+//- Status page. Needs page, info (OverviewDto), catalogue (ServiceDto[]), recent (PlatformEvent[];
+//- empty without the right events.read).
 block content
   include status_live

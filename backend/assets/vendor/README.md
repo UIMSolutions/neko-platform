@@ -1,31 +1,34 @@
 # Vendored front-end libraries
 
 These files are compiled into the platform binary (`import()` in
-`presentation/web/assets.d`) and served under `/ui/`. The platform runs in
-isolated security domains without CDN access, and the UI Content-Security-Policy
-only allows the platform's own origin.
+`presentation/web/assets.d` and `presentation/web/icons.d`) and served under
+`/ui/`. The platform runs in isolated security domains without CDN access, and
+the UI Content-Security-Policy only allows the platform's own origin.
 
 | File | Package | Source | License |
 |---|---|---|---|
-| `beer.min.css` | beercss 5.0.3 | `https://cdn.jsdelivr.net/npm/beercss@5.0.3/dist/cdn/beer.min.css` | MIT (`LICENSE.beercss`) |
-| `material-symbols-outlined.woff2` | beercss 5.0.3 (Google Material Symbols) | `…/beercss@5.0.3/dist/cdn/material-symbols-outlined.woff2` | Apache-2.0 |
-| `material-symbols-subset.woff2` | beercss 5.0.3 | `…/beercss@5.0.3/dist/cdn/material-symbols-subset.woff2` | Apache-2.0 |
+| `tabler.min.css` | @tabler/core 1.7.3 | `https://registry.npmjs.org/@tabler/core/-/core-1.7.3.tgz` → `dist/css/tabler.min.css` | MIT (`LICENSE.tabler`) |
+| `tabler.min.js` | @tabler/core 1.7.3 (bundles Bootstrap 5 components as `window.tabler`) | same archive → `dist/js/tabler.min.js` | MIT (`LICENSE.tabler`) |
+| `icons/*.svg` | @tabler/icons 3.50.0, outline set | `https://registry.npmjs.org/@tabler/icons/-/icons-3.50.0.tgz` → `icons/outline/` | MIT (`LICENSE.tabler-icons`) |
 | `htmx.min.js` | htmx.org 2.0.11 | `https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js` | 0BSD (`LICENSE.htmx`) |
 
-Local change: in `beer.min.css` the CDN fallback URLs of the four icon fonts
-(`url(https://cdn.jsdelivr.net/…woff2)`) were removed, so the stylesheet
-references nothing outside the platform. The local `url(material-symbols-*.woff2)`
-entries are unchanged.
+Local changes:
 
-`beer.min.js` is not used: native `<dialog>`, CSS-only floating labels
-(`placeholder=" "`) and `../app.js` cover what the pages need, and its runtime
-loader would fetch further files.
+- The `sourceMappingURL` comments were removed from `tabler.min.css` and
+  `tabler.min.js`, because the maps are not shipped. The stylesheet only
+  references `data:` URIs, so nothing outside the platform is loaded.
+- Only the icons the pages use are copied. Each is minified onto one line: the
+  invisible bounding-box path is dropped, and the class becomes
+  `class="icon" aria-hidden="true" focusable="false"` (Tabler sizes `.icon`).
 
 ## Updating
 
-1. Download the new versions from the URLs above (change the version numbers).
-2. Strip the CDN font fallbacks from `beer.min.css` again.
-3. Rename the published paths in `presentation/web/assets.d` and
-   `views/head.dt` (`beer-<version>.min.css`, `htmx-<version>.min.js`). They are
-   cached for a year, so the name must change with the content.
+1. Download the new archives (change the version numbers above) and copy the
+   files again, then remove the `sourceMappingURL` comments.
+2. Rename the published paths in `presentation/web/assets.d` and
+   `views/head.dt` (`tabler-<version>.min.css|js`, `htmx-<version>.min.js`).
+   They are cached for a year, so the name must change with the content.
+3. To add an icon, copy `icons/outline/<name>.svg`, minify it as described
+   above, and add `<name>` to the list in `presentation/web/icons.d`. Its
+   unittest checks that every listed icon exists.
 4. htmx 4.x changes attribute inheritance; check `views/*.dt` before moving off 2.x.

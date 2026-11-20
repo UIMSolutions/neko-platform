@@ -1,36 +1,56 @@
 extends layout
-//- Own account. Needs page, message, error.
+//- Own account. Needs page, message, error, catalogue (AccessRightDto[]).
 block content
-  h5 My account
-  .grid
-    .s12.l6
-      article.round
-        h6 Profile
-        - auto u = page.user;
-        - auto row(string v) { return v.length ? v : "–"; }
-        table
-          tbody
-            tr
-              th User name
-              td= u.userName
-            tr
-              th Display name
-              td= row(u.displayName)
-            tr
-              th E-mail
-              td= row(u.email)
-            tr
-              th Role
-              td= u.isAdmin ? "Administrator" : "Viewer"
-            tr
-              th Last sign-in
-              td= row(u.lastLoginAt.length >= 16 ? u.lastLoginAt[0 .. 10] ~ " " ~ u.lastLoginAt[11 .. 16] ~ " UTC" : "")
-            tr
-              th Password changed
-              td= row(u.passwordChangedAt.length >= 16 ? u.passwordChangedAt[0 .. 10] ~ " " ~ u.passwordChangedAt[11 .. 16] ~ " UTC" : "")
-        - if (u.isAdmin)
-          p.small-text Name, e-mail and role are changed under Users.
-        - else
-          p.small-text Ask an administrator to change your name, e-mail or role.
-    .s12.l6
+  - import std.array : join;
+  - import neko.platform.presentation.web.icons : icon;
+  - import neko.platform.presentation.web.support : shortTime;
+  - auto u = page.user;
+  - auto row(string v) { return v.length ? v : "–"; }
+  .row.row-cards
+    .col-lg-6
+      .card
+        .card-header
+          h3.card-title Profile
+        .card-body
+          .datagrid
+            .datagrid-item
+              .datagrid-title User name
+              .datagrid-content= u.userName
+            .datagrid-item
+              .datagrid-title Display name
+              .datagrid-content= row(u.displayName)
+            .datagrid-item
+              .datagrid-title E-mail
+              .datagrid-content= row(u.email)
+            .datagrid-item
+              .datagrid-title Last sign-in (UTC)
+              .datagrid-content= shortTime(u.lastLoginAt)
+            .datagrid-item
+              .datagrid-title Password changed (UTC)
+              .datagrid-content= shortTime(u.passwordChangedAt)
+        .card-footer.text-secondary.small
+          - if (page.isUsersManage)
+            | Name, e-mail and roles are changed under Users.
+          - else
+            | Ask an administrator to change your name, e-mail or roles.
+      .card.mt-3
+        .card-header
+          h3.card-title Roles and access rights
+        .card-body
+          .mb-3
+            - foreach (r; u.roles)
+              span.badge.bg-primary-lt.me-1
+                | !{icon("shield-lock")}
+                | #{r}
+          .list-group.list-group-flush
+            - foreach (right; catalogue)
+              - auto held = u.can(right.key);
+              .list-group-item.px-0.d-flex.align-items-start.gap-2(class=(held ? "" : "text-secondary opacity-50"))
+                span(class=(held ? "text-green" : ""))
+                  | !{icon(held ? "circle-check" : "x")}
+                div
+                  .fw-medium #{right.label} 
+                    code.small.ms-1= right.key
+                  .small.text-secondary= right.description
+    .col-lg-6
       include account_form

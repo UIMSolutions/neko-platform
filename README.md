@@ -36,8 +36,9 @@ dub build --config=open            # → backend/build/platform-open
 | URL | What |
 | --- | --- |
 | `/login` | sign-in for the server-rendered pages |
-| `/status` | status page (Beer CSS + htmx, all assets embedded — works in isolated domains) |
-| `/users`, `/account` | user management (administrators), own password |
+| `/status` | status page (vibe.d web interface, Tabler + htmx, all assets embedded — works in isolated domains) |
+| `/users`, `/roles` | user management, roles and the access rights they grant |
+| `/account` | own roles and rights, password change |
 | `/index.html` | Fiori cockpit (needs a frontend build, see below) |
 | `/rest/v1/…` | REST API |
 | `/odata/v4/platform/$metadata` | OData v4 service for Fiori |
@@ -52,8 +53,37 @@ Use the CLI on the same data directory:
 ```bash
 ./build/platform-open users list
 echo 'a-new-password' | ./build/platform-open users passwd admin
-./build/platform-open users add --name=ops --role=admin    # password from stdin
+./build/platform-open users add --name=ops --roles=admin   # password from stdin
 ```
+
+**Roles and access rights.** What a web user may do follows from fixed access
+rights: `status.read`, `events.read`, `users.read`, `users.manage`,
+`roles.read`, `roles.manage`. Roles bundle rights and are managed at runtime
+(page `/roles` or `roles …` on the CLI). A user holds one or more roles, and
+holds the union of their rights. Every domain starts with three built-in roles:
+
+| Role | Rights |
+| --- | --- |
+| `admin` | every right, including rights added later; not editable |
+| `auditor` | `status.read`, `events.read`, `users.read`, `roles.read` |
+| `viewer` | `status.read` (the default for new users) |
+
+Nobody can grant rights they do not hold themselves. That covers assigning a
+role to a user and adding a right to a role, and it also blocks changing an
+account or role that holds more rights than you do. At least one active
+`admin` always remains. Role changes take effect on the next request. Built-in
+roles cannot be removed, and neither can a custom role while a user still holds
+it. User documents written before roles existed keep working: their `role`
+field (`viewer` or `admin`) is read as the built-in role of the same name.
+
+```bash
+./build/platform-open roles add --name=ops --label=Operators --rights=status.read,events.read
+./build/platform-open users roles jane viewer,ops
+./build/platform-open roles rights                         # the catalogue
+```
+
+The REST and OData APIs are unchanged: they are still protected by the
+approuter / XSUAA scopes (`enforceScopes`), not by web roles.
 
 Further settings: `sessionIdleMinutes` (default 60, `NEKO_SESSION_IDLE_MINUTES`).
 Five failed sign-ins for one user name from one address lock it for 15 minutes.

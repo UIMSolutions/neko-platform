@@ -14,6 +14,7 @@ import vibe.data.serialization : optional;
 enum servicesCollection = "services";
 enum transfersCollection = "transfers";
 enum usersCollection = "users";
+enum rolesCollection = "roles";
 
 struct ServiceRecord {
   string id;
@@ -48,11 +49,26 @@ struct UserRecord {
   string userName;
   @optional string displayName;
   @optional string email;
-  string role;
+  /// Role names. Documents written before roles existed only have `role`.
+  @optional string[] roles;
+  /// Before roles: "viewer" | "admin". Still written (the first role) so an
+  /// older binary can read the document.
+  @optional string role;
   bool active;
   string passwordHash;
   string createdAt;
   string modifiedAt;
   @optional string lastLoginAt;
   @optional string passwordChangedAt;
+}
+
+struct RoleRecord {
+  string name;
+  @optional string label;
+  @optional string description;
+  /// Access right keys ("users.read").
+  @optional string[] rights;
+  @optional bool builtIn;
+  string createdAt;
+  string modifiedAt;
 }

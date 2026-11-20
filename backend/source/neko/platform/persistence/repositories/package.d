@@ -15,7 +15,7 @@ import neko.platform.persistence.records;
 
 @safe:
 
-/// Generic load/convert/store logic shared by both repositories.
+/// Generic load/convert/store logic shared by the repositories.
 private mixin template DocumentCollection(Entity, Record, string collection) {
   private IDocumentStore store;
 
@@ -130,6 +130,31 @@ class DocumentUserRepository : IUserRepository {
   }
 }
 
+class DocumentRoleRepository : IRoleRepository {
+  mixin DocumentCollection!(Role, RoleRecord, rolesCollection);
+
+  Role[] all() {
+    return loadAll();
+  }
+
+  bool tryGet(string name, out Role role) {
+    return find(name, role);
+  }
+
+  void save(Role role) {
+    put(role.name.value, role);
+  }
+
+  bool remove(string name) {
+    auto docs = store.load(rolesCollection);
+    if (name !in docs)
+      return false;
+    docs.remove(name);
+    store.store(rolesCollection, docs);
+    return true;
+  }
+}
+
 ///
 unittest {
   import neko.platform.persistence.storages : MemoryDocumentStore;
@@ -154,7 +179,7 @@ unittest {
   UserAccount a;
   a.id = AccountId("1");
   a.userName = UserName("jane");
-  a.role = UserRole.admin;
+  a.roles = [adminRole];
   a.passwordHash = "h";
   repo.save(a);
 

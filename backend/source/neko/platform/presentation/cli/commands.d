@@ -16,6 +16,7 @@ import neko.platform.presentation.cli.args;
 import neko.platform.presentation.cli.output;
 import neko.platform.presentation.cli.services : servicesCommand;
 import neko.platform.presentation.cli.transfers : transfersCommand;
+import neko.platform.presentation.cli.roles : rolesCommand;
 import neko.platform.presentation.cli.users : usersCommand;
 
 enum usage = `Usage: platform-<domain> [command] [arguments] [--option=value …]
@@ -40,10 +41,16 @@ Commands:
   transfers document <id> [--out=]    write the transfer document of an outbound package
   transfers import <file>
   users [list]                        web user accounts of this domain
-  users add --name= [--role=viewer|admin] [--display=] [--email=] [--password=]
+  users add --name= [--roles=viewer,…] [--display=] [--email=] [--password=]
   users passwd <name> [--password=]   reset a password (without --password: read from stdin)
-  users role <name> viewer|admin
+  users roles <name> <role>[,<role>…] replace the roles of a user
   users activate|deactivate|remove <name>
+  roles [list]                        roles and the access rights they grant
+  roles show <name>
+  roles rights                        the catalogue of access rights
+  roles add --name= [--label=] [--description=] [--rights=status.read,…]
+  roles update <name> [--label=] [--description=] [--rights=…]
+  roles remove <name>                 only custom roles that no user holds
   help
 
 Exit codes: 0 ok, 1 error (business errors print their HTTP-style code), 2 usage error`;
@@ -78,6 +85,8 @@ int runCli(PlatformContainer c, string[] args, File output = stdout, File errors
       return transfersCommand(c, a, actor, out_);
     case "users":
       return usersCommand(c, a, actor, out_);
+    case "roles":
+      return rolesCommand(c, a, actor, out_);
     default:
       errors.writeln("Unknown command '", command, "'\n\n", usage);
       return 2;

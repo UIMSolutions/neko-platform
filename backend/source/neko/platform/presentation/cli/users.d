@@ -9,6 +9,8 @@
 module neko.platform.presentation.cli.users;
 
 import std.stdio : stdin;
+import std.algorithm : filter, map, splitter;
+import std.array : array, join;
 import std.string : chomp, strip, toLower;
 import std.typecons : nullable;
 import vibe.data.json : serializeToJson;
@@ -29,8 +31,8 @@ int usersCommand(PlatformContainer c, CliArgs a, string actor, CliOutput output)
     }
     string[][] rows;
     foreach (u; all)
-      rows ~= [u.userName, u.displayName, u.role, u.active ? "active" : "inactive", u.lastLoginAt];
-    output.table(["USER", "NAME", "ROLE", "STATUS", "LAST SIGN-IN"], rows);
+      rows ~= [u.userName, u.displayName, u.roles.join(","), u.active ? "active" : "inactive", u.lastLoginAt];
+    output.table(["USER", "NAME", "ROLES", "STATUS", "LAST SIGN-IN"], rows);
     return 0;
   case "add":
     CreateUserRequest r;
@@ -39,10 +41,11 @@ int usersCommand(PlatformContainer c, CliArgs a, string actor, CliOutput output)
       throw new ValidationException("Missing option --name=");
     r.displayName = a.opt("display");
     r.email = a.opt("email");
-    r.role = a.opt("role", "viewer");
+    // --role= is the spelling from before roles could be combined
+    r.roles = list(a.opt("roles", a.opt("role", "viewer")));
     r.password = password(a);
     auto created = c.users.create(r, actor);
-    output.message("Created " ~ created.role ~ " " ~ created.userName ~ ".");
+    output.message("Created " ~ created.userName ~ " (roles: " ~ created.roles.join(", ") ~ ").");
     return 0;
   case "passwd":
     auto user = byName(c, a.word(2, "user name"));
@@ -50,12 +53,12 @@ int usersCommand(PlatformContainer c, CliArgs a, string actor, CliOutput output)
     output.message("Password of " ~ user.userName ~ " reset. Web sessions that are already open stay valid until "
         ~ "they expire or the server restarts; deactivate the user to end them at once.");
     return 0;
-  case "role":
+  case "roles", "role":
     auto user = byName(c, a.word(2, "user name"));
     UpdateUserRequest r;
-    r.role = nullable(a.word(3, "role (viewer|admin)"));
-    c.users.update(user.id, r, actor);
-    output.message(user.userName ~ " is now " ~ a.word(3, "role") ~ ".");
+    r.roles = nullable(list(a.word(3, "roles (comma separated)")));
+    auto changed = c.users.update(user.id, r, actor);
+    output.message(changed.userName ~ " now has the roles " ~ changed.roles.join(", ") ~ ".");
     return 0;
   case "activate", "deactivate":
     auto user = byName(c, a.word(2, "user name"));
@@ -89,4 +92,9 @@ private string password(CliArgs a) {
   if (line is null)
     throw new ValidationException("Missing password (--password= or a line on standard input)");
   return line.chomp;
+}
+
+/// "viewer, ops" → ["viewer", "ops"]
+string[] list(string text) {
+  return text.splitter(',').map!(s => s.strip).filter!(s => s.length > 0).array;
 }

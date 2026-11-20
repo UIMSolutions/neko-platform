@@ -1,76 +1,62 @@
-// Neko Platform pages: dialogs, snackbar and theme switch for Beer CSS + htmx.
+// Neko Platform pages: dialogs, toasts and theme switch for Tabler + htmx.
 // Loaded as a file because the Content-Security-Policy forbids inline scripts.
+// Tabler (window.tabler) bundles the Bootstrap components used here.
 (function () {
   "use strict";
 
   var THEME_KEY = "neko.theme";
 
-  function readTheme() {
-    try { return localStorage.getItem(THEME_KEY); } catch (e) { return null; }
+  function setTheme(mode) {
+    try { localStorage.setItem(THEME_KEY, mode); } catch (e) { /* private mode */ }
+    document.documentElement.setAttribute("data-bs-theme", mode);
   }
 
-  function applyTheme(mode) {
-    var body = document.body;
-    body.classList.remove("light", "dark");
-    if (mode === "light" || mode === "dark") body.classList.add(mode);
-    var dark = mode ? mode === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
-    document.querySelectorAll("[data-theme-toggle] i").forEach(function (icon) {
-      icon.textContent = dark ? "light_mode" : "dark_mode";
-    });
-  }
-
-  function toggleTheme() {
-    var current = document.body.classList.contains("dark") ? "dark"
-      : document.body.classList.contains("light") ? "light"
-      : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    var next = current === "dark" ? "light" : "dark";
-    try { localStorage.setItem(THEME_KEY, next); } catch (e) { /* private mode */ }
-    applyTheme(next);
-  }
-
-  var snackbarTimer;
+  // ── toasts ──────────────────────────────────────────────────────────────
   function notify(message, isError) {
-    var bar = document.getElementById("snackbar");
-    if (!bar || !message) return;
-    bar.querySelector("span").textContent = message;
-    bar.querySelector("i").textContent = isError ? "error" : "check_circle";
-    bar.classList.toggle("error", !!isError);
-    bar.classList.add("active");
-    clearTimeout(snackbarTimer);
-    snackbarTimer = setTimeout(function () { bar.classList.remove("active"); }, isError ? 8000 : 5000);
+    var el = document.getElementById("toast");
+    if (!el || !message) return;
+    el.querySelector(".toast-body").textContent = message;
+    el.classList.toggle("text-bg-danger", !!isError);
+    el.classList.toggle("text-bg-success", !isError);
+    window.tabler.Toast.getOrCreateInstance(el, { delay: isError ? 8000 : 5000 }).show();
   }
 
-  function closeDialog() {
-    var host = document.getElementById("dialog-host");
-    if (!host) return;
-    var dialog = host.querySelector("dialog");
-    if (dialog && dialog.open) dialog.close();
-    host.innerHTML = "";
+  // ── dialogs (Tabler modals loaded into #dialog-host) ─────────────────────
+  function currentModal() {
+    return document.querySelector("#dialog-host > .modal");
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
-    applyTheme(readTheme());
-  });
+  function openModal() {
+    var el = currentModal();
+    if (!el || el.dataset.opened) return;
+    el.dataset.opened = "1";
+    el.addEventListener("hidden.bs.modal", function () { el.remove(); });
+    el.addEventListener("shown.bs.modal", function () { focusFirst(el); });
+    window.tabler.Modal.getOrCreateInstance(el).show();
+  }
+
+  function focusFirst(el) {
+    var first = el.querySelector(".modal-body input:not([type=hidden]):not([disabled]), .modal-body select");
+    if (first) first.focus();
+  }
+
+  function closeModal() {
+    var el = currentModal();
+    if (!el) return;
+    var modal = window.tabler.Modal.getInstance(el);
+    if (modal) modal.hide(); else el.remove();
+  }
 
   document.addEventListener("click", function (event) {
-    if (event.target.closest("[data-theme-toggle]")) {
-      toggleTheme();
-    } else if (event.target.closest("[data-close-dialog]")) {
-      closeDialog();
-    }
+    var toggle = event.target.closest("[data-theme-toggle]");
+    if (toggle) setTheme(toggle.getAttribute("data-theme-toggle"));
   });
 
-  // A dialog swapped into #dialog-host opens as a modal.
-  document.addEventListener("htmx:afterSwap", function (event) {
-    var target = event.detail.target;
-    if (target && target.id === "dialog-host") {
-      var dialog = target.querySelector("dialog");
-      if (dialog && !dialog.open) {
-        dialog.showModal();
-        var first = dialog.querySelector("input:not([type=hidden]), select");
-        if (first) first.focus();
-      }
-    }
+  document.addEventListener("htmx:afterSettle", function (event) {
+    openModal();
+    // a dialog re-rendered with a validation error: focus its first field again
+    var target = event.detail.elt;
+    if (target && target.classList && target.classList.contains("modal-content")) focusFirst(target);
   });
 
   // HX-Trigger events sent by the server.
@@ -79,11 +65,13 @@
   });
   // Deferred: htmx dispatches the remaining HX-Trigger events on the form inside
   // the dialog; removing it now would detach them from the document.
-  document.addEventListener("nekoClose", function () { setTimeout(closeDialog, 0); });
+  document.addEventListener("nekoClose", function () { setTimeout(closeModal, 0); });
 
   document.addEventListener("htmx:responseError", function (event) {
     var xhr = event.detail.xhr;
-    notify(xhr.status === 403 ? (xhr.responseText || "Not allowed") : "Request failed (" + xhr.status + ")", true);
+    var text = xhr.getResponseHeader("Content-Type") || "";
+    notify(text.indexOf("text/plain") === 0 && xhr.responseText ? xhr.responseText
+      : "Request failed (" + xhr.status + ")", true);
   });
   document.addEventListener("htmx:sendError", function () {
     notify("The server cannot be reached", true);

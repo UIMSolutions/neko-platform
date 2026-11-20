@@ -1,0 +1,50 @@
+//- Create / edit dialog of a role. Needs page, form (RoleForm), catalogue (AccessRightDto[]).
+//- Rights the signed-in user does not hold cannot be granted (greyed out).
+- import neko.platform.presentation.web.icons : icon;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered.modal-lg
+    .modal-content
+      form(hx-post=(form.existing ? "/roles/" ~ form.name : "/roles"), hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title= form.existing ? "Edit role " ~ form.name : "New role"
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          .row
+            - if (!form.existing)
+              .col-md-4.mb-3
+                label.form-label.required(for="r-name") Name
+                input#r-name.form-control(type="text", name="name", value=form.name, required=true, minlength="2", maxlength="32", autocomplete="off", autocapitalize="none", spellcheck="false")
+                .form-hint Fixed once created: a-z, 0-9, . _ -
+            div.mb-3(class=(form.existing ? "col-md-12" : "col-md-8"))
+              label.form-label(for="r-label") Label
+              input#r-label.form-control(type="text", name="label", value=form.label, maxlength="64")
+          .mb-3
+            label.form-label(for="r-desc") Description
+            input#r-desc.form-control(type="text", name="description", value=form.description, maxlength="256")
+          .form-label Access rights
+          - if (form.locked)
+            .alert.alert-info
+              .d-flex.gap-2
+                | !{icon("shield-check")}
+                div The administrator role always holds every access right, including rights added by later versions.
+          - else
+            .row
+              - foreach (right; catalogue)
+                - auto allowed = page.user.can(right.key);
+                .col-md-6
+                  label.form-check(title=(allowed ? "" : "You do not hold this right"), class=(allowed ? "" : "opacity-50"))
+                    input.form-check-input(type="checkbox", name="rights", value=right.key, checked=form.grants(right.key), disabled=!allowed)
+                    span.form-check-label
+                      span.fw-medium #{right.area}: #{right.label}
+                      code.small.ms-1= right.key
+                      span.form-check-description= right.description
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | #{form.existing ? "Save" : "Create"}

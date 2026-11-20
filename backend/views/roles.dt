@@ -1,0 +1,11 @@
+extends layout
+//- Roles and access rights. Needs page, list (RoleDto[]), catalogue (AccessRightDto[]).
+block actions
+  - import neko.platform.presentation.web.icons : icon;
+  - if (page.isRolesManage)
+    button.btn.btn-primary(hx-get="/roles/new", hx-target="#dialog-host")
+      | !{icon("plus")}
+      | New role
+block content
+  p.text-secondary A role bundles access rights; users get one or more roles. The administrator role always holds every right. Nobody can grant rights they do not hold themselves.
+  include roles_table

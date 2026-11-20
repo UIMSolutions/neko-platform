@@ -61,20 +61,62 @@ struct UserDto {
   string userName;
   string displayName;
   string email;
-  string role;
+  /// Role names.
+  string[] roles;
+  /// Effective access right keys: the union of the rights of the roles.
+  string[] rights;
   bool active;
   string createdAt;
   string modifiedAt;
   string lastLoginAt;
   string passwordChangedAt;
 
-  bool isAdmin() const pure nothrow {
-    return role == "admin";
+  bool hasRole(string name) const pure nothrow {
+    import std.algorithm : canFind;
+
+    return roles.canFind(name);
+  }
+
+  /// True if the account holds the right ("users.manage").
+  bool can(string right) const pure nothrow {
+    import std.algorithm : canFind;
+
+    return rights.canFind(right);
   }
 
   string label() const pure nothrow {
     return displayName.length > 0 ? displayName : userName;
   }
+}
+
+/// A role and the access rights it grants.
+struct RoleDto {
+  string name;
+  string label;
+  string description;
+  /// Access right keys.
+  string[] rights;
+  bool builtIn;
+  /// The administrator role: always every right, not editable.
+  bool locked;
+  /// Number of accounts holding the role.
+  long members;
+  string createdAt;
+  string modifiedAt;
+
+  bool grants(string right) const pure nothrow {
+    import std.algorithm : canFind;
+
+    return rights.canFind(right);
+  }
+}
+
+/// One entry of the access right catalogue.
+struct AccessRightDto {
+  string key;
+  string label;
+  string description;
+  string area;
 }
 
 /// ISO 8601 in UTC with fixed millisecond precision ("2026-11-16T21:25:30.885Z"),
@@ -138,11 +180,42 @@ UserDto toDto(const UserAccount a) {
   d.userName = a.userName.value;
   d.displayName = a.displayName;
   d.email = a.email;
-  d.role = a.role.to!string;
+  d.roles = a.roles.dup;
   d.active = a.active;
   d.createdAt = isoTime(a.createdAt);
   d.modifiedAt = isoTime(a.modifiedAt);
   d.lastLoginAt = isoTime(a.lastLoginAt);
   d.passwordChangedAt = isoTime(a.passwordChangedAt);
   return d;
+}
+
+/// With the effective rights, resolved against `roles` (all roles).
+UserDto toDto(const UserAccount a, const(Role)[] roles) {
+  import std.algorithm : map;
+  import std.array : array;
+
+  auto d = toDto(a);
+  d.rights = effectiveRights(a.roles, roles).map!(x => x.key).array;
+  return d;
+}
+
+RoleDto toDto(const Role r, long members) {
+  import std.algorithm : map;
+  import std.array : array;
+
+  RoleDto d;
+  d.name = r.name.value;
+  d.label = r.label;
+  d.description = r.description;
+  d.rights = r.effectiveRights.map!(x => x.key).array;
+  d.builtIn = r.builtIn;
+  d.locked = r.isAdministrator;
+  d.members = members;
+  d.createdAt = isoTime(r.createdAt);
+  d.modifiedAt = isoTime(r.modifiedAt);
+  return d;
+}
+
+AccessRightDto toDto(const AccessRightInfo i) {
+  return AccessRightDto(i.key, i.label, i.description, i.area);
 }

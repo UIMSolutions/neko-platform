@@ -1,46 +1,49 @@
-//- The user table; swapped as a whole after every change. Needs page, list.
-article#users-table.round
-  .scroll
-    table.stripes
+//- The user table; swapped as a whole after every change. Needs page, list, roleList.
+- import neko.platform.presentation.web.icons : icon;
+- import neko.platform.presentation.web.support : initial, shortTime;
+- string roleLabel(string name) { foreach (r; roleList) if (r.name == name) return r.label; return name ~ " (removed)"; }
+.card#users-table
+  .table-responsive
+    table.table.table-vcenter.card-table
       thead
         tr
           th User
-          th Name
           th E-mail
-          th Role
+          th Roles
           th Status
-          th.nowrap Last sign-in (UTC)
-          th
+          th.text-nowrap Last sign-in (UTC)
+          - if (page.isUsersManage)
+            th.w-1
       tbody
         - foreach (u; list)
           - auto self = u.id == page.user.id;
           tr
             td
-              strong= u.userName
-              - if (self)
-                span.small-text.small-margin (you)
-            td= u.displayName
-            td= u.email
+              .d-flex.align-items-center
+                span.avatar.avatar-sm.me-2= initial(u.label)
+                div
+                  .fw-bold
+                    | #{u.userName}
+                    - if (self)
+                      span.text-secondary.fw-normal.ms-1 (you)
+                  .text-secondary.small= u.displayName
+            td.text-secondary= u.email
             td
-              - if (u.isAdmin)
-                span.chip.small.primary
-                  i shield_person
-                  span admin
-              - else
-                span.chip.small.border viewer
+              - foreach (r; u.roles)
+                span.badge.me-1(class=(r == "admin" ? "bg-primary text-primary-fg" : "bg-primary-lt"), title=r)= roleLabel(r)
             td
               - if (u.active)
-                span.chip.small.green-border.green-text active
+                span.badge.bg-green-lt active
               - else
-                span.chip.small.red-border.red-text inactive
-            td.nowrap
-              - auto last = u.lastLoginAt;
-              | #{last.length >= 16 ? last[0 .. 10] ~ " " ~ last[11 .. 16] : "never"}
-            td.actions
-              button.circle.transparent(hx-get="/users/#{u.id}/edit", hx-target="#dialog-host", title="Edit", aria-label="Edit #{u.userName}")
-                i edit
-              - if (!self)
-                button.circle.transparent(hx-get="/users/#{u.id}/password", hx-target="#dialog-host", title="Reset password", aria-label="Reset password of #{u.userName}")
-                  i key
-                button.circle.transparent(hx-post="/users/#{u.id}/delete", hx-target="#users-table", hx-swap="outerHTML", hx-confirm="Remove user #{u.userName}? This cannot be undone.", title="Remove", aria-label="Remove #{u.userName}")
-                  i delete
+                span.badge.bg-red-lt inactive
+            td.text-nowrap.text-secondary= shortTime(u.lastLoginAt, "never")
+            - if (page.isUsersManage)
+              td.text-nowrap
+                .d-flex.gap-1.justify-content-end
+                  button.btn.btn-ghost-secondary.btn-icon(hx-get="/users/#{u.id}/edit", hx-target="#dialog-host", title="Edit", aria-label="Edit #{u.userName}")
+                    | !{icon("pencil")}
+                  - if (!self)
+                    button.btn.btn-ghost-secondary.btn-icon(hx-get="/users/#{u.id}/password", hx-target="#dialog-host", title="Reset password", aria-label="Reset password of #{u.userName}")
+                      | !{icon("key")}
+                    button.btn.btn-ghost-danger.btn-icon(hx-post="/users/#{u.id}/delete", hx-target="#users-table", hx-swap="outerHTML", hx-confirm="Remove user #{u.userName}? This cannot be undone.", title="Remove", aria-label="Remove #{u.userName}")
+                      | !{icon("trash")}

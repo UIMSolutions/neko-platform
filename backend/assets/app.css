@@ -1,49 +1,34 @@
-/* Neko Platform pages — additions to Beer CSS 5. */
+/* Neko Platform pages — additions to Tabler. */
 
-/* Each security domain has a signal colour (header stripe, domain chip), so
+/* Each security domain has a signal colour (header stripe, domain badge), so
    operators always see which instance they are working in. */
 body { --domain: #5f6368; }
-body[data-domain="open"] { --domain: #1e8e3e; }
-body[data-domain="restricted"] { --domain: #1a73e8; }
-body[data-domain="confidential"] { --domain: #e37400; }
-body[data-domain="secret"] { --domain: #d93025; }
+body[data-domain="open"] { --domain: #2fb344; }
+body[data-domain="restricted"] { --domain: #066fd1; }
+body[data-domain="confidential"] { --domain: #f76707; }
+body[data-domain="secret"] { --domain: #d63939; }
 
-header.fixed { border-top: 4px solid var(--domain); }
+.domain-stripe { border-top: 4px solid var(--domain); }
+.domain-card { border-top: 4px solid var(--domain); }
 
-.domain-chip {
-  border-color: var(--domain);
+.domain-badge {
+  background: transparent;
+  border: 1px solid var(--domain);
   color: var(--domain);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .04em;
 }
 
-/* Native modal dialogs (showModal) get the dimmed backdrop as well. */
-dialog:modal::backdrop {
-  opacity: 1;
-  visibility: visible;
-}
-dialog { min-inline-size: min(28rem, 92vw); }
+.brand-mark .icon { width: 3rem; height: 3rem; stroke-width: 1.5; }
 
-.snackbar.error {
-  background-color: var(--error);
-  color: var(--on-error);
+/* Rights matrix of the roles page */
+.rights-matrix tr.table-group td {
+  background: var(--tblr-bg-surface-secondary);
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
 }
 
-/* Stat tiles of the status page */
-.stat h4 { margin: 0; }
-.stat .label { opacity: .7; }
-
-td.actions { white-space: nowrap; text-align: end; }
-td.nowrap, th.nowrap { white-space: nowrap; }
-
-/* Sign-in page */
-body.sign-in main {
-  min-block-size: 100vh;
-  display: grid;
-  place-items: center;
-}
-body.sign-in article {
-  inline-size: min(26rem, 100%);
-  border-top: 4px solid var(--domain);
-}
+/* Error toasts */
+.toast.text-bg-danger .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }

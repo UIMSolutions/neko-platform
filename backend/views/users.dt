@@ -1,10 +1,11 @@
 extends layout
-//- User management. Needs page, list (UserDto[]).
+//- User management. Needs page, list (UserDto[]), roleList (RoleDto[]).
+block actions
+  - import neko.platform.presentation.web.icons : icon;
+  - if (page.isUsersManage)
+    button.btn.btn-primary(hx-get="/users/new", hx-target="#dialog-host")
+      | !{icon("user-plus")}
+      | New user
 block content
-  nav
-    h5.max Users
-    button(hx-get="/users/new", hx-target="#dialog-host")
-      i person_add
-      span New user
-  p.small-text Viewers see the status pages. Administrators also manage users. Accounts belong to this #{page.domain} instance only.
+  p.text-secondary What a user may do follows from the union of the rights of their roles (see Roles & rights). Accounts belong to this #{page.domain} instance only.
   include users_table

@@ -5,8 +5,8 @@
 *****************************************************************************************************************/
 /// Front-end assets compiled into the binary (backend/assets), served under
 /// /ui/. Isolated domains have no CDN access, and the UI Content-Security-
-/// Policy only allows this origin — so Beer CSS, htmx and the icon font ship
-/// with the executable. Versions: backend/assets/vendor/README.md.
+/// Policy only allows this origin — so Tabler, htmx and the icons ship with
+/// the executable. Versions: backend/assets/vendor/README.md.
 module neko.platform.presentation.web.assets;
 
 import std.conv : to;
@@ -17,11 +17,11 @@ import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 
 /// [published name, file under backend/assets, content type, long-lived cache]
 private enum string[4][] files = [
-  ["beer-5.0.3.min.css", "vendor/beer.min.css", "text/css; charset=utf-8", "y"],
+  ["tabler-1.7.3.min.css", "vendor/tabler.min.css", "text/css; charset=utf-8", "y"],
+  ["tabler-1.7.3.min.js", "vendor/tabler.min.js", "text/javascript; charset=utf-8", "y"],
   ["htmx-2.0.11.min.js", "vendor/htmx.min.js", "text/javascript; charset=utf-8", "y"],
-  ["material-symbols-outlined.woff2", "vendor/material-symbols-outlined.woff2", "font/woff2", "y"],
-  ["material-symbols-subset.woff2", "vendor/material-symbols-subset.woff2", "font/woff2", "y"],
   ["app.css", "app.css", "text/css; charset=utf-8", ""],
+  ["theme.js", "theme.js", "text/javascript; charset=utf-8", ""],
   ["app.js", "app.js", "text/javascript; charset=utf-8", ""],
 ];
 

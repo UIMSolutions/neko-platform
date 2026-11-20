@@ -1,0 +1,70 @@
+//- Roles and the rights matrix; swapped as a whole after every change. Needs page, list, catalogue.
+- import std.conv : to;
+- import neko.platform.presentation.web.icons : icon;
+#roles-table
+  .card
+    .table-responsive
+      table.table.table-vcenter.card-table
+        thead
+          tr
+            th Role
+            th Rights
+            th.text-end Users
+            - if (page.isRolesManage)
+              th.w-1
+        tbody
+          - foreach (r; list)
+            tr
+              td
+                .fw-bold
+                  | #{r.label}
+                  code.small.ms-2.fw-normal= r.name
+                  - if (r.locked)
+                    span.badge.bg-primary.text-primary-fg.ms-2 every right
+                  - else if (r.builtIn)
+                    span.badge.bg-secondary-lt.ms-2 built-in
+                .text-secondary.small= r.description
+              td
+                - if (r.rights.length == 0)
+                  span.text-secondary none
+                - foreach (k; r.rights)
+                  span.badge.bg-azure-lt.me-1.mb-1= k
+              td.text-end= r.members.to!string
+              - if (page.isRolesManage)
+                td.text-nowrap
+                  .d-flex.gap-1.justify-content-end
+                    button.btn.btn-ghost-secondary.btn-icon(hx-get="/roles/#{r.name}/edit", hx-target="#dialog-host", title="Edit", aria-label="Edit role #{r.name}")
+                      | !{icon("pencil")}
+                    - if (!r.builtIn)
+                      button.btn.btn-ghost-danger.btn-icon(hx-post="/roles/#{r.name}/delete", hx-target="#roles-table", hx-swap="outerHTML", hx-confirm="Remove role #{r.name}?", title="Remove", aria-label="Remove role #{r.name}")
+                        | !{icon("trash")}
+  .card.mt-3
+    .card-header
+      h3.card-title Access rights
+      .card-subtitle.ms-2.text-secondary Which role grants what
+    .table-responsive
+      table.table.table-vcenter.card-table.table-sm.rights-matrix
+        thead
+          tr
+            th Right
+            - foreach (r; list)
+              th.text-center(title=r.label)= r.name
+        tbody
+          - string area;
+          - foreach (right; catalogue)
+            - if (right.area != area)
+              - area = right.area;
+              tr.table-group
+                td.fw-bold.text-secondary(colspan=(list.length + 1).to!string)= area
+            tr
+              td
+                .fw-medium #{right.label} 
+                  code.small.ms-1= right.key
+                .small.text-secondary= right.description
+              - foreach (r; list)
+                td.text-center
+                  - if (r.grants(right.key))
+                    span.text-green(title=r.name ~ " grants " ~ right.key)
+                      | !{icon("check")}
+                  - else
+                    span.text-secondary.opacity-25 –

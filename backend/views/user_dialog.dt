@@ -1,44 +1,67 @@
-//- Create / edit dialog (htmx fragment for #dialog-host). Needs page, form (UserForm).
-dialog
-  h5= form.isNew ? "New user" : "Edit " ~ form.userName
-  - if (form.error.length)
-    article.error-container.round.small-padding(role="alert")
-      nav
-        i error
-        span= form.error
-  form(hx-post=(form.isNew ? "/users" : "/users/" ~ form.id), hx-target="#dialog-host")
-    - if (form.isNew)
-      .field.label.border
-        input(type="text", name="userName", value=form.userName, required=true, minlength="2", maxlength="64", autocomplete="off", autocapitalize="none", spellcheck="false", placeholder=" ")
-        label User name
-        span.helper a-z, 0-9, . _ - @
-    .field.label.border
-      input(type="text", name="displayName", value=form.displayName, maxlength="128", placeholder=" ")
-      label Display name
-    .field.label.border
-      input(type="email", name="email", value=form.email, placeholder=" ")
-      label E-mail
-    - if (form.self)
-      p.small-text You cannot change the role or status of your own account.
-    - else
-      .field.label.border
-        select(name="role")
-          option(value="viewer", selected=(form.role == "viewer")) Viewer: status pages
-          option(value="admin", selected=(form.role == "admin")) Administrator: also manages users
-        label Role
-      label.checkbox
-        input(type="checkbox", name="active", checked=form.active)
-        span Active (may sign in)
-    - if (form.isNew)
-      .field.label.border
-        input(type="password", name="password", required=true, minlength="10", autocomplete="new-password", placeholder=" ")
-        label Password
-        span.helper At least 10 characters
-      .field.label.border
-        input(type="password", name="confirm", required=true, minlength="10", autocomplete="new-password", placeholder=" ")
-        label Repeat password
-    nav.right-align
-      button.border(type="button", data-close-dialog=true) Cancel
-      button(type="submit")
-        i save
-        span= form.isNew ? "Create" : "Save"
+//- Create / edit dialog (htmx fragment for #dialog-host). Needs page, form (UserForm), roleList (RoleDto[]).
+//- Roles with rights the signed-in user does not hold cannot be handed out (greyed out).
+- import neko.platform.presentation.web.icons : icon;
+- import neko.platform.presentation.web.support : mayAssign;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered
+    .modal-content
+      form(hx-post=(form.isNew ? "/users" : "/users/" ~ form.id), hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title= form.isNew ? "New user" : "Edit " ~ form.userName
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          - if (form.isNew)
+            .mb-3
+              label.form-label.required(for="u-name") User name
+              input#u-name.form-control(type="text", name="userName", value=form.userName, required=true, minlength="2", maxlength="64", autocomplete="off", autocapitalize="none", spellcheck="false")
+              .form-hint a-z, 0-9, . _ - @
+          .row
+            .col-md-6.mb-3
+              label.form-label(for="u-display") Display name
+              input#u-display.form-control(type="text", name="displayName", value=form.displayName, maxlength="128")
+            .col-md-6.mb-3
+              label.form-label(for="u-email") E-mail
+              input#u-email.form-control(type="email", name="email", value=form.email)
+          - if (form.self)
+            .alert.alert-info.mb-3
+              .d-flex.gap-2
+                | !{icon("info-circle")}
+                div You cannot change the roles or the status of your own account.
+          - else
+            .mb-3
+              .form-label Roles
+              .form-selectgroup.form-selectgroup-boxes.d-flex.flex-column
+                - foreach (r; roleList)
+                  - auto allowed = mayAssign(page.user, r);
+                  label.form-selectgroup-item.flex-fill(title=(allowed ? "" : "Grants rights you do not hold"))
+                    input.form-selectgroup-input(type="checkbox", name="roles", value=r.name, checked=form.hasRole(r.name), disabled=!allowed)
+                    .form-selectgroup-label.d-flex.align-items-center.p-2(class=(allowed ? "" : "opacity-50"))
+                      .me-2
+                        span.form-selectgroup-check
+                      div
+                        .fw-medium #{r.label} 
+                          code.small.ms-1= r.name
+                        .small.text-secondary= r.description
+              .form-hint Rights add up: a user holds every right of each of its roles.
+            label.form-check.form-switch
+              input.form-check-input(type="checkbox", name="active", checked=form.active)
+              span.form-check-label Active (may sign in)
+          - if (form.isNew)
+            .row.mt-3
+              .col-md-6.mb-3
+                label.form-label.required(for="u-pw") Password
+                input#u-pw.form-control(type="password", name="password", required=true, minlength="10", autocomplete="new-password")
+                .form-hint At least 10 characters
+              .col-md-6.mb-3
+                label.form-label.required(for="u-pw2") Repeat password
+                input#u-pw2.form-control(type="password", name="confirm", required=true, minlength="10", autocomplete="new-password")
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | #{form.isNew ? "Create" : "Save"}

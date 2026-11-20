@@ -49,7 +49,8 @@ int serve(PlatformContainer c) {
   auto router = new URLRouter;
 
   // Order matters: middleware first, the static catch-all last.
-  (new SecurityMiddleware(config)).registerRoutes(router);
+  auto security = new SecurityMiddleware(config);
+  security.registerRoutes(router);
   (new Health_Controller(config, selfDomain)).registerRoutes(router);
   UnixSocketController socket;
   if (config.transport == "unix") {
@@ -59,14 +60,17 @@ int serve(PlatformContainer c) {
   router.registerPlatformRestApi(c.services, c.health, c.transfers, c.overview, config.restPath);
   new PlatformODataController(c.services, c.health, c.transfers, c.overview, config.odataPath).registerRoutes(router);
 
-  // Server-rendered pages with sign-in (Beer CSS + htmx, assets embedded).
+  // Server-rendered pages with sign-in: vibe.d web interfaces with access
+  // rights from roles; Tabler + htmx, assets embedded.
   bootstrapAdministrator(c);
   auto sessions = new WebSessions(c.passwords, c.clock, config.sessionIdleMinutes.minutes);
   auto guard = new WebGuard(sessions, c.authentication, config.serviceName, selfDomain.label);
-  new AssetsController().registerRoutes(router);
-  new AuthController(guard, c.authentication, c.users, new LoginThrottle(c.clock)).registerRoutes(router);
-  new UsersController(guard, c.users).registerRoutes(router);
-  new StatusPageController(guard, c.overview, c.services, c.events).registerRoutes(router);
+  router.registerWebPages(
+    new AuthWeb(guard, c.authentication, c.users, c.roles, new LoginThrottle(c.clock)),
+    new StatusWeb(guard, c.overview, c.services, c.events),
+    new UsersWeb(guard, c.users, c.roles),
+    new RolesWeb(guard, c.roles));
+  auto errorPages = webErrorPages(guard, (string path) @safe => security.isApi(path));
 
   auto frontend = new FrontendController(config.frontendDir);
   frontend.registerRoutes(router);
@@ -80,7 +84,7 @@ int serve(PlatformContainer c) {
     selfDomain.label, selfDomain.canExport, selfDomain.canImport, c.store.describe, config.sources.join(" → "));
 
   if (socket !is null) {
-    socket.start(router);
+    socket.start(router, errorPages);
     scope (exit)
       socket.stop();
     logEndpoints(config, frontend);
@@ -90,6 +94,7 @@ int serve(PlatformContainer c) {
   auto settings = new HTTPServerSettings;
   settings.port = config.effectivePort(selfDomain);
   settings.bindAddresses = [config.host];
+  settings.errorPageHandler = errorPages;
   auto listener = listenHTTP(settings, router);
   scope (exit)
     listener.stopListening();
@@ -113,7 +118,7 @@ void bootstrapAdministrator(PlatformContainer c) {
 void logEndpoints(PlatformConfig config, FrontendController frontend) {
   logInfo("  REST   %s{overview,services,transfers}", config.restPath);
   logInfo("  OData  %s/$metadata", config.odataPath);
-  logInfo("  Web    /login, /status, /users, /account (sign-in required); /health, /api/v1/info%s",
+  logInfo("  Web    /login, /status, /users, /roles, /account (sign-in, access rights by role); /health, /api/v1/info%s",
     config.transport == "unix" ? ", /api/v1/socket" : "");
   if (frontend.available)
     logInfo("  Fiori  /index.html (%s)", frontend.location);

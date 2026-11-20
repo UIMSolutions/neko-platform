@@ -6,6 +6,8 @@
 /// Converters between stored records and domain entities.
 module neko.platform.persistence.mappers;
 
+import std.algorithm : map, sort, uniq;
+import std.array : array;
 import std.conv : to;
 import std.datetime.systime : SysTime;
 import neko.platform.domain;
@@ -82,7 +84,8 @@ TransferPackage toEntity(const TransferRecord r) {
 }
 
 UserRecord toRecord(const UserAccount a) {
-  return UserRecord(a.id.value, a.userName.value, a.displayName, a.email, a.role.to!string, a.active,
+  return UserRecord(a.id.value, a.userName.value, a.displayName, a.email, a.roles.dup,
+    a.roles.length > 0 ? a.roles[0] : "", a.active,
     a.passwordHash, timeToText(a.createdAt), timeToText(a.modifiedAt), timeToText(a.lastLoginAt),
     timeToText(a.passwordChangedAt));
 }
@@ -93,8 +96,15 @@ UserAccount toEntity(const UserRecord r) {
   a.userName = UserName(r.userName);
   a.displayName = r.displayName;
   a.email = r.email;
-  // Unknown roles fall back to the least privileged one.
-  a.role = toEnum(r.role, UserRole.viewer);
+  // Older documents: the single role "viewer" | "admin" is the built-in role
+  // of the same name. Unknown names are kept; they grant nothing.
+  RoleName[] names;
+  foreach (n; r.roles.length > 0 ? r.roles : (r.role.length > 0 ? [r.role] : [viewerRole]))
+    try
+      names ~= RoleName(n);
+    catch (ValidationException) {
+    }
+  a.roles = names.length > 0 ? names.map!(n => n.value).array.sort.uniq.array : [viewerRole];
   a.active = r.active;
   a.passwordHash = r.passwordHash;
   a.createdAt = textToTime(r.createdAt);
@@ -102,6 +112,29 @@ UserAccount toEntity(const UserRecord r) {
   a.lastLoginAt = textToTime(r.lastLoginAt);
   a.passwordChangedAt = textToTime(r.passwordChangedAt);
   return a;
+}
+
+RoleRecord toRecord(const Role r) {
+  return RoleRecord(r.name.value, r.label, r.description, r.rights.map!(x => x.key).array, r.builtIn,
+    timeToText(r.createdAt), timeToText(r.modifiedAt));
+}
+
+Role toEntity(const RoleRecord r) {
+  Role role;
+  role.name = RoleName(r.name);
+  role.label = r.label.length > 0 ? r.label : r.name;
+  role.description = r.description;
+  // Rights of a newer version that this binary does not know are dropped.
+  foreach (k; r.rights) {
+    AccessRight right;
+    if (tryParseAccessRight(k, right))
+      role.rights ~= right;
+  }
+  role.rights = role.rights.sort.uniq.array;
+  role.builtIn = r.builtIn;
+  role.createdAt = textToTime(r.createdAt);
+  role.modifiedAt = textToTime(r.modifiedAt);
+  return role;
 }
 
 ///
@@ -117,4 +150,24 @@ unittest {
   auto back = toEntity(toRecord(s));
   assert(back.name == s.name && back.status == s.status && back.classification == s.classification);
   assert(back.createdAt == s.createdAt);
+}
+
+///
+unittest {
+  // a user document written before roles existed
+  UserRecord old;
+  old.id = "1";
+  old.userName = "jane";
+  old.role = "admin";
+  auto jane = toEntity(old);
+  assert(jane.roles == [adminRole] && jane.isAdmin);
+  auto back = toRecord(jane);
+  assert(back.roles == [adminRole] && back.role == adminRole);
+
+  RoleRecord rec;
+  rec.name = "ops";
+  rec.rights = ["users.read", "status.read", "future.right", "status.read"];
+  auto ops = toEntity(rec);
+  assert(ops.label == "ops" && ops.rights == [AccessRight.statusRead, AccessRight.usersRead]);
+  assert(toRecord(ops).rights == ["status.read", "users.read"]);
 }

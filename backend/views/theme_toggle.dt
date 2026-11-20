@@ -1,0 +1,6 @@
+//- Light / dark switch (app.js); Tabler hides the icon of the active theme.
+- import neko.platform.presentation.web.icons : icon;
+button.nav-link.px-2.border-0.bg-transparent.hide-theme-dark(type="button", data-theme-toggle="dark", title="Dark theme", aria-label="Dark theme")
+  | !{icon("moon")}
+button.nav-link.px-2.border-0.bg-transparent.hide-theme-light(type="button", data-theme-toggle="light", title="Light theme", aria-label="Light theme")
+  | !{icon("sun")}

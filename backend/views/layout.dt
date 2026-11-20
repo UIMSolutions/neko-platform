@@ -1,50 +1,69 @@
-//- Frame of the signed-in pages. Templates extend it and fill "content".
-//- Needs `page` (PageContext).
+//- Frame of the signed-in pages. Templates extend it and fill "content" (and
+//- optionally "actions", the buttons next to the page title).
+//- Needs `page` (PageContext). The menu only lists pages the user has rights for.
+- import std.array : join;
+- import neko.platform.presentation.web.icons : icon;
 doctype html
 html(lang="en")
   head
     include head
     title #{page.title} · #{page.serviceName} (#{page.domain})
   body(data-domain=page.domain, hx-headers=page.htmxHeaders)
-    nav.left.l
-      header
-        i.extra.primary-text hub
-      a(href="/status", class=(page.active == "status" ? "active" : ""))
-        i monitoring
-        span Status
-      - if (page.user.isAdmin)
-        a(href="/users", class=(page.active == "users" ? "active" : ""))
-          i group
-          span Users
-      a(href="/account", class=(page.active == "account" ? "active" : ""))
-        i person
-        span Account
-    nav.bottom.s.m
-      a(href="/status", class=(page.active == "status" ? "active" : ""))
-        i monitoring
-        span Status
-      - if (page.user.isAdmin)
-        a(href="/users", class=(page.active == "users" ? "active" : ""))
-          i group
-          span Users
-      a(href="/account", class=(page.active == "account" ? "active" : ""))
-        i person
-        span Account
-    header.fixed
-      nav
-        h6.max
-          | #{page.serviceName}
-          span.chip.small.border.domain-chip.small-margin= page.domain
-        span.small-text.l= page.user.label
-        button.circle.transparent(type="button", data-theme-toggle=true, title="Light / dark")
-          i dark_mode
-        form(method="post", action="/logout")
-          input(type="hidden", name="_csrf", value=page.csrf)
-          button.circle.transparent(type="submit", title="Sign out")
-            i logout
-    main.responsive
-      block content
+    .page
+      header.navbar.navbar-expand-md.d-print-none.domain-stripe
+        .container-xl
+          button.navbar-toggler(type="button", data-bs-toggle="collapse", data-bs-target="#navbar-menu", aria-controls="navbar-menu", aria-expanded="false", aria-label="Toggle navigation")
+            span.navbar-toggler-icon
+          .navbar-brand.pe-0.pe-md-3
+            a.d-flex.align-items-center.gap-2.text-reset.text-decoration-none(href="/start")
+              span.text-primary
+                | !{icon("hexagons")}
+              span= page.serviceName
+            span.badge.domain-badge.ms-2= page.domain
+          .navbar-nav.flex-row.order-md-last.align-items-center.gap-1
+            .nav-item.d-flex
+              include theme_toggle
+            .nav-item.dropdown
+              a.nav-link.d-flex.lh-1.p-0.px-2(href="#", data-bs-toggle="dropdown", aria-label="Open user menu")
+                span.avatar.avatar-sm= page.initials
+                .d-none.d-xl-block.ps-2
+                  div= page.user.label
+                  .mt-1.small.text-secondary= page.user.roles.join(", ")
+              .dropdown-menu.dropdown-menu-end.dropdown-menu-arrow
+                a.dropdown-item(href="/account", class=(page.active == "account" ? "active" : ""))
+                  span.dropdown-item-icon
+                    | !{icon("user-circle")}
+                  | My account
+                .dropdown-divider
+                form(method="post", action="/logout")
+                  input(type="hidden", name="_csrf", value=page.csrf)
+                  button.dropdown-item(type="submit")
+                    span.dropdown-item-icon
+                      | !{icon("logout")}
+                    | Sign out
+          #navbar-menu.collapse.navbar-collapse
+            ul.navbar-nav
+              - foreach (item; page.menu)
+                li.nav-item(class=(page.active == item.key ? "active" : ""))
+                  a.nav-link(href=item.href)
+                    span.nav-link-icon
+                      | !{icon(item.icon)}
+                    span.nav-link-title= item.label
+      .page-wrapper
+        .page-header.d-print-none
+          .container-xl
+            .row.g-2.align-items-center
+              .col
+                .page-pretitle #{page.serviceName} · #{page.domain}
+                h2.page-title= page.title
+              .col-auto.ms-auto.d-print-none
+                block actions
+        .page-body
+          .container-xl
+            block content
     #dialog-host
-    #snackbar.snackbar
-      i check_circle
-      span
+    .toast-container.position-fixed.bottom-0.end-0.p-3
+      #toast.toast.align-items-center.border-0(role="status", aria-live="polite", aria-atomic="true")
+        .d-flex
+          .toast-body
+          button.btn-close.me-2.m-auto(type="button", data-bs-dismiss="toast", aria-label="Close")

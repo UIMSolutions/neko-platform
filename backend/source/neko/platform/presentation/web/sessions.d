@@ -189,7 +189,7 @@ bool sameText(string a, string b) pure nothrow {
 string safeNext(string next) pure {
   if (next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\"))
     return next;
-  return "/status";
+  return "/start";
 }
 
 ///
@@ -242,7 +242,7 @@ unittest {
   assert(throttle.lockedFor("jane|1.2.3.4") == Duration.zero);
 
   assert(originOf("https://h:8181/users?x") == "https://h:8181" && originOf("garbage") == "");
-  assert(safeNext("/users") == "/users" && safeNext("//evil.example") == "/status");
-  assert(safeNext("https://evil.example") == "/status" && safeNext("/\\evil") == "/status");
+  assert(safeNext("/users") == "/users" && safeNext("//evil.example") == "/start");
+  assert(safeNext("https://evil.example") == "/start" && safeNext("/\\evil") == "/start");
   assert(sameText("abc", "abc") && !sameText("abc", "abd") && !sameText("abc", "ab"));
 }

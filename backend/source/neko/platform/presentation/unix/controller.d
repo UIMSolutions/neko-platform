@@ -22,7 +22,7 @@ import core.sys.posix.sys.stat : S_IFMT, S_IFSOCK;
 import vibe.core.log : logInfo, logWarn;
 import vibe.data.json;
 import vibe.http.router : URLRouter;
-import vibe.http.server : HTTPListener, HTTPServerRequest, HTTPServerResponse;
+import vibe.http.server : HTTPListener, HTTPServerErrorPageHandler, HTTPServerRequest, HTTPServerResponse;
 import neko.platform.presentation.unix.listener : listenOnUnixSocket;
 
 @safe:
@@ -50,10 +50,11 @@ class UnixSocketController {
 
   /// Start serving `router` on the socket. Throws if already listening, if the
   /// path is not absolute, or if a non-socket file occupies the path.
-  void start(URLRouter router) {
+  /// `errorPages` renders error responses (null = vibe.d default).
+  void start(URLRouter router, HTTPServerErrorPageHandler errorPages = null) {
     if (_listening)
       throw new Exception("Unix socket " ~ _path ~ " is already listening");
-    listener = listenOnUnixSocket(_path, router, _mode);
+    listener = listenOnUnixSocket(_path, router, _mode, errorPages);
     _listening = true;
     since = Clock.currTime;
   }

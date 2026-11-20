@@ -45,6 +45,8 @@ interface IPlatformOverviewUseCase {
 }
 
 /// Web user accounts. `actor` is the user name of the caller (audit trail).
+/// An actor that is a user account cannot assign roles granting rights it
+/// does not hold itself, nor change accounts holding such rights.
 interface IManageUsersUseCase {
   UserDto[] list();
   UserDto get(string id);
@@ -55,6 +57,22 @@ interface IManageUsersUseCase {
   void changeOwnPassword(string id, string currentPassword, string newPassword);
   /// The last active administrator cannot be removed, demoted or deactivated.
   void remove(string id, string actor);
+}
+
+/// Roles and the access right catalogue. An actor that is a user account
+/// can only grant rights it holds itself.
+interface IManageRolesUseCase {
+  /// Sorted by name, each with its number of members.
+  RoleDto[] list();
+  RoleDto get(string name);
+  /// The fixed catalogue of access rights.
+  AccessRightDto[] rights();
+  RoleDto create(CreateRoleRequest request, string actor);
+  RoleDto update(string name, UpdateRoleRequest request, string actor);
+  /// Built-in roles and roles still assigned to accounts cannot be removed.
+  void remove(string name, string actor);
+  /// Adds missing built-in roles (start-up); existing ones stay as they are.
+  void ensureBuiltIns();
 }
 
 /// Result of creating the first administrator at start-up.

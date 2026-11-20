@@ -6,7 +6,8 @@
 /// A user account for the web pages of one platform instance (security domain).
 module neko.platform.domain.entities.account;
 
-import std.algorithm : canFind;
+import std.algorithm : canFind, sort, uniq;
+import std.array : array;
 import std.datetime.systime : SysTime;
 import std.string : strip;
 import neko.platform.domain.enumerations;
@@ -20,7 +21,9 @@ struct UserAccount {
   UserName userName;
   string displayName;
   string email;
-  UserRole role = UserRole.viewer;
+  /// Names of the assigned roles, sorted, without duplicates. What the
+  /// account may do is the union of their rights.
+  string[] roles;
   bool active = true;
   /// Produced by the password hasher port; never the password itself.
   string passwordHash;
@@ -29,11 +32,16 @@ struct UserAccount {
   SysTime lastLoginAt;
   SysTime passwordChangedAt;
 
-  bool isAdmin() const pure nothrow {
-    return role == UserRole.admin;
+  bool hasRole(string name) const pure nothrow {
+    return roles.canFind(name);
   }
 
-  /// Active administrators are the ones who can manage accounts.
+  /// Holds the built-in administrator role.
+  bool isAdmin() const pure nothrow {
+    return hasRole(adminRole);
+  }
+
+  /// At least one active administrator must remain, so every right stays reachable.
   bool isActiveAdmin() const pure nothrow {
     return active && isAdmin;
   }
@@ -54,8 +62,14 @@ struct UserAccount {
     modifiedAt = now;
   }
 
-  void changeRole(UserRole role, SysTime now) pure nothrow {
-    this.role = role;
+  /// `names` are validated role names; whether the roles exist is checked by the caller.
+  void assignRoles(const(RoleName)[] names, SysTime now) {
+    if (names.length == 0)
+      throw new ValidationException("A user needs at least one role");
+    string[] list;
+    foreach (n; names)
+      list ~= n.value;
+    roles = list.sort.uniq.array;
     modifiedAt = now;
   }
 
@@ -85,7 +99,9 @@ unittest {
   assert(a.label == "jane" && !a.isAdmin);
   a.changeProfile(" Jane Doe ", "jane@example.org", now);
   assert(a.label == "Jane Doe");
-  a.changeRole(UserRole.admin, now);
+  assert(a.roles.length == 0 && !a.isAdmin);
+  a.assignRoles([RoleName("viewer"), RoleName("Admin"), RoleName("admin")], now);
+  assert(a.roles == [adminRole, viewerRole]);
   assert(a.isActiveAdmin);
   a.setActive(false, now);
   assert(!a.isActiveAdmin);

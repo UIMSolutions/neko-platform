@@ -6,88 +6,13 @@
 /// Driven ports for business data access, expressed in domain terms.
 module neko.platform.ports.repositories;
 
-import neko.platform.domain;
-
-@safe:
-
-interface IServiceRepository {
-  PlatformService[] all();
-  bool tryGet(ServiceId id, out PlatformService service);
-  bool tryGetByName(string name, out PlatformService service);
-  /// Insert or replace.
-  void save(PlatformService service);
-  bool remove(ServiceId id);
-}
-
-interface ITransferRepository {
-  TransferPackage[] all();
-  bool tryGet(TransferId id, out TransferPackage pkg);
-  /// Transfers are an audit trail: they are inserted, never deleted.
-  void save(TransferPackage pkg);
-}
-
-interface IUserRepository {
-  UserAccount[] all();
-  bool tryGet(AccountId id, out UserAccount account);
-  /// `name` in canonical (lower case) form.
-  bool tryGetByName(string name, out UserAccount account);
-  /// Insert or replace.
-  void save(UserAccount account);
-  bool remove(AccountId id);
-}
-
-interface IRoleRepository {
-  Role[] all();
-  /// `name` in canonical (lower case) form.
-  bool tryGet(string name, out Role role);
-  /// Insert or replace.
-  void save(Role role);
-  bool remove(string name);
-}
-
-interface ISiteRepository {
-  Site[] all();
-  bool tryGet(string key, out Site site);
-  /// Insert or replace.
-  void save(Site site);
-  bool remove(string key);
-}
-
-/// Metadata of the files; the content is in an IBlobStore.
-interface IFileRepository {
-  StoredFile[] all();
-  StoredFile[] ofSite(string site);
-  bool tryGet(FileId id, out StoredFile file);
-  /// Insert or replace.
-  void save(StoredFile file);
-  bool remove(FileId id);
-}
-
-interface IIpRuleRepository {
-  IpRule[] all();
-  bool tryGet(IpRuleId id, out IpRule rule);
-  /// Insert or replace.
-  void save(IpRule rule);
-  bool remove(IpRuleId id);
-}
-
-/// The account hierarchy and the service plan catalogue.
-interface ILandscapeRepository {
-  Landscape load();
-  void saveGlobal(GlobalAccount global);
-  void saveDirectory(Directory directory);
-  bool removeDirectory(string key);
-  void saveSubaccount(Subaccount subaccount);
-  bool removeSubaccount(string key);
-  void savePlan(ServicePlan plan);
-  bool removePlan(string key);
-}
-
-/// Measured usage per month and site.
-interface IUsageRepository {
-  UsageRecord[] ofMonth(string month);
-  /// Months with usage, newest first ("2026-11").
-  string[] months();
-  /// Merge the deltas into the stored records.
-  void add(const(UsageRecord)[] deltas);
-}
+public:
+  import neko.platform.ports.repositories.file;
+  import neko.platform.ports.repositories.iprule;
+  import neko.platform.ports.repositories.landscape;
+  import neko.platform.ports.repositories.role;
+  import neko.platform.ports.repositories.service;
+  import neko.platform.ports.repositories.site;
+  import neko.platform.ports.repositories.transfer;
+  import neko.platform.ports.repositories.usage;
+  import neko.platform.ports.repositories.user;

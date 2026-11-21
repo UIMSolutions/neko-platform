@@ -8,9 +8,5 @@ module neko.platform.ports.gateways;
 
 import neko.platform.domain.enumerations : HealthState;
 
-@safe:
-
-interface IServiceHealthGateway {
-  /// Probe a health URL; never throws (unreachable → HealthState.down).
-  HealthState probe(string url);
-}
+public:
+  import neko.platform.ports.gateways.servicehealth;

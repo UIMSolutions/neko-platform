@@ -35,6 +35,7 @@ struct UsageRecord {
   }
 }
 
+/// A line item for a charge in a bill.
 struct ChargeLine {
   string plan;
   string unit;
@@ -48,6 +49,7 @@ struct ChargeLine {
   bool overQuota;
 }
 
+/// A bill for one subaccount in one month.
 struct SubaccountBill {
   string subaccount;
   string costCenter;
@@ -59,6 +61,7 @@ struct SubaccountBill {
   double total = 0;
 }
 
+/// The complete bill for a month, including all subaccounts and unassigned usage.
 struct Bill {
   string month;
   string currency;

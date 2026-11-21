@@ -6,7 +6,5 @@
 /// Driven ports for external systems: the registered services themselves.
 module neko.platform.ports.gateways;
 
-import neko.platform.domain.enumerations : HealthState;
-
 public:
   import neko.platform.ports.gateways.servicehealth;

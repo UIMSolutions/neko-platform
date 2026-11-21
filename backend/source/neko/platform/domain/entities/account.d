@@ -109,7 +109,6 @@ struct UserAccount {
     lastLoginAt = now;
   }
 }
-
 ///
 unittest {
   import std.datetime.systime : Clock;

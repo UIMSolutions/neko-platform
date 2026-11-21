@@ -6,20 +6,5 @@
 /// Driven port for domain events (audit trail, event broker integration).
 module neko.platform.ports.messaging;
 
-import std.datetime.systime : SysTime;
-
-@safe:
-
-struct PlatformEvent {
-  /// e.g. "service.registered", "transfer.rejected"
-  string type;
-  /// Id of the affected service or transfer.
-  string subject;
-  string actor;
-  string message;
-  SysTime at;
-}
-
-interface IEventPublisher {
-  void publish(PlatformEvent event);
-}
+public:
+  import neko.platform.ports.messaging.eventpublisher;

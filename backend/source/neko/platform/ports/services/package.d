@@ -7,25 +7,7 @@
 /// on these abstractions so tests can supply deterministic implementations.
 module neko.platform.ports.services;
 
-import std.datetime.systime : SysTime;
-
-@safe:
-
-interface IClock {
-  SysTime now();
-}
-
-interface IIdGenerator {
-  string newId();
-}
-
-/// Password hashing and secure random values (driven port; OpenSSL adapter in
-/// infrastructure.security.passwords).
-interface IPasswordHasher {
-  /// A salted, slow hash that embeds its parameters.
-  string hash(string password);
-  /// Constant-time check; false for malformed hashes.
-  bool verify(string password, string hash);
-  /// 32 random bytes, base64url encoded (session tokens, generated passwords).
-  string randomSecret();
-}
+public:
+    import neko.platform.ports.services.clock;
+    import neko.platform.ports.services.idgenerator;
+    import neko.platform.ports.services.passwordhasher;

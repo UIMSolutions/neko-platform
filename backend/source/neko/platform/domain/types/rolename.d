@@ -26,7 +26,6 @@ struct RoleName {
     value = name;
   }
 }
-
 ///
 unittest {
   assert(RoleName(" Ops-Team ").value == "ops-team");

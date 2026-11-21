@@ -19,32 +19,3 @@ interface IFileRepository {
   void save(StoredFile file);
   bool remove(FileId id);
 }
-
-interface IIpRuleRepository {
-  IpRule[] all();
-  bool tryGet(IpRuleId id, out IpRule rule);
-  /// Insert or replace.
-  void save(IpRule rule);
-  bool remove(IpRuleId id);
-}
-
-/// The account hierarchy and the service plan catalogue.
-interface ILandscapeRepository {
-  Landscape load();
-  void saveGlobal(GlobalAccount global);
-  void saveDirectory(Directory directory);
-  bool removeDirectory(string key);
-  void saveSubaccount(Subaccount subaccount);
-  bool removeSubaccount(string key);
-  void savePlan(ServicePlan plan);
-  bool removePlan(string key);
-}
-
-/// Measured usage per month and site.
-interface IUsageRepository {
-  UsageRecord[] ofMonth(string month);
-  /// Months with usage, newest first ("2026-11").
-  string[] months();
-  /// Merge the deltas into the stored records.
-  void add(const(UsageRecord)[] deltas);
-}

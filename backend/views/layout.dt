@@ -26,7 +26,7 @@ html(lang="en")
             .nav-item.dropdown
               a.nav-link.d-flex.lh-1.p-0.px-2(href="#", data-bs-toggle="dropdown", aria-label="Open user menu")
                 span.avatar.avatar-sm= page.initials
-                .d-none.d-xl-block.ps-2
+                .d-none.d-xxl-block.ps-2
                   div= page.user.label
                   .mt-1.small.text-secondary= page.user.roles.join(", ")
               .dropdown-menu.dropdown-menu-end.dropdown-menu-arrow

@@ -33,6 +33,13 @@ enum AccessRight {
   securityRead,
   /// Change IP lists, ban and unban addresses.
   securityManage,
+  /// The account hierarchy: global account, directories, subaccounts,
+  /// entitlements, role collections, recommendations.
+  landscapeRead,
+  /// Change the hierarchy, entitlements, role collections and service plans.
+  landscapeManage,
+  /// Usage and costs per subaccount, directory and global account.
+  billingRead,
   /// List user accounts.
   usersRead,
   /// Create, change, reset and remove user accounts.
@@ -74,6 +81,12 @@ immutable AccessRightInfo[] accessRights = [
     "Firewall events, network traffic per client, IP allow/deny lists and bans", "Security"),
   AccessRightInfo(AccessRight.securityManage, "security.manage", "Manage security",
     "Change the IP allow and deny lists; ban and unban addresses", "Security"),
+  AccessRightInfo(AccessRight.landscapeRead, "landscape.read", "View landscape",
+    "Global account, directories, subaccounts, entitlements and role collections", "Landscape"),
+  AccessRightInfo(AccessRight.landscapeManage, "landscape.manage", "Manage landscape",
+    "Change the hierarchy, entitlements, role collections and service plans; assign sites", "Landscape"),
+  AccessRightInfo(AccessRight.billingRead, "billing.read", "View billing",
+    "Usage and costs per subaccount, directory and global account; CSV export", "Landscape"),
   AccessRightInfo(AccessRight.usersRead, "users.read", "View users",
     "List user accounts and their roles", "Users"),
   AccessRightInfo(AccessRight.usersManage, "users.manage", "Manage users",

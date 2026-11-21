@@ -1,0 +1,281 @@
+//- Details of the selected node. Needs page, view (LandscapeDto), selected (NodeDto).
+- import std.algorithm : canFind;
+- import std.array : join;
+- import std.conv : to;
+- import std.format : format;
+- import vibe.data.json : Json;
+- import neko.platform.presentation.web.icons : icon;
+- import neko.platform.presentation.web.landscape : money, quotaText, stageColor;
+- import neko.platform.presentation.web.support : shortTime;
+- auto n = selected;
+- auto manage = page.isLandscapeManage;
+- string nodeName(string id) { foreach (t; view.tree) if (t.node == id) return t.name; return id; }
+- string vals(string[string] m) { auto j = Json.emptyObject; foreach (k, v; m) j[k] = v; return j.toString; }
+- auto mayEntitle = n.kind != "directory" || n.manageEntitlements;
+- auto mayAuthorize = n.kind != "directory" || n.manageAuthorizations;
+#node-detail
+  .card
+    .card-header
+      .d-flex.align-items-center.gap-2.flex-wrap
+        span.avatar.avatar-sm(class=(n.kind == "global" ? "bg-primary-lt" : n.kind == "directory" ? "bg-yellow-lt" : "bg-azure-lt"))
+          | !{icon(n.kind == "global" ? "world" : n.kind == "directory" ? "folder" : "server")}
+        div
+          h3.card-title.mb-0
+            | #{n.name}
+            - if (n.kind != "global")
+              code.small.ms-2.fw-normal= n.key
+          .small.text-secondary= n.kind == "global" ? "Global account" : n.kind == "directory" ? "Directory, level " ~ n.depth.to!string : "Subaccount"
+        - if (n.kind == "subaccount")
+          span.badge(class="bg-" ~ stageColor(n.stage) ~ "-lt")= n.stage
+          span.badge.domain-badge(data-domain=n.domain)= n.domain
+      - if (manage)
+        .card-actions.d-flex.gap-1
+          - if (n.kind == "global")
+            button.btn.btn-sm(hx-get="/landscape/global/edit", hx-target="#dialog-host")
+              | !{icon("pencil")}
+              | Edit
+          - if (n.kind == "global" || n.kind == "directory")
+            button.btn.btn-sm(hx-get="/landscape/directories/new?parent=" ~ (n.kind == "directory" ? n.key : ""), hx-target="#dialog-host", title="New directory below")
+              | !{icon("folder")}
+              | Directory
+            button.btn.btn-sm(hx-get="/landscape/subaccounts/new?directory=" ~ (n.kind == "directory" ? n.key : ""), hx-target="#dialog-host", title="New subaccount below")
+              | !{icon("plus")}
+              | Subaccount
+          - if (n.kind == "directory")
+            button.btn.btn-ghost-secondary.btn-icon(hx-get="/landscape/directories/#{n.key}/edit", hx-target="#dialog-host", title="Edit", aria-label="Edit directory #{n.key}")
+              | !{icon("pencil")}
+            button.btn.btn-ghost-danger.btn-icon(hx-post="/landscape/directories/#{n.key}/delete", hx-target="#landscape", hx-swap="outerHTML", hx-confirm="Remove directory #{n.key}?", title="Remove", aria-label="Remove directory #{n.key}")
+              | !{icon("trash")}
+          - if (n.kind == "subaccount")
+            button.btn.btn-ghost-secondary.btn-icon(hx-get="/landscape/subaccounts/#{n.key}/edit", hx-target="#dialog-host", title="Edit", aria-label="Edit subaccount #{n.key}")
+              | !{icon("pencil")}
+            button.btn.btn-ghost-danger.btn-icon(hx-post="/landscape/subaccounts/#{n.key}/delete", hx-target="#landscape", hx-swap="outerHTML", hx-confirm="Remove subaccount #{n.key}?", title="Remove", aria-label="Remove subaccount #{n.key}")
+              | !{icon("trash")}
+    .card-body
+      - if (n.description.length)
+        p.text-secondary= n.description
+      .datagrid
+        - if (n.kind == "global")
+          .datagrid-item
+            .datagrid-title Contract
+            .datagrid-content #{n.contract} · #{n.currency}
+          .datagrid-item
+            .datagrid-title Cost center
+            .datagrid-content= n.costCenter.length ? n.costCenter : "–"
+          .datagrid-item
+            .datagrid-title Subdomain scheme
+            .datagrid-content
+              code= n.subdomainPattern
+              .small.text-secondary {global} = #{n.subdomainPrefix}
+          .datagrid-item
+            .datagrid-title Governance contacts
+            .datagrid-content= n.admins.length ? n.admins.join(", ") : "–"
+        - if (n.kind == "directory")
+          .datagrid-item
+            .datagrid-title Parent
+            .datagrid-content
+              a(href="/landscape?node=" ~ (n.parent.length ? "directory:" ~ n.parent : "global"))= n.parent.length ? nodeName("directory:" ~ n.parent) : "Global account"
+          .datagrid-item
+            .datagrid-title Owner
+            .datagrid-content= n.owner.length ? n.owner : "–"
+          .datagrid-item
+            .datagrid-title Cost center
+            .datagrid-content #{n.effectiveCostCenter.length ? n.effectiveCostCenter : "–"}#{n.costCenter.length ? "" : " (inherited)"}
+          .datagrid-item
+            .datagrid-title Directory features
+            .datagrid-content
+              span.badge.me-1(class=(n.manageEntitlements ? "bg-green-lt" : "bg-secondary-lt"))= n.manageEntitlements ? "entitlements: own budget" : "entitlements: inherited"
+              span.badge(class=(n.manageAuthorizations ? "bg-purple-lt" : "bg-secondary-lt"))= n.manageAuthorizations ? "authorizations: own role collections" : "authorizations: inherited"
+        - if (n.kind == "subaccount")
+          .datagrid-item
+            .datagrid-title Region
+            .datagrid-content
+              code= n.region
+              .small.text-secondary= n.regionLabel
+          .datagrid-item
+            .datagrid-title Subdomain
+            .datagrid-content
+              code= n.subdomain
+          .datagrid-item
+            .datagrid-title Purpose · stage
+            .datagrid-content #{n.purpose.length ? n.purpose : "–"} · #{n.stage}#{n.betaFeatures ? " · beta features" : ""}
+          .datagrid-item
+            .datagrid-title Directory
+            .datagrid-content
+              a(href="/landscape?node=" ~ (n.directory.length ? "directory:" ~ n.directory : "global"))= n.directory.length ? nodeName("directory:" ~ n.directory) : "Global account"
+          .datagrid-item
+            .datagrid-title Cost center
+            .datagrid-content #{n.effectiveCostCenter.length ? n.effectiveCostCenter : "–"}#{n.costCenter.length ? "" : " (inherited)"}
+          .datagrid-item
+            .datagrid-title Sites (tenants)
+            .datagrid-content
+              - if (n.sites.length == 0)
+                span.text-secondary none
+              - foreach (s; n.sites)
+                a.badge.bg-azure-lt.me-1(href="/?site=" ~ s, target="_blank", rel="noopener")= s
+        .datagrid-item
+          .datagrid-title Costs #{view.month}
+          .datagrid-content
+            - if (page.isBillingRead)
+              a(href="/landscape/billing?month=" ~ view.month)= money(n.monthCost, view.currency)
+            - else
+              | #{money(n.monthCost, view.currency)}
+      - if (n.children.length)
+        .mt-3
+          .form-label Contains
+          - foreach (c; n.children)
+            a.badge.bg-secondary-lt.me-1.mb-1(href="/landscape?node=" ~ c)
+              | !{icon(c[0 .. 3] == "dir" ? "folder" : "server")}
+              | #{nodeName(c)}
+    - foreach (i; n.issues)
+      .card-footer.d-flex.gap-2(class=(i.severity == "error" ? "text-red" : "text-yellow"))
+        | !{icon(i.severity == "error" ? "alert-circle" : "alert-triangle")}
+        div= i.message
+    - foreach (a; n.advice)
+      .card-footer.d-flex.gap-2
+        span.text-primary
+          | !{icon("info-circle")}
+        div
+          .fw-medium= a.recommendation
+          .small.text-secondary= a.reason
+
+  .card.mt-3
+    .card-header
+      h3.card-title Entitlements
+      .card-subtitle.ms-2.text-secondary
+        - if (n.kind == "global")
+          | purchased for the whole account
+        - else if (n.kind == "directory" && n.manageEntitlements)
+          | budget of the directory, drawn from #{nodeName(n.entitlementSource)}
+        - else if (n.kind == "directory")
+          | not managed here: subaccounts below draw from #{nodeName(n.entitlementSource)}
+        - else
+          | drawn from #{nodeName(n.entitlementSource)}
+      - if (manage && mayEntitle)
+        .card-actions
+          button.btn.btn-sm(hx-get="/landscape/entitlement?node=" ~ n.node, hx-target="#dialog-host")
+            | !{icon("plus")}
+            | Entitlement
+    - if (n.entitlements.length == 0)
+      .card-body
+        p.text-secondary.mb-0
+          - if (!mayEntitle)
+            | Enable “manage entitlements” on this directory to give it its own budget.
+          - else
+            | No entitlements.
+    - else
+      .table-responsive
+        table.table.table-vcenter.card-table.table-sm
+          thead
+            tr
+              th Service plan
+              th.text-end Quota
+              - if (n.kind == "subaccount")
+                th.text-end Used #{view.month}
+              - else
+                th.text-end Assigned below
+                th.text-end Available
+              th
+              - if (manage)
+                th.w-1
+          tbody
+            - foreach (e; n.entitlements)
+              tr
+                td
+                  code= e.plan
+                  .small.text-secondary #{e.service} · #{e.unit}
+                td.text-end= quotaText(e.quota)
+                - if (n.kind == "subaccount")
+                  td.text-end= e.used < 0 ? "fixed fee" : format("%.2f", e.used)
+                - else
+                  td.text-end #{e.assignedBelow.to!string}#{e.unlimitedBelow ? " + ∞" : ""}
+                  td.text-end= quotaText(e.available)
+                td
+                  - if (e.overQuota)
+                    span.badge.bg-red-lt
+                      | !{icon("alert-triangle")}
+                      | over quota
+                - if (manage)
+                  td.text-nowrap
+                    .d-flex.gap-1.justify-content-end
+                      button.btn.btn-ghost-secondary.btn-icon(hx-get="/landscape/entitlement?node=" ~ n.node ~ "&plan=" ~ e.plan, hx-target="#dialog-host", title="Change", aria-label="Change #{e.plan}")
+                        | !{icon("pencil")}
+                      button.btn.btn-ghost-danger.btn-icon(hx-post="/landscape/entitlement/delete", hx-vals=vals(["node": n.node, "plan": e.plan]), hx-target="#landscape", hx-swap="outerHTML", hx-confirm="Remove the entitlement #{e.plan}?", title="Remove", aria-label="Remove #{e.plan}")
+                        | !{icon("trash")}
+
+  .card.mt-3
+    .card-header
+      h3.card-title Role collections
+      .card-subtitle.ms-2.text-secondary
+        - if (n.kind == "directory" && !n.manageAuthorizations)
+          | not managed here
+        - else if (n.kind == "subaccount")
+          | for this subaccount
+        - else
+          | for everything below
+      - if (manage && mayAuthorize)
+        .card-actions
+          button.btn.btn-sm(hx-get="/landscape/rolecollection?node=" ~ n.node, hx-target="#dialog-host")
+            | !{icon("plus")}
+            | Role collection
+    - if (n.roleCollections.length == 0 && n.inherited.length == 0)
+      .card-body
+        p.text-secondary.mb-0
+          - if (!mayAuthorize)
+            | Enable “manage authorizations” on this directory to define role collections for all its subaccounts.
+          - else
+            | No role collections.
+    - else
+      .list-group.list-group-flush
+        - foreach (rc; n.roleCollections)
+          .list-group-item
+            .d-flex.align-items-start.gap-2
+              .flex-fill
+                .fw-medium= rc.name
+                - if (rc.description.length)
+                  .small.text-secondary= rc.description
+                .mt-1
+                  - foreach (r; rc.rights)
+                    span.badge.me-1(class=(r.canFind(".manage") ? "bg-orange-lt" : "bg-azure-lt"))= r
+                .small.text-secondary.mt-1
+                  | !{icon("users")}
+                  |  #{rc.members.length ? rc.members.join(", ") : "no members"}
+              - if (manage && mayAuthorize)
+                .d-flex.gap-1
+                  button.btn.btn-ghost-secondary.btn-icon(hx-get="/landscape/rolecollection?node=" ~ n.node ~ "&name=" ~ rc.name, hx-target="#dialog-host", title="Edit", aria-label="Edit #{rc.name}")
+                    | !{icon("pencil")}
+                  button.btn.btn-ghost-danger.btn-icon(hx-post="/landscape/rolecollection/delete", hx-vals=vals(["node": n.node, "name": rc.name]), hx-target="#landscape", hx-swap="outerHTML", hx-confirm="Remove the role collection #{rc.name}?", title="Remove", aria-label="Remove #{rc.name}")
+                    | !{icon("trash")}
+        - foreach (i; n.inherited)
+          .list-group-item.text-secondary
+            .d-flex.gap-2
+              span
+                | !{icon("arrows-exchange")}
+              div
+                span.fw-medium= i.collection.name
+                |  from 
+                a(href="/landscape?node=" ~ i.origin)= nodeName(i.origin)
+                .small #{i.collection.rights.join(", ")} · #{i.collection.members.length.to!string} member#{i.collection.members.length == 1 ? "" : "s"}
+
+  - if (n.kind == "global" || n.kind == "directory")
+    .card.mt-3
+      .card-header
+        h3.card-title When do directory features pay off?
+      .card-body.small
+        .row.g-3
+          .col-md-6
+            .fw-medium.mb-1
+              | !{icon("check")}
+              | Directory entitlements
+            ul.ps-3.mb-0
+              li the directory groups several subaccounts with their own budget owner or cost center (a business unit, a customer)
+              li its owner should distribute quotas without asking the global account administrators
+              li not for a single subaccount: an extra budget level only adds bookkeeping
+          .col-md-6
+            .fw-medium.mb-1
+              | !{icon("shield-lock")}
+              | Directory role collections
+            ul.ps-3.mb-0
+              li the same people administer every subaccount below, in the same way
+              li the subaccounts below share one stage (or the rights only read)
+              li not for changing rights across production and non-production: keep those on the subaccounts (segregation of duties)

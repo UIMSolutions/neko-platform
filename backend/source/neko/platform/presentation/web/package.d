@@ -15,6 +15,7 @@
 ///   roles      /roles                                                 (RolesWeb, roles.read / roles.manage)
 ///   sites      /sites                                                 (SitesWeb, sites.read / sites.manage)
 ///   files      /files                                                 (FilesWeb, files.read / files.manage)
+///   landscape  /landscape: global account, directories, subaccounts, billing  (LandscapeWeb)
 ///   security   /security: firewall, traffic, IP lists, bans            (SecurityWeb, security.read / security.manage)
 ///   monitoring /monitoring                                            (MonitoringWeb, monitoring.read)
 ///   site       /, /media/*: the public site of the request's host      (PublicSiteController, no sign-in)
@@ -32,6 +33,7 @@ public:
   import neko.platform.presentation.web.files;
   import neko.platform.presentation.web.monitoring;
   import neko.platform.presentation.web.security;
+  import neko.platform.presentation.web.landscape;
   import neko.platform.presentation.web.site;
   import neko.platform.presentation.web.sites;
   import neko.platform.presentation.web.frontend;
@@ -52,6 +54,7 @@ import neko.platform.presentation.web.users : UsersWeb;
 import neko.platform.presentation.web.files : FilesWeb;
 import neko.platform.presentation.web.monitoring : MonitoringWeb;
 import neko.platform.presentation.web.security : SecurityWeb;
+import neko.platform.presentation.web.landscape : LandscapeWeb;
 import neko.platform.presentation.web.site : PublicSiteController;
 import neko.platform.presentation.web.sites : SitesWeb;
 
@@ -61,6 +64,7 @@ struct WebPages {
   StatusWeb status;
   MonitoringWeb monitoring;
   SecurityWeb security;
+  LandscapeWeb landscape;
   SitesWeb sites;
   FilesWeb files;
   UsersWeb users;
@@ -76,6 +80,7 @@ void registerWebPages(URLRouter router, WebPages pages) @safe {
   router.registerWebInterface(pages.status);
   router.registerWebInterface(pages.monitoring);
   router.registerWebInterface(pages.security);
+  router.registerWebInterface(pages.landscape);
   router.registerWebInterface(pages.sites);
   router.registerWebInterface(pages.files);
   router.registerWebInterface(pages.users);

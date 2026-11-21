@@ -1,0 +1,49 @@
+//- Create / edit a role collection. Needs page, form (RoleCollectionForm), catalogue (AccessRightInfo[]).
+- import std.algorithm : canFind;
+- import std.array : join;
+- import neko.platform.presentation.web.icons : icon;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered.modal-lg
+    .modal-content
+      form(hx-post="/landscape/rolecollection", hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title= "Role collection for " ~ form.nodeLabel
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          input(type="hidden", name="node", value=form.node)
+          input(type="hidden", name="existing", value=(form.existing ? "1" : "0"))
+          - auto v = form.values;
+          .row
+            .col-md-6.mb-3
+              label.form-label.required(for="rc-name") Name
+              - if (form.existing)
+                input(type="hidden", name="name", value=v.name)
+                input#rc-name.form-control(type="text", value=v.name, disabled=true)
+              - else
+                input#rc-name.form-control(type="text", name="name", value=v.name, required=true, maxlength="64")
+            .col-md-6.mb-3
+              label.form-label(for="rc-desc") Description
+              input#rc-desc.form-control(type="text", name="description", value=v.description, maxlength="200")
+          .form-label Rights
+          .row.mb-3
+            - foreach (r; catalogue)
+              .col-md-4
+                label.form-check
+                  input.form-check-input(type="checkbox", name="rights", value=r.key, checked=v.rights.canFind(r.key))
+                  span.form-check-label
+                    span(class=(r.key.canFind(".manage") ? "fw-medium" : ""))= r.label
+                    code.small.ms-1= r.key
+          .mb-3
+            label.form-label(for="rc-members") Members
+            textarea#rc-members.form-control(name="members", rows="2", spellcheck="false", autocapitalize="none")= join(v.members, ", ")
+            .form-hint User names, comma separated
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | Save

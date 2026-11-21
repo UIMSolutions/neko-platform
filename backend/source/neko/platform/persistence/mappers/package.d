@@ -214,6 +214,87 @@ IpRule toEntity(const IpRuleRecord r) {
   return rule;
 }
 
+private EntitlementRecord[] toRecords(const(Entitlement)[] list) {
+  return list.map!(e => EntitlementRecord(e.plan, e.quota)).array;
+}
+
+private Entitlement[] toEntitlements(const(EntitlementRecord)[] list) {
+  return list.map!(e => Entitlement(e.plan, e.quota)).array;
+}
+
+private RoleCollectionRecord[] toRecords(const(RoleCollection)[] list) {
+  return list.map!(r => RoleCollectionRecord(r.name, r.description, r.rights.dup, r.members.dup)).array;
+}
+
+private RoleCollection[] toCollections(const(RoleCollectionRecord)[] list) {
+  return list.map!(r => RoleCollection(r.name, r.description, r.rights.dup, r.members.dup)).array;
+}
+
+GlobalAccountRecord toRecord(const GlobalAccount g) {
+  return GlobalAccountRecord(g.name, g.subdomainPrefix, g.subdomainPattern, g.contract, g.currency, g.costCenter,
+    g.admins.dup, toRecords(g.entitlements), toRecords(g.roleCollections), timeToText(g.modifiedAt));
+}
+
+GlobalAccount toEntity(const GlobalAccountRecord r) {
+  GlobalAccount g;
+  g.name = r.name;
+  if (r.subdomainPrefix.length)
+    g.subdomainPrefix = r.subdomainPrefix;
+  if (r.subdomainPattern.length)
+    g.subdomainPattern = r.subdomainPattern;
+  if (r.contract.length)
+    g.contract = r.contract;
+  if (r.currency.length)
+    g.currency = r.currency;
+  g.costCenter = r.costCenter;
+  g.admins = r.admins.dup;
+  g.entitlements = toEntitlements(r.entitlements);
+  g.roleCollections = toCollections(r.roleCollections);
+  g.modifiedAt = textToTime(r.modifiedAt);
+  return g;
+}
+
+DirectoryRecord toRecord(const Directory d) {
+  return DirectoryRecord(d.key, d.name, d.description, d.parent, d.manageEntitlements, d.manageAuthorizations,
+    d.costCenter, d.owner, toRecords(d.entitlements), toRecords(d.roleCollections), timeToText(d.createdAt),
+    timeToText(d.modifiedAt));
+}
+
+Directory toEntity(const DirectoryRecord r) {
+  return Directory(r.key, r.name, r.description, r.parent, r.manageEntitlements, r.manageAuthorizations, r.costCenter,
+    r.owner, toEntitlements(r.entitlements), toCollections(r.roleCollections), textToTime(r.createdAt),
+    textToTime(r.modifiedAt));
+}
+
+SubaccountRecord toRecord(const Subaccount s) {
+  return SubaccountRecord(s.key, s.name, s.description, s.directory, s.region, s.subdomain, s.purpose,
+    s.stage.to!string, s.domain.label, s.sites.dup, s.costCenter, s.betaFeatures, toRecords(s.entitlements),
+    toRecords(s.roleCollections), timeToText(s.createdAt), timeToText(s.modifiedAt));
+}
+
+Subaccount toEntity(const SubaccountRecord r) {
+  return Subaccount(r.key, r.name, r.description, r.directory, r.region, r.subdomain, r.purpose,
+    toEnum(r.stage, Stage.dev), toDomain(r.domain), r.sites.dup, r.costCenter, r.betaFeatures,
+    toEntitlements(r.entitlements), toCollections(r.roleCollections), textToTime(r.createdAt), textToTime(r.modifiedAt));
+}
+
+ServicePlanRecord toRecord(const ServicePlan p) {
+  return ServicePlanRecord(p.key, p.service, p.plan, p.description, p.unit, p.unitSize, p.price, p.meter.to!string);
+}
+
+ServicePlan toEntity(const ServicePlanRecord r) {
+  return ServicePlan(r.key, r.service, r.plan, r.description, r.unit, r.unitSize > 0 ? r.unitSize : 1, r.price,
+    toEnum(r.meter, Meter.none));
+}
+
+UsageDocument toRecord(const UsageRecord u) {
+  return UsageDocument(u.month, u.site, u.requests, u.bytesOut, u.peakStorageBytes);
+}
+
+UsageRecord toEntity(const UsageDocument d) {
+  return UsageRecord(d.month, d.site, d.requests, d.bytesOut, d.peakStorageBytes);
+}
+
 private AccessRight[] parseKnown(const(string)[] keys) {
   AccessRight[] result;
   foreach (k; keys) {

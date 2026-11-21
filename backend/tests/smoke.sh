@@ -211,6 +211,27 @@ check "firewall check (CLI)" "blocked" "$("$BIN/platform-open" firewall check 19
 check "traffic metrics" "neko_network_bytes_total" "$(curl -s $O/metrics)"
 check "firewall metrics" 'neko_firewall_events_total{domain="open",rule="sqli"}' "$(curl -s $O/metrics)"
 
+echo "Landscape and billing"
+check "landscape page" "Hierarchy" "$(curl -s -b "$WORK/cookies" $O/landscape)"
+check "default subaccount hosts the default site" "platform-open" "$("$BIN/platform-open" landscape)"
+check "create directory 'retail' with its own budget" "200" "$(post "$WORK/cookies" /landscape/directories \
+  -d 'key=retail&name=Retail&manageEntitlements=on&costCenter=CC-7&owner=jane')"
+check "entitle the directory" "200" "$(post "$WORK/cookies" /landscape/entitlement -d 'node=directory:retail&plan=sites.site&quota=2')"
+check "over-assignment refused" "assigned below, but only" "$(curl -s -b "$WORK/cookies" -H "Origin: $O" -H "HX-Request: true" \
+  -H "X-CSRF-Token: $csrf" -d 'node=directory:retail&plan=sites.site&quota=99' $O/landscape/entitlement)"
+check "create subaccount with scheme subdomain" "200" "$(post "$WORK/cookies" /landscape/subaccounts \
+  -d 'key=retail-prod&name=Retail&directory=retail&region=eu11&purpose=shop&stage=prod&sites=shop')"
+check "… subdomain from the scheme" "shop-prod" "$("$BIN/platform-open" landscape show subaccount:retail-prod)"
+check "… draws from the directory" "directory:retail" "$("$BIN/platform-open" landscape show subaccount:retail-prod)"
+check "a site belongs to one subaccount" "also assigned" "$(curl -s -b "$WORK/cookies" -H "Origin: $O" -H "HX-Request: true" \
+  -H "X-CSRF-Token: $csrf" -d 'key=retail-dev&name=x&directory=retail&region=eu10&stage=dev&sites=shop' $O/landscape/subaccounts)"
+check "region cannot change" "cannot change" "$(curl -s -b "$WORK/cookies" -H "Origin: $O" -H "HX-Request: true" \
+  -H "X-CSRF-Token: $csrf" -d 'name=Retail&directory=retail&region=us10&stage=prod&sites=shop' $O/landscape/subaccounts/retail-prod)"
+check "eve has no landscape" "403" "$(code -b "$WORK/eve" $O/landscape)"
+check "billing page" "Costs by hierarchy" "$(curl -s -b "$WORK/cookies" $O/landscape/billing)"
+check "billing CSV" "month;subaccount;cost_center" "$(curl -s -b "$WORK/cookies" $O/landscape/billing.csv)"
+check "landscape check (CLI)" "0" "$("$BIN/platform-open" landscape check >/dev/null; echo $?)"
+
 echo
 if [[ $failures -gt 0 ]]; then
   echo "$failures check(s) failed. Logs: open.log / secret.log in $WORK"

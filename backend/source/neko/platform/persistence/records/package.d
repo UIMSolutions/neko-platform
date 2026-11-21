@@ -18,6 +18,11 @@ enum rolesCollection = "roles";
 enum sitesCollection = "sites";
 enum filesCollection = "files";
 enum ipRulesCollection = "iprules";
+enum landscapeCollection = "landscape";
+enum directoriesCollection = "directories";
+enum subaccountsCollection = "subaccounts";
+enum plansCollection = "serviceplans";
+enum usageCollection = "usage";
 
 struct ServiceRecord {
   string id;
@@ -127,4 +132,86 @@ struct IpRuleRecord {
   @optional string note;
   @optional string createdBy;
   string createdAt;
+}
+
+struct EntitlementRecord {
+  string plan;
+  /// -1 = unlimited
+  long quota;
+}
+
+struct RoleCollectionRecord {
+  string name;
+  @optional string description;
+  @optional string[] rights;
+  @optional string[] members;
+}
+
+/// The one global account (document "global").
+struct GlobalAccountRecord {
+  string name;
+  @optional string subdomainPrefix;
+  @optional string subdomainPattern;
+  @optional string contract;
+  @optional string currency;
+  @optional string costCenter;
+  @optional string[] admins;
+  @optional EntitlementRecord[] entitlements;
+  @optional RoleCollectionRecord[] roleCollections;
+  @optional string modifiedAt;
+}
+
+struct DirectoryRecord {
+  string key;
+  string name;
+  @optional string description;
+  @optional string parent;
+  @optional bool manageEntitlements;
+  @optional bool manageAuthorizations;
+  @optional string costCenter;
+  @optional string owner;
+  @optional EntitlementRecord[] entitlements;
+  @optional RoleCollectionRecord[] roleCollections;
+  string createdAt;
+  string modifiedAt;
+}
+
+struct SubaccountRecord {
+  string key;
+  string name;
+  @optional string description;
+  @optional string directory;
+  string region;
+  string subdomain;
+  @optional string purpose;
+  string stage;
+  string domain;
+  @optional string[] sites;
+  @optional string costCenter;
+  @optional bool betaFeatures;
+  @optional EntitlementRecord[] entitlements;
+  @optional RoleCollectionRecord[] roleCollections;
+  string createdAt;
+  string modifiedAt;
+}
+
+struct ServicePlanRecord {
+  string key;
+  string service;
+  string plan;
+  @optional string description;
+  string unit;
+  double unitSize;
+  double price;
+  /// "none" | "requests" | "egressBytes" | "storageBytes" | "sites"
+  string meter;
+}
+
+/// Usage of a site in a month (document "<month>|<site>").
+struct UsageDocument {
+  string month;
+  string site;
+  long requests;
+  long bytesOut;
+  long peakStorageBytes;
 }

@@ -1,0 +1,60 @@
+//- Create / edit a directory. Needs page, form (DirectoryForm), view (LandscapeDto).
+- import std.array : replicate;
+- import neko.platform.presentation.web.icons : icon;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered.modal-lg
+    .modal-content
+      form(hx-post=(form.existing ? "/landscape/directories/" ~ form.values.key : "/landscape/directories"), hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title= (form.existing ? "Directory " ~ form.values.key : "New directory")
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          - auto v = form.values;
+          .row
+            - if (!form.existing)
+              .col-md-4.mb-3
+                label.form-label.required(for="d-key") Key
+                input#d-key.form-control(type="text", name="key", value=v.key, required=true, maxlength="40", spellcheck="false", autocapitalize="none")
+                .form-hint Fixed: a-z, 0-9, - .
+            div.mb-3(class=(form.existing ? "col-md-6" : "col-md-4"))
+              label.form-label(for="d-name") Name
+              input#d-name.form-control(type="text", name="name", value=v.name, maxlength="128")
+            div.mb-3(class=(form.existing ? "col-md-6" : "col-md-4"))
+              label.form-label(for="d-parent") Below
+              select#d-parent.form-select(name="parent")
+                option(value="", selected=(v.parent == "")) Global account
+                - foreach (t; view.tree)
+                  - if (t.kind == "directory" && t.key != v.key)
+                    option(value=t.key, selected=(v.parent == t.key)) #{"— ".replicate(t.level - 1)}#{t.name}
+          .mb-3
+            label.form-label(for="d-desc") Description
+            input#d-desc.form-control(type="text", name="description", value=v.description, maxlength="256")
+          .row
+            .col-md-6.mb-3
+              label.form-label(for="d-owner") Owner
+              input#d-owner.form-control(type="text", name="owner", value=v.owner, maxlength="128")
+            .col-md-6.mb-3
+              label.form-label(for="d-cc") Cost center
+              input#d-cc.form-control(type="text", name="costCenter", value=v.costCenter, maxlength="64")
+              .form-hint Empty = inherited
+          .form-label Directory features
+          label.form-check.form-switch
+            input.form-check-input(type="checkbox", name="manageEntitlements", checked=v.manageEntitlements)
+            span.form-check-label
+              | Manage entitlements
+              span.form-check-description The directory gets a budget from above; its subaccounts draw from it. Worth it for several subaccounts with one budget owner.
+          label.form-check.form-switch
+            input.form-check-input(type="checkbox", name="manageAuthorizations", checked=v.manageAuthorizations)
+            span.form-check-label
+              | Manage authorizations
+              span.form-check-description Role collections defined here apply to every subaccount below. Worth it when the same people administer all of them — not across production and non-production.
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | #{form.existing ? "Save" : "Create"}

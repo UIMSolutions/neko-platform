@@ -1,0 +1,71 @@
+//- Tree, node details, recommendations; swapped after every change. Needs page, view (LandscapeDto), selected (NodeDto).
+- import std.conv : to;
+- import neko.platform.presentation.web.icons : icon;
+- import neko.platform.presentation.web.landscape : money, stageColor;
+- string nodeLabel(string n) { foreach (t; view.tree) if (t.node == n) return t.name; return n; }
+#landscape
+  .row.row-cards
+    .col-lg-4
+      .card
+        .card-header
+          h3.card-title Hierarchy
+          .card-subtitle.ms-2.text-secondary #{view.directories.to!string} directories · #{view.subaccounts.to!string} subaccounts
+        .list-group.list-group-flush.landscape-tree
+          - foreach (t; view.tree)
+            - auto url = "/landscape?node=" ~ t.node;
+            a.list-group-item.list-group-item-action.d-flex.align-items-center.gap-2(href=url, hx-get=url, hx-select="#landscape", hx-target="#landscape", hx-swap="outerHTML", hx-push-url="true", class=(t.node == selected.node ? "active" : ""), style="padding-left: " ~ (0.75 + t.level * 1.25).to!string ~ "rem")
+              span.text-secondary
+                | !{icon(t.kind == "global" ? "world" : t.kind == "directory" ? "folder" : "server")}
+              .flex-fill.text-truncate
+                .fw-medium.text-truncate= t.name
+                .small.text-secondary.text-truncate
+                  - if (t.kind == "subaccount")
+                    | #{t.subdomain} · #{t.region}
+                  - else
+                    | #{t.subaccounts.to!string} subaccount#{t.subaccounts == 1 ? "" : "s"}
+              - if (t.kind == "subaccount")
+                span.badge(class="bg-" ~ stageColor(t.stage) ~ "-lt")= t.stage
+              - if (t.manageEntitlements)
+                span.badge.bg-green-lt(title="Manages entitlements") E
+              - if (t.manageAuthorizations)
+                span.badge.bg-purple-lt(title="Manages authorizations (role collections)") A
+              - if (t.errors > 0)
+                span.text-red(title=t.errors.to!string ~ " error(s)")
+                  | !{icon("alert-circle")}
+              - else if (t.advice > 0 || t.warnings > 0)
+                span.text-yellow(title=(t.advice + t.warnings).to!string ~ " recommendation(s) or warning(s)")
+                  | !{icon("info-circle")}
+        .card-footer.small.text-secondary
+          | Costs #{view.month}: #{money(view.monthCost, view.currency)}
+    .col-lg-8
+      include landscape_node
+  - if (view.issues.length || view.advice.length)
+    .row.row-cards.mt-1
+      - if (view.issues.length)
+        .col-12
+          .card.border-danger
+            .card-header
+              h3.card-title Problems
+            .list-group.list-group-flush
+              - foreach (i; view.issues)
+                .list-group-item.d-flex.gap-2
+                  span(class=(i.severity == "error" ? "text-red" : "text-yellow"))
+                    | !{icon(i.severity == "error" ? "alert-circle" : "alert-triangle")}
+                  div
+                    a.fw-medium(href="/landscape?node=" ~ i.node)= nodeLabel(i.node)
+                    div= i.message
+      - if (view.advice.length)
+        .col-12
+          .card
+            .card-header
+              h3.card-title Recommendations
+              .card-subtitle.ms-2.text-secondary where directory entitlements and role collections help — and where they do not
+            .list-group.list-group-flush
+              - foreach (a; view.advice)
+                .list-group-item.d-flex.gap-3
+                  span.badge.align-self-start(class=(a.topic == "entitlements" ? "bg-green-lt" : a.topic == "authorizations" ? "bg-purple-lt" : a.topic == "security" ? "bg-red-lt" : "bg-secondary-lt"))= a.topic
+                  div
+                    .fw-medium #{a.recommendation} 
+                      span.text-secondary.fw-normal — 
+                      a(href="/landscape?node=" ~ a.node)= nodeLabel(a.node)
+                    .text-secondary.small= a.reason

@@ -9,6 +9,7 @@ module neko.platform.ports.usecases;
 
 import neko.platform.application.dtos;
 import neko.platform.domain.entities.iprule : NetworkDecision, RequestArea;
+import neko.platform.domain.entities.landscape : Landscape, RoleCollection, ServicePlan;
 
 @safe:
 
@@ -149,4 +150,43 @@ interface IManageNetworkUseCase {
   NetworkDecision check(string address, RequestArea area);
   /// True if an allow rule lists the address (no rate limit, no ban).
   bool isAllowlisted(string address);
+}
+
+/// The account hierarchy (global account → directories → subaccounts),
+/// entitlements, role collections and service plans. Every change is
+/// refused if it would introduce an error into the landscape (over-assigned
+/// quotas, unknown plans, duplicate subdomains, …).
+interface IManageLandscapeUseCase {
+  /// The tree with issues and recommendations; costs of `month` ("" = current).
+  LandscapeDto overview(string month = "");
+  /// "global", "directory:<key>" or "subaccount:<key>".
+  NodeDto node(string node, string month = "");
+  NodeDto updateGlobal(GlobalAccountRequest request, string actor);
+  NodeDto saveDirectory(DirectoryRequest request, bool create, string actor);
+  /// Only empty directories.
+  void removeDirectory(string key, string actor);
+  /// Region and subdomain cannot change after creation.
+  NodeDto saveSubaccount(SubaccountRequest request, bool create, string actor);
+  /// Only subaccounts without sites.
+  void removeSubaccount(string key, string actor);
+  /// quota: units, `unlimited` (-1) = pay per use; `remove` drops it.
+  NodeDto setEntitlement(string node, string plan, long quota, bool remove, string actor);
+  NodeDto saveRoleCollection(string node, RoleCollectionRequest request, string actor);
+  NodeDto removeRoleCollection(string node, string name, string actor);
+  ServicePlan[] plans();
+  ServicePlan savePlan(ServicePlanRequest request, string actor);
+  /// Only plans no node is entitled to.
+  void removePlan(string key, string actor);
+  /// Start-up: the global account, the default plans, and a subaccount for
+  /// the default site if there is none.
+  void ensureDefaults(string serviceName, string environment, string defaultSite);
+  /// The raw landscape (exports).
+  Landscape landscape();
+}
+
+interface IBillingUseCase {
+  /// "" = the current month.
+  BillDto bill(string month = "");
+  /// The bill as CSV (one line per subaccount and plan).
+  string csv(string month = "");
 }

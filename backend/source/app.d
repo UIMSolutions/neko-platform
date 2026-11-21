@@ -7,9 +7,9 @@
 /// the domain is fixed at compile time so a binary can never run in the wrong domain.
 module app;
 
-import core.time : minutes;
+import core.time : minutes, seconds;
 import std.array : join;
-import vibe.core.core : runApplication;
+import vibe.core.core : runApplication, setTimer;
 import vibe.core.log : LogLevel, registerLogger;
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse, HTTPServerSettings, listenHTTP;
@@ -75,6 +75,23 @@ int serve(PlatformContainer c) {
   auto handler = new RequestMonitor(firewall, metrics, config.accessLog, accessFile, config.restPath,
     config.odataPath, addresses, traffic);
 
+  // Billing: requests and bytes per site, written every minute with the
+  // storage peak of each site (and once more at shutdown).
+  auto meter = new UsageMeter;
+  handler.meterUsage(new SiteAttribution(c.sites), meter);
+  void flushUsage() nothrow {
+    try
+      c.usageRepository.add(meter.drain() ~ storagePeaks(c));
+    catch (Exception e)
+      logWarn("usage: cannot store usage records: %s", e.msg);
+  }
+
+  auto usageTimer = setTimer(60.seconds, &flushUsage, true);
+  scope (exit) {
+    usageTimer.stop();
+    flushUsage();
+  }
+
   // Order matters: middleware first, the static catch-all last.
   auto security = new SecurityMiddleware(config);
   security.registerRoutes(router);
@@ -101,6 +118,7 @@ int serve(PlatformContainer c) {
   pages.monitoring = new MonitoringWeb(guard, metrics, logBuffer, c.events, c.files, logDir, config.accessLog);
   pages.security = new SecurityWeb(guard, c.network, traffic, bans, FirewallInfo(config.firewallMode,
     config.rateLimitPerMinute, config.banAfterViolations, config.banMinutes, config.trustedProxies), c.events);
+  pages.landscape = new LandscapeWeb(guard, c.landscape, c.billing, c.sites);
   pages.sites = new SitesWeb(guard, c.sites);
   pages.files = new FilesWeb(guard, c.files, c.sites, config.maxUploadBytes);
   pages.users = new UsersWeb(guard, c.users, c.roles, c.sites);
@@ -140,6 +158,18 @@ int serve(PlatformContainer c) {
   return runApplication();
 }
 
+/// The current file storage of each site, as usage records (the repository
+/// keeps the peak of the month).
+UsageRecord[] storagePeaks(PlatformContainer c) {
+  import std.datetime.systime : Clock;
+
+  auto month = monthOf(Clock.currTime);
+  UsageRecord[] list;
+  foreach (u; c.files.storage().sites)
+    list ~= UsageRecord(month, u.site, 0, 0, u.bytes);
+  return list;
+}
+
 /// The first web administrator, if this domain has no user account yet.
 void bootstrapAdministrator(PlatformContainer c) {
   auto result = c.authentication.ensureAdministrator(c.config.adminUser, c.config.adminPassword);
@@ -157,7 +187,7 @@ void logEndpoints(PlatformConfig config, FrontendController frontend) {
   logInfo("  REST   %s{overview,services,transfers}", config.restPath);
   logInfo("  OData  %s/$metadata", config.odataPath);
   logInfo("  Site   / (default site, or the site claiming the host name), /media/* (public files)");
-  logInfo("  Web    /login, /status, /monitoring, /security, /sites, /files, /users, /roles, /account (rights by role)");
+  logInfo("  Web    /login, /status, /monitoring, /security, /landscape, /sites, /files, /users, /roles, /account");
   logInfo("  Guard  firewall %s, rate limit %s/min, IP rules in %s", config.firewallMode,
     config.rateLimitPerMinute, config.storage == "file" ? "iprules.json" : "memory");
   logInfo("  Ops    /health, /metrics (Prometheus), /api/v1/info%s", config.transport == "unix" ? ", /api/v1/socket" : "");

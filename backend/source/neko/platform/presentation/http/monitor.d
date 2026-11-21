@@ -35,6 +35,14 @@ class RequestMonitor : HTTPServerRequestHandler {
   private string restPath, odataPath;
   private ClientAddresses addresses;
   private TrafficMonitor traffic;
+  private SiteAttribution attribution;
+  private UsageMeter meter;
+
+  /// Count public-site requests per site for billing (both may be null).
+  void meterUsage(SiteAttribution attribution, UsageMeter meter) {
+    this.attribution = attribution;
+    this.meter = meter;
+  }
 
   /// `accessFile` may be null (no access log file).
   this(HTTPServerRequestHandler next, RequestMetrics metrics, bool accessLog, DailyLogFile accessFile,
@@ -65,6 +73,7 @@ class RequestMonitor : HTTPServerRequestHandler {
       status = 500;
       throw e;
     } finally {
+      flushBody(req, res, status);
       record(req, res, status, (MonoTime.currTime - started).total!"usecs" / 1000.0);
     }
   }
@@ -76,8 +85,10 @@ class RequestMonitor : HTTPServerRequestHandler {
       auto client = clientAddressOf(req);
       auto sample = RequestSample(Clock.currTime(UTC()), req.method.to!string, path, area, status, ms, client);
       metrics.finish(sample);
-      traffic.record(client, sample.at, requestBytes(req), cast(long) res.bytesWritten, status,
-        req.headers.get("User-Agent", ""), path);
+      auto sent = responseBytes(req, res, status);
+      traffic.record(client, sample.at, requestBytes(req), sent, status, req.headers.get("User-Agent", ""), path);
+      if (meter !is null && attribution !is null && (area == "site" || area == "media") && status < 400)
+        meter.count(attribution.siteOf(path, req.host), sample.at, sent);
       if (!accessLog)
         return;
       // Assets and probes only at debug level: they would drown the log.
@@ -102,6 +113,92 @@ class RequestMonitor : HTTPServerRequestHandler {
     } catch (Exception) {
     }
   }
+}
+
+/// Which site a public request belongs to: /media/<site>/… by its path,
+/// "/" by the host name (else the default site). The host table is re-read
+/// every 30 seconds.
+class SiteAttribution {
+  import core.time : MonoTime, seconds;
+  import neko.platform.ports.usecases : IManageSitesUseCase;
+
+  private IManageSitesUseCase sites;
+  private string[string] byHost;
+  private string defaultSite;
+  private MonoTime loaded;
+  private bool ready;
+
+  this(IManageSitesUseCase sites) {
+    this.sites = sites;
+  }
+
+  string siteOf(string path, string host) {
+    if (path.startsWith("/media/")) {
+      import std.string : indexOf;
+
+      auto rest = path[7 .. $];
+      auto slash = rest.indexOf('/');
+      return slash > 0 ? rest[0 .. slash] : rest;
+    }
+    refresh();
+    import neko.platform.domain.entities.site : normalizeHost;
+
+    if (auto s = normalizeHost(host) in byHost)
+      return *s;
+    return defaultSite;
+  }
+
+  private void refresh() {
+    if (ready && MonoTime.currTime - loaded < 30.seconds)
+      return;
+    string[string] map;
+    string fallback;
+    foreach (s; sites.list("system")) {
+      foreach (h; s.hosts)
+        map[h] = s.key;
+      if (s.isDefault)
+        fallback = s.key;
+    }
+    byHost = map;
+    defaultSite = fallback;
+    loaded = MonoTime.currTime;
+    ready = true;
+  }
+}
+
+/// vibe.d sends the last buffered part of a streamed (chunked) body only
+/// after the handler returns, so `bytesWritten` would miss it — all of a
+/// small page. Flush it now: the same bytes, a little earlier. Only chunked
+/// bodies (rendered pages) are flushed; they always have a body writer.
+/// Bodies with Content-Length (files, writeBody) are counted by that header,
+/// and void bodies (HEAD, 204, 304) are never touched.
+private void flushBody(scope HTTPServerRequest req, scope HTTPServerResponse res, int status) nothrow {
+  import vibe.http.common : HTTPMethod;
+
+  try {
+    if (res.headerWritten && req.method != HTTPMethod.HEAD && (status == 200 || status == 201)
+        && "Content-Length" !in res.headers && res.headers.get("Transfer-Encoding", "") == "chunked")
+      res.bodyWriter.flush();
+  } catch (Exception) {
+  }
+}
+
+/// Bytes of the response body sent (or about to be sent) for this request.
+private long responseBytes(scope HTTPServerRequest req, scope HTTPServerResponse res, int status) nothrow {
+  import vibe.http.common : HTTPMethod;
+
+  long n;
+  try {
+    n = cast(long) res.bytesWritten;
+    if (req.method != HTTPMethod.HEAD && status != 204 && status != 304)
+      if (auto length = "Content-Length" in res.headers) {
+        auto declared = (*length).to!long;
+        if (declared > n)
+          n = declared;
+      }
+  } catch (Exception) {
+  }
+  return n;
 }
 
 /// Approximate size of a request: request line, headers and the declared body.

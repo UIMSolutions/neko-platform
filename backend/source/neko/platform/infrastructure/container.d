@@ -31,6 +31,8 @@ class PlatformContainer {
   IFileRepository fileRepository;
   IBlobStore blobs;
   IIpRuleRepository ipRuleRepository;
+  ILandscapeRepository landscapeRepository;
+  IUsageRepository usageRepository;
   IPasswordHasher passwords;
   LoggingEventPublisher events;
   IClock clock;
@@ -45,6 +47,8 @@ class PlatformContainer {
   IManageSitesUseCase sites;
   IManageFilesUseCase files;
   IManageNetworkUseCase network;
+  IManageLandscapeUseCase landscape;
+  IBillingUseCase billing;
 }
 
 /// `store` overrides the configured storage (used by tests).
@@ -85,9 +89,17 @@ PlatformContainer buildContainer(PlatformConfig config, SecurityDomain domain, I
   c.fileRepository = new DocumentFileRepository(c.store);
   c.sites = new ManageSitesUseCase(c.siteRepository, c.fileRepository, c.userRepository, c.events, c.clock);
   // Before anything is served: "/" shows the default site.
-  c.sites.ensureDefaultSite(config.serviceName, config.defaultLanguage);
+  auto defaultSite = c.sites.ensureDefaultSite(config.serviceName, config.defaultLanguage);
   c.files = new ManageFilesUseCase(c.fileRepository, c.siteRepository, c.blobs, c.userRepository, c.events, c.clock,
     ids, FileLimits(config.maxUploadBytes, config.siteQuotaBytes));
+  c.landscapeRepository = new DocumentLandscapeRepository(c.store);
+  c.usageRepository = new DocumentUsageRepository(c.store);
+  auto landscape = new ManageLandscapeUseCase(c.landscapeRepository, c.usageRepository, c.siteRepository, c.events,
+    c.clock, domain);
+  // The global account, the service plans and a subaccount for this instance.
+  landscape.ensureDefaults(config.serviceName, config.environment, defaultSite);
+  c.landscape = landscape;
+  c.billing = landscape;
   c.ipRuleRepository = new DocumentIpRuleRepository(c.store);
   c.network = new ManageNetworkUseCase(c.ipRuleRepository, c.events, c.clock, ids);
   auto users = new ManageUsersUseCase(c.userRepository, c.roleRepository, c.passwords, c.events, c.clock, ids,

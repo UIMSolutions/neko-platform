@@ -1,0 +1,50 @@
+//- Global account settings. Needs page, form (GlobalForm).
+- import std.array : join;
+- import neko.platform.presentation.web.icons : icon;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered.modal-lg
+    .modal-content
+      form(hx-post="/landscape/global", hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title= "Global account"
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          - auto v = form.values;
+          .row
+            .col-md-8.mb-3
+              label.form-label.required(for="g-name") Name
+              input#g-name.form-control(type="text", name="name", value=v.name, required=true, maxlength="128")
+            .col-md-4.mb-3
+              label.form-label(for="g-cc") Cost center
+              input#g-cc.form-control(type="text", name="costCenter", value=v.costCenter, maxlength="64")
+          .row
+            .col-md-6.mb-3
+              label.form-label(for="g-contract") Contract
+              select#g-contract.form-select(name="contract")
+                - foreach (c; [["CPEA", "CPEA — consumption credits"], ["PAYG", "Pay as you go"], ["subscription", "Subscription"]])
+                  option(value=c[0], selected=(v.contract == c[0]))= c[1]
+            .col-md-6.mb-3
+              label.form-label(for="g-cur") Currency
+              input#g-cur.form-control(type="text", name="currency", value=v.currency, maxlength="3", spellcheck="false")
+          .row
+            .col-md-4.mb-3
+              label.form-label(for="g-prefix") Subdomain prefix {global}
+              input#g-prefix.form-control(type="text", name="subdomainPrefix", value=v.subdomainPrefix, maxlength="40", spellcheck="false", autocapitalize="none")
+            .col-md-8.mb-3
+              label.form-label(for="g-pattern") Subdomain scheme
+              input#g-pattern.form-control(type="text", name="subdomainPattern", value=v.subdomainPattern, maxlength="120", spellcheck="false", autocapitalize="none")
+              .form-hint {global}, {directory}, {purpose}, {stage}, {region} — e.g. {global}-{purpose}-{stage} → acme-shop-prod. Applies to new subaccounts; existing subdomains never change.
+          .mb-3
+            label.form-label(for="g-admins") Governance contacts
+            input#g-admins.form-control(type="text", name="admins", value=join(v.admins, ", "), maxlength="400")
+            .form-hint User names or e-mail addresses, comma separated
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | Save

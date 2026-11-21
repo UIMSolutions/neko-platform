@@ -238,6 +238,156 @@ class DocumentIpRuleRepository : IIpRuleRepository {
   }
 }
 
+class DocumentLandscapeRepository : ILandscapeRepository {
+  private IDocumentStore store;
+
+  this(IDocumentStore store) {
+    this.store = store;
+  }
+
+  Landscape load() {
+    Landscape l;
+    auto g = store.load(landscapeCollection);
+    if (auto doc = "global" in g)
+      l.global = toEntity(deserializeJson!GlobalAccountRecord(*doc));
+    foreach (doc; store.load(directoriesCollection))
+      l.directories ~= toEntity(deserializeJson!DirectoryRecord(doc));
+    foreach (doc; store.load(subaccountsCollection))
+      l.subaccounts ~= toEntity(deserializeJson!SubaccountRecord(doc));
+    foreach (doc; store.load(plansCollection))
+      l.plans ~= toEntity(deserializeJson!ServicePlanRecord(doc));
+    import std.algorithm : sort;
+
+    l.directories.sort!((a, b) => a.key < b.key);
+    l.subaccounts.sort!((a, b) => a.key < b.key);
+    l.plans.sort!((a, b) => a.key < b.key);
+    return l;
+  }
+
+  void saveGlobal(GlobalAccount global) {
+    auto docs = store.load(landscapeCollection);
+    docs["global"] = serializeToJson(toRecord(global));
+    store.store(landscapeCollection, docs);
+  }
+
+  void saveDirectory(Directory d) {
+    put(directoriesCollection, d.key, serializeToJson(toRecord(d)));
+  }
+
+  bool removeDirectory(string key) {
+    return drop(directoriesCollection, key);
+  }
+
+  void saveSubaccount(Subaccount s) {
+    put(subaccountsCollection, s.key, serializeToJson(toRecord(s)));
+  }
+
+  bool removeSubaccount(string key) {
+    return drop(subaccountsCollection, key);
+  }
+
+  void savePlan(ServicePlan p) {
+    put(plansCollection, p.key, serializeToJson(toRecord(p)));
+  }
+
+  bool removePlan(string key) {
+    return drop(plansCollection, key);
+  }
+
+  private void put(string collection, string key, Json doc) {
+    auto docs = store.load(collection);
+    docs[key] = doc;
+    store.store(collection, docs);
+  }
+
+  private bool drop(string collection, string key) {
+    auto docs = store.load(collection);
+    if (key !in docs)
+      return false;
+    docs.remove(key);
+    store.store(collection, docs);
+    return true;
+  }
+}
+
+class DocumentUsageRepository : IUsageRepository {
+  private IDocumentStore store;
+
+  this(IDocumentStore store) {
+    this.store = store;
+  }
+
+  UsageRecord[] ofMonth(string month) {
+    UsageRecord[] result;
+    foreach (doc; store.load(usageCollection)) {
+      auto u = toEntity(deserializeJson!UsageDocument(doc));
+      if (u.month == month)
+        result ~= u;
+    }
+    return result;
+  }
+
+  string[] months() {
+    import std.algorithm : sort, uniq;
+    import std.array : array;
+
+    string[] list;
+    foreach (doc; store.load(usageCollection))
+      list ~= doc["month"].get!string;
+    list.sort!((a, b) => a > b);
+    return list.uniq.array;
+  }
+
+  void add(const(UsageRecord)[] deltas) {
+    if (deltas.length == 0)
+      return;
+    auto docs = store.load(usageCollection);
+    foreach (d; deltas) {
+      auto key = d.month ~ "|" ~ d.site;
+      UsageRecord current = UsageRecord(d.month, d.site);
+      if (auto doc = key in docs)
+        current = toEntity(deserializeJson!UsageDocument(*doc));
+      current.merge(d);
+      docs[key] = serializeToJson(toRecord(current));
+    }
+    store.store(usageCollection, docs);
+  }
+}
+
+///
+unittest {
+  import neko.platform.persistence.storages : MemoryDocumentStore;
+
+  auto store = new MemoryDocumentStore;
+  auto repo = new DocumentLandscapeRepository(store);
+  auto g = GlobalAccount();
+  g.name = "ACME";
+  g.entitlements = [Entitlement("sites.site", 4)];
+  repo.saveGlobal(g);
+  Subaccount s;
+  s.key = "shop-prod";
+  s.name = "Shop";
+  s.subdomain = "acme-shop-prod";
+  s.stage = Stage.prod;
+  s.domain = SecurityDomain.confidential;
+  s.roleCollections = [RoleCollection("Admins", "", ["sites.manage"], ["jane"])];
+  repo.saveSubaccount(s);
+  foreach (p; defaultPlans())
+    repo.savePlan(p);
+  auto l = repo.load();
+  assert(l.global.name == "ACME" && l.global.entitlements[0].quota == 4 && l.plans.length == defaultPlans().length);
+  assert(l.subaccounts[0].stage == Stage.prod && l.subaccounts[0].domain == SecurityDomain.confidential);
+  assert(l.subaccounts[0].roleCollections[0].members == ["jane"]);
+  assert(repo.removeSubaccount("shop-prod") && repo.load().subaccounts.length == 0);
+
+  auto usage = new DocumentUsageRepository(store);
+  usage.add([UsageRecord("2026-11", "shop", 10, 100, 7)]);
+  usage.add([UsageRecord("2026-11", "shop", 5, 50, 3), UsageRecord("2026-10", "shop", 1, 1, 1)]);
+  auto nov = usage.ofMonth("2026-11");
+  assert(nov.length == 1 && nov[0].requests == 15 && nov[0].bytesOut == 150 && nov[0].peakStorageBytes == 7);
+  assert(usage.months == ["2026-11", "2026-10"]);
+}
+
 ///
 unittest {
   import neko.platform.persistence.storages : MemoryDocumentStore;

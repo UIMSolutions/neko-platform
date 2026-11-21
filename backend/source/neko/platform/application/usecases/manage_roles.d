@@ -6,7 +6,7 @@
 /// Roles: named bundles of access rights, assigned to user accounts.
 module neko.platform.application.usecases.manage_roles;
 
-import std.algorithm : count, map, sort;
+import std.algorithm : canFind, count, filter, map, sort;
 import std.array : array, join;
 import std.string : strip;
 import neko.platform.domain;
@@ -99,10 +99,15 @@ class ManageRolesUseCase : IManageRolesUseCase {
       Role existing;
       if (!roles.tryGet(role.name.value, existing))
         roles.save(role);
-      else if (existing.builtIn && existing.upgradeBuiltIn(role)) {
-        roles.save(existing);
-        emit("role.upgraded", existing.name.value, "system", "Granted the new rights of this version to "
-            ~ existing.name.value ~ " (" ~ rightList(existing) ~ ")");
+      else if (existing.builtIn) {
+        auto before = existing.effectiveRights;
+        if (!existing.upgradeBuiltIn(role))
+          continue;
+        roles.save(existing); // remembers the catalogue it was decided on
+        auto added = existing.effectiveRights.filter!(r => !before.canFind(r)).map!(r => r.key).array;
+        if (added.length)
+          emit("role.upgraded", existing.name.value, "system", "Granted the new rights of this version to "
+              ~ existing.name.value ~ ": " ~ added.join(", "));
       }
     }
   }

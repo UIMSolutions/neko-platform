@@ -48,3 +48,10 @@ body[data-domain="secret"] { --domain: #d63939; }
 /* Public site */
 .public-site .site-text { max-width: 46rem; font-size: 1.0625rem; line-height: 1.7; }
 .public-site .site-image { aspect-ratio: 4 / 3; object-fit: cover; }
+
+/* Landscape */
+.domain-badge[data-domain="open"] { --domain: #2fb344; }
+.domain-badge[data-domain="restricted"] { --domain: #066fd1; }
+.domain-badge[data-domain="confidential"] { --domain: #f76707; }
+.domain-badge[data-domain="secret"] { --domain: #d63939; }
+.landscape-tree .list-group-item.active .text-secondary { color: inherit !important; opacity: .8; }

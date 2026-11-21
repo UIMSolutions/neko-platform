@@ -1,0 +1,35 @@
+//- The service plan catalogue; swapped after every change. Needs page, bill (BillDto).
+- import std.format : format;
+- import neko.platform.presentation.web.icons : icon;
+.card#plans
+  .card-header
+    h3.card-title Service plans
+    - if (page.isLandscapeManage)
+      .card-actions
+        button.btn.btn-sm(hx-get="/landscape/plans/new", hx-target="#dialog-host")
+          | !{icon("plus")}
+          | Plan
+  .table-responsive
+    table.table.table-sm.card-table
+      thead
+        tr
+          th Plan
+          th Meter
+          th.text-end Price
+          - if (page.isLandscapeManage)
+            th.w-1
+      tbody
+        - foreach (p; bill.plans)
+          tr
+            td
+              code= p.key
+              .small.text-secondary #{p.service} · #{p.plan}
+            td.small= p.meter
+            td.text-end.text-nowrap #{format("%.4g", p.price)} #{bill.currency} / #{p.unit}
+            - if (page.isLandscapeManage)
+              td.text-nowrap
+                .d-flex.gap-1
+                  button.btn.btn-ghost-secondary.btn-icon(hx-get="/landscape/plans/#{p.key}/edit", hx-target="#dialog-host", title="Edit", aria-label="Edit #{p.key}")
+                    | !{icon("pencil")}
+                  button.btn.btn-ghost-danger.btn-icon(hx-post="/landscape/plans/#{p.key}/delete", hx-target="#plans", hx-swap="outerHTML", hx-confirm="Remove the plan #{p.key}?", title="Remove", aria-label="Remove #{p.key}")
+                    | !{icon("trash")}

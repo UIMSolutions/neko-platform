@@ -423,3 +423,140 @@ IpRuleDto toDto(const IpRule r) {
   return IpRuleDto(r.id.value, r.network.toString, r.action.to!string, r.scope_.to!string, r.note, r.createdBy,
     isoTime(r.createdAt));
 }
+
+/// One service plan at one node of the hierarchy.
+struct EntitlementRowDto {
+  string plan;
+  string service;
+  string unit;
+  /// `unlimited` (-1) = pay per use.
+  long quota;
+  /// Taken by the consumers below (directories with entitlements, subaccounts).
+  long assignedBelow;
+  /// A consumer below takes it without limit.
+  bool unlimitedBelow;
+  /// quota − assignedBelow; -1 if unlimited.
+  long available;
+  /// Subaccounts: used this month in billing units; -1 = not measured.
+  double used = -1;
+  bool overQuota;
+}
+
+/// A role collection that applies to a node from above.
+struct InheritedRoleCollectionDto {
+  /// "global" | "directory:<key>"
+  string origin;
+  RoleCollection collection;
+}
+
+/// A node of the hierarchy with everything the detail view shows.
+struct NodeDto {
+  /// "global" | "directory" | "subaccount"
+  string kind;
+  /// "global", "directory:<key>", "subaccount:<key>"
+  string node;
+  string key;
+  string name;
+  string description;
+  // global account
+  string subdomainPrefix;
+  string subdomainPattern;
+  string contract;
+  string currency;
+  string[] admins;
+  // directories
+  string parent;
+  bool manageEntitlements;
+  bool manageAuthorizations;
+  string owner;
+  size_t depth;
+  // subaccounts
+  string directory;
+  string region;
+  string regionLabel;
+  string subdomain;
+  string purpose;
+  string stage;
+  string domain;
+  string[] sites;
+  bool betaFeatures;
+  /// Own cost center ("" = inherited) and the one that applies.
+  string costCenter;
+  string effectiveCostCenter;
+  /// Where it draws entitlements from ("global", "directory:<key>"); "" for the global account.
+  string entitlementSource;
+  EntitlementRowDto[] entitlements;
+  RoleCollection[] roleCollections;
+  InheritedRoleCollectionDto[] inherited;
+  /// Node ids of the direct children.
+  string[] children;
+  LandscapeIssue[] issues;
+  Advice[] advice;
+  /// Costs of the subtree in the month.
+  double monthCost = 0;
+  string createdAt;
+  string modifiedAt;
+}
+
+/// A line of the hierarchy tree.
+struct TreeItemDto {
+  string node;
+  string kind;
+  string key;
+  string name;
+  /// 0 = global account
+  int level;
+  string stage;
+  string region;
+  string domain;
+  string subdomain;
+  bool manageEntitlements;
+  bool manageAuthorizations;
+  size_t errors;
+  size_t warnings;
+  size_t advice;
+  /// Subaccounts in the subtree (directories).
+  size_t subaccounts;
+  size_t sites;
+  double monthCost = 0;
+}
+
+struct LandscapeDto {
+  string month;
+  string currency;
+  TreeItemDto[] tree;
+  ServicePlan[] plans;
+  LandscapeIssue[] issues;
+  Advice[] advice;
+  double monthCost = 0;
+  long subaccounts;
+  long directories;
+}
+
+/// A row of the bill: a node with its total; subaccounts with their lines.
+struct BillRowDto {
+  string node;
+  string kind;
+  string key;
+  string name;
+  int level;
+  string costCenter;
+  double total = 0;
+  ChargeLine[] lines;
+  long requests;
+  long bytesOut;
+  long storageBytes;
+  long sites;
+}
+
+struct BillDto {
+  string month;
+  string currency;
+  double total = 0;
+  BillRowDto[] rows;
+  double[string] byPlan;
+  UsageRecord[] unassigned;
+  /// Months with usage, newest first.
+  string[] months;
+  ServicePlan[] plans;
+}

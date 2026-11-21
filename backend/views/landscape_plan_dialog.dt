@@ -1,0 +1,56 @@
+//- Create / edit a service plan. Needs page, form (PlanForm).
+- import std.format : format;
+- import neko.platform.presentation.web.icons : icon;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered
+    .modal-content
+      form(hx-post="/landscape/plans", hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title= (form.existing ? "Service plan " ~ form.values.key : "New service plan")
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          input(type="hidden", name="existing", value=(form.existing ? "1" : "0"))
+          - auto v = form.values;
+          .mb-3
+            label.form-label.required(for="p-key") Key
+            - if (form.existing)
+              input(type="hidden", name="key", value=v.key)
+              input#p-key.form-control(type="text", value=v.key, disabled=true)
+            - else
+              input#p-key.form-control(type="text", name="key", value=v.key, required=true, maxlength="40", spellcheck="false", autocapitalize="none", placeholder="files.storage")
+          .row
+            .col-6.mb-3
+              label.form-label.required(for="p-service") Service
+              input#p-service.form-control(type="text", name="service", value=v.service, required=true, maxlength="64")
+            .col-6.mb-3
+              label.form-label.required(for="p-plan") Plan
+              input#p-plan.form-control(type="text", name="plan", value=v.plan, required=true, maxlength="64")
+          .mb-3
+            label.form-label(for="p-desc") Description
+            input#p-desc.form-control(type="text", name="description", value=v.description, maxlength="200")
+          .mb-3
+            label.form-label(for="p-meter") Measured by
+            select#p-meter.form-select(name="meter")
+              - foreach (m; [["none", "Nothing — billed by the entitled quota"], ["requests", "Requests to the sites"], ["egressBytes", "Bytes sent by the sites"], ["storageBytes", "Peak file storage of the sites"], ["sites", "Number of sites"]])
+                option(value=m[0], selected=(v.meter == m[0]))= m[1]
+          .row
+            .col-4.mb-3
+              label.form-label.required(for="p-unit") Unit
+              input#p-unit.form-control(type="text", name="unit", value=v.unit, required=true, maxlength="32", placeholder="GB-month")
+            .col-4.mb-3
+              label.form-label(for="p-size") Unit size
+              input#p-size.form-control(type="text", name="unitSize", value=format("%.10g", v.unitSize), inputmode="decimal")
+            .col-4.mb-3
+              label.form-label(for="p-price") Price per unit
+              input#p-price.form-control(type="text", name="price", value=format("%.10g", v.price), inputmode="decimal")
+          .form-hint Unit size = measured amount per billing unit (1 GB = 1073741824 bytes, 1,000 requests = 1000).
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | Save

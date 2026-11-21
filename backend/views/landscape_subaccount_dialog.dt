@@ -1,0 +1,91 @@
+//- Create / edit a subaccount. Needs page, form (SubaccountForm), view (LandscapeDto), g (NodeDto: global), siteList (SiteDto[]), regionList (RegionInfo[]).
+- import std.algorithm : canFind;
+- import std.array : replicate;
+- import neko.platform.presentation.web.icons : icon;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered.modal-lg
+    .modal-content
+      form(hx-post=(form.existing ? "/landscape/subaccounts/" ~ form.values.key : "/landscape/subaccounts"), hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title= (form.existing ? "Subaccount " ~ form.values.key : "New subaccount")
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          - auto v = form.values;
+          .row
+            - if (!form.existing)
+              .col-md-4.mb-3
+                label.form-label.required(for="s-key") Key
+                input#s-key.form-control(type="text", name="key", value=v.key, required=true, maxlength="40", spellcheck="false", autocapitalize="none")
+            div.mb-3(class=(form.existing ? "col-md-6" : "col-md-4"))
+              label.form-label(for="s-name") Name
+              input#s-name.form-control(type="text", name="name", value=v.name, maxlength="128")
+            div.mb-3(class=(form.existing ? "col-md-6" : "col-md-4"))
+              label.form-label(for="s-dir") Directory
+              select#s-dir.form-select(name="directory")
+                option(value="", selected=(v.directory == "")) — directly below the global account
+                - foreach (t; view.tree)
+                  - if (t.kind == "directory")
+                    option(value=t.key, selected=(v.directory == t.key)) #{"— ".replicate(t.level - 1)}#{t.name}
+          .row
+            .col-md-4.mb-3
+              label.form-label(for="s-purpose") Purpose
+              input#s-purpose.form-control(type="text", name="purpose", value=v.purpose, maxlength="40", spellcheck="false", autocapitalize="none", placeholder="shop, integration, …")
+            .col-md-4.mb-3
+              label.form-label(for="s-stage") Stage
+              select#s-stage.form-select(name="stage")
+                - foreach (st; ["sandbox", "dev", "test", "qa", "prod"])
+                  option(value=st, selected=(v.stage == st))= st
+            .col-md-4.mb-3
+              label.form-label(for="s-domain") Security domain
+              select#s-domain.form-select(name="domain")
+                - foreach (d; ["open", "restricted", "confidential", "secret"])
+                  option(value=d, selected=(v.domain == d))= d
+          .row
+            .col-md-6.mb-3
+              label.form-label(for="s-region") Region
+              - if (form.existing)
+                input#s-region.form-control(type="text", value=v.region, disabled=true)
+                .form-hint Fixed once created
+              - else
+                select#s-region.form-select(name="region")
+                  - foreach (r; regionList)
+                    option(value=r.id, selected=(v.region == r.id)) #{r.id} — #{r.provider}, #{r.location}
+            .col-md-6.mb-3
+              label.form-label(for="s-sub") Subdomain
+              - if (form.existing)
+                input#s-sub.form-control(type="text", value=v.subdomain, disabled=true)
+                .form-hint Fixed once created
+              - else
+                input#s-sub.form-control(type="text", name="subdomain", value=v.subdomain, maxlength="63", spellcheck="false", autocapitalize="none", placeholder=form.schemeHint)
+                .form-hint Empty = from the scheme #{g.subdomainPattern} ({global} = #{g.subdomainPrefix})
+          .mb-3
+            label.form-label(for="s-desc") Description
+            input#s-desc.form-control(type="text", name="description", value=v.description, maxlength="256")
+          .mb-3
+            .form-label Sites of this instance (#{page.domain})
+            .d-flex.flex-wrap.gap-3
+              - foreach (s; siteList)
+                label.form-check.mb-0
+                  input.form-check-input(type="checkbox", name="sites", value=s.key, checked=v.sites.canFind(s.key))
+                  span.form-check-label #{s.name} 
+                    code.small= s.key
+            .form-hint A site belongs to one subaccount; its usage is billed there. Only subaccounts of the #{page.domain} domain host sites of this instance.
+          .row
+            .col-md-6.mb-3
+              label.form-label(for="s-cc") Cost center
+              input#s-cc.form-control(type="text", name="costCenter", value=v.costCenter, maxlength="64")
+              .form-hint Empty = inherited
+            .col-md-6.mb-3.d-flex.align-items-end
+              label.form-check.form-switch
+                input.form-check-input(type="checkbox", name="betaFeatures", checked=v.betaFeatures)
+                span.form-check-label Beta features
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | #{form.existing ? "Save" : "Create"}

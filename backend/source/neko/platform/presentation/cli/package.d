@@ -21,6 +21,7 @@ public:
   import neko.platform.presentation.cli.roles;
   import neko.platform.presentation.cli.sites;
   import neko.platform.presentation.cli.firewall;
+  import neko.platform.presentation.cli.landscape;
   import neko.platform.presentation.cli.services;
   import neko.platform.presentation.cli.transfers;
   import neko.platform.presentation.cli.users;

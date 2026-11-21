@@ -1,0 +1,41 @@
+//- Entitle a node to a service plan. Needs page, form (EntitlementForm), plans (ServicePlan[]).
+- import std.conv : to;
+- import neko.platform.presentation.web.icons : icon;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered
+    .modal-content
+      form(hx-post="/landscape/entitlement", hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title= "Entitlement for " ~ form.nodeLabel
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          input(type="hidden", name="node", value=form.node)
+          input(type="hidden", name="existing", value=(form.existing ? "1" : "0"))
+          .mb-3
+            label.form-label.required(for="e-plan") Service plan
+            - if (form.existing)
+              input(type="hidden", name="plan", value=form.plan)
+              input#e-plan.form-control(type="text", value=form.plan, disabled=true)
+            - else
+              select#e-plan.form-select(name="plan")
+                - foreach (p; plans)
+                  option(value=p.key, selected=(p.key == form.plan)) #{p.service} · #{p.plan} (#{p.unit}) — #{p.key}
+          .row.align-items-end
+            .col-6.mb-3
+              label.form-label(for="e-quota") Quota (units)
+              input#e-quota.form-control(type="number", name="quota", value=form.quota.to!string, min="0", step="1")
+            .col-6.mb-3
+              label.form-check.form-switch
+                input.form-check-input(type="checkbox", name="unlimited", checked=form.unlimited_)
+                span.form-check-label Unlimited (pay per use)
+          .form-hint The quota is taken from the level above (the nearest directory managing entitlements, else the global account). Plans without a meter are billed by their quota.
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | Save

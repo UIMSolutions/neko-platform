@@ -1,0 +1,112 @@
+extends layout
+//- Billing. Needs page, bill (BillDto), error.
+block actions
+  - import neko.platform.presentation.web.icons : icon;
+  .btn-list
+    a.btn(href="/landscape")
+      | !{icon("hexagons")}
+      | Landscape
+    a.btn.btn-primary(href="/landscape/billing.csv?month=" ~ bill.month)
+      | !{icon("download")}
+      | CSV
+block content
+  - import std.algorithm : count, sort;
+  - import std.conv : to;
+  - import std.format : format;
+  - import neko.platform.application.dtos : byteSize;
+  - import neko.platform.presentation.web.icons : icon;
+  - import neko.platform.presentation.web.landscape : money;
+  - if (error.length)
+    .alert.alert-danger= error
+  .d-flex.flex-wrap.gap-3.align-items-end.mb-3
+    form(method="get", action="/landscape/billing")
+      label.form-label(for="b-month") Month
+      .input-group
+        select#b-month.form-select(name="month")
+          - foreach (m; bill.months)
+            option(value=m, selected=(m == bill.month))= m
+        button.btn(type="submit") Show
+    p.text-secondary.mb-0.flex-fill Measured usage of the sites (requests, bytes sent, peak file storage, number of sites) is priced with the service plans; plans without a meter cost their entitled quota. Usage is stored every minute.
+  .row.row-deck.row-cards.mb-3
+    - foreach (t; [["Total " ~ bill.month, money(bill.total, bill.currency), "chart-line", "primary"], ["Subaccounts", bill.rows.count!(r => r.kind == "subaccount").to!string, "server", "azure"], ["Unassigned sites", bill.unassigned.length.to!string, "alert-triangle", bill.unassigned.length ? "yellow" : "secondary"]])
+      .col-md-4
+        .card.card-sm
+          .card-body
+            .row.align-items-center
+              .col-auto
+                span.avatar(class="bg-" ~ t[3] ~ "-lt")
+                  | !{icon(t[2])}
+              .col
+                .h2.mb-0= t[1]
+                .text-secondary= t[0]
+  .card
+    .card-header
+      h3.card-title Costs by hierarchy
+    .table-responsive
+      table.table.table-vcenter.card-table.table-sm
+        thead
+          tr
+            th Node
+            th Cost center
+            th.text-end Requests
+            th.text-end Sent
+            th.text-end Storage (peak)
+            th.text-end Sites
+            th.text-end Total
+        tbody
+          - foreach (r; bill.rows)
+            tr(class=(r.kind == "subaccount" ? "" : "fw-medium bg-surface-secondary"))
+              td(style="padding-left: " ~ (0.75 + r.level * 1.25).to!string ~ "rem")
+                span.text-secondary.me-1
+                  | !{icon(r.kind == "global" ? "world" : r.kind == "directory" ? "folder" : "server")}
+                a(href="/landscape?node=" ~ r.node)= r.name
+              td.text-secondary= r.costCenter
+              - if (r.kind == "subaccount")
+                td.text-end= r.requests.to!string
+                td.text-end= byteSize(r.bytesOut)
+                td.text-end= byteSize(r.storageBytes)
+                td.text-end= r.sites.to!string
+              - else
+                td(colspan="4")
+              td.text-end.text-nowrap= money(r.total, bill.currency)
+            - foreach (l; r.lines)
+              tr.small.text-secondary
+                td(colspan="5", style="padding-left: " ~ (2 + r.level * 1.25).to!string ~ "rem")
+                  code= l.plan
+                  |  #{format("%.3f", l.quantity)} #{l.unit} × #{format("%.4g", l.price)}
+                  - if (l.overQuota)
+                    span.badge.bg-red-lt.ms-2= l.entitled ? "over quota" : "not entitled"
+                td.text-end= l.entitled ? "" : "pay per use"
+                td.text-end.text-nowrap= money(l.amount, bill.currency)
+  .row.row-cards.mt-1
+    .col-lg-6
+      .card
+        .card-header
+          h3.card-title By service plan
+        table.table.table-sm.card-table
+          tbody
+            - auto keys = bill.byPlan.keys;
+            - keys.sort;
+            - foreach (k; keys)
+              tr
+                td
+                  code= k
+                td.text-end= money(bill.byPlan[k], bill.currency)
+            tr.fw-bold
+              td Total
+              td.text-end= money(bill.total, bill.currency)
+      - if (bill.unassigned.length)
+        .card.mt-3
+          .card-header
+            h3.card-title Usage of sites without a subaccount
+          table.table.table-sm.card-table
+            tbody
+              - foreach (u; bill.unassigned)
+                tr
+                  td
+                    code= u.site
+                  td.text-end #{u.requests.to!string} requests
+                  td.text-end= byteSize(u.bytesOut)
+          .card-footer.small.text-secondary Assign these sites to a subaccount (Landscape) to bill them.
+    .col-lg-6
+      include billing_plans

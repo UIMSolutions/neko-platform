@@ -19,6 +19,7 @@ import neko.platform.presentation.cli.transfers : transfersCommand;
 import neko.platform.presentation.cli.roles : rolesCommand;
 import neko.platform.presentation.cli.sites : filesCommand, sitesCommand;
 import neko.platform.presentation.cli.firewall : firewallCommand;
+import neko.platform.presentation.cli.landscape : landscapeCommand;
 import neko.platform.presentation.cli.users : usersCommand;
 
 enum usage = `Usage: platform-<domain> [command] [arguments] [--option=value …]
@@ -71,6 +72,10 @@ Commands:
   firewall allow|deny <cidr> [--scope=admin|api|all] [--note=]
   firewall remove <id>
   firewall check <address>            what the IP lists decide for each area
+  landscape [tree] [--month=]         global account → directories → subaccounts
+  landscape show <node>               global | directory:<key> | subaccount:<key>
+  landscape check                     problems and recommendations (exit 1 on errors)
+  landscape billing [--month=] [--csv]
   help
 
 Exit codes: 0 ok, 1 error (business errors print their HTTP-style code), 2 usage error`;
@@ -113,6 +118,8 @@ int runCli(PlatformContainer c, string[] args, File output = stdout, File errors
       return filesCommand(c, a, actor, out_);
     case "firewall":
       return firewallCommand(c, a, actor, out_);
+    case "landscape":
+      return landscapeCommand(c, a, actor, out_);
     default:
       errors.writeln("Unknown command '", command, "'\n\n", usage);
       return 2;

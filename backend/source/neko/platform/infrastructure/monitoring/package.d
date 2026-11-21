@@ -14,6 +14,7 @@
 module neko.platform.infrastructure.monitoring;
 
 public import neko.platform.infrastructure.monitoring.traffic;
+public import neko.platform.infrastructure.monitoring.usage;
 
 import core.time : Duration, MonoTime, minutes;
 import std.algorithm : max, min, sort;

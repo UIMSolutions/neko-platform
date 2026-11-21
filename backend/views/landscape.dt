@@ -1,0 +1,19 @@
+extends layout
+//- The account hierarchy. Needs page, view (LandscapeDto), selected (NodeDto).
+block actions
+  - import neko.platform.presentation.web.icons : icon;
+  .btn-list
+    - if (page.isBillingRead)
+      a.btn(href="/landscape/billing")
+        | !{icon("chart-line")}
+        | Billing
+    - if (page.isLandscapeManage)
+      button.btn(hx-get="/landscape/directories/new", hx-target="#dialog-host")
+        | !{icon("folder")}
+        | Directory
+      button.btn.btn-primary(hx-get="/landscape/subaccounts/new", hx-target="#dialog-host")
+        | !{icon("plus")}
+        | Subaccount
+block content
+  p.text-secondary The global account holds the contract, the purchased entitlements and global role collections. Directories group subaccounts and may take over a budget (entitlements) and role collections; subaccounts are where sites run — with region, subdomain, purpose, stage and security domain.
+  include landscape_body

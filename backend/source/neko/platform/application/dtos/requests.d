@@ -141,3 +141,62 @@ struct AddIpRuleRequest {
   @optional string scope_ = "admin";
   @optional string note;
 }
+
+struct GlobalAccountRequest {
+  string name;
+  @optional string subdomainPrefix;
+  @optional string subdomainPattern;
+  /// "CPEA" | "PAYG" | "subscription"
+  @optional string contract;
+  @optional string currency;
+  @optional string costCenter;
+  @optional string[] admins;
+}
+
+struct DirectoryRequest {
+  string key;
+  string name;
+  @optional string description;
+  /// "" = below the global account
+  @optional string parent;
+  @optional bool manageEntitlements;
+  @optional bool manageAuthorizations;
+  @optional string costCenter;
+  @optional string owner;
+}
+
+struct SubaccountRequest {
+  string key;
+  string name;
+  @optional string description;
+  @optional string directory;
+  @optional string region = "eu10";
+  /// "" = from the subdomain scheme of the global account
+  @optional string subdomain;
+  @optional string purpose;
+  @optional string stage = "dev";
+  /// Security domain label; "" = this instance's domain
+  @optional string domain;
+  @optional string[] sites;
+  @optional string costCenter;
+  @optional bool betaFeatures;
+}
+
+struct RoleCollectionRequest {
+  string name;
+  @optional string description;
+  @optional string[] rights;
+  @optional string[] members;
+}
+
+struct ServicePlanRequest {
+  string key;
+  string service;
+  string plan;
+  @optional string description;
+  string unit;
+  double unitSize = 1;
+  double price = 0;
+  /// "none" | "requests" | "egressBytes" | "storageBytes" | "sites"
+  @optional string meter = "none";
+}

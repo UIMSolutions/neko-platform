@@ -41,6 +41,8 @@ dub build --config=open            # → backend/build/platform-open
 | `/status` | status page (vibe.d web interface, Tabler + htmx, all assets embedded — works in isolated domains) |
 | `/monitoring` | request figures, failures, slow requests, recent log, storage |
 | `/security` | firewall events, network traffic per client, IP allow/deny lists, bans |
+| `/landscape` | account hierarchy: global account → directories → subaccounts, entitlements, role collections, recommendations |
+| `/landscape/billing` | usage and costs per subaccount, directory and global account; CSV export |
 | `/sites` | sites (tenants): host names, languages, home page content per language |
 | `/files` | file library per site: documents, images, audio, video |
 | `/users`, `/roles` | user management, roles and the access rights they grant |
@@ -66,7 +68,8 @@ echo 'a-new-password' | ./build/platform-open users passwd admin
 **Roles and access rights.** What a web user may do follows from fixed access
 rights: `status.read`, `events.read`, `monitoring.read`, `sites.read`,
 `sites.manage`, `files.read`, `files.manage`, `security.read`,
-`security.manage`, `users.read`, `users.manage`,
+`security.manage`, `landscape.read`, `landscape.manage`, `billing.read`,
+`users.read`, `users.manage`,
 `roles.read`, `roles.manage`. Roles bundle rights and are managed at runtime
 (page `/roles` or `roles …` on the CLI). A user holds one or more roles, and
 holds the union of their rights. Every domain starts with four built-in roles:
@@ -143,6 +146,65 @@ histogram), figures per area, the latest failed and slow requests, storage per
 site and the recent log with a level filter; it refreshes every 10 seconds.
 `/metrics` exposes the same figures in the Prometheus format. Without
 `metricsToken` it only answers local clients (and the unix socket).
+
+**Landscape: global account, directories, subaccounts.** `/landscape` models
+the account hierarchy of the operator (after SAP BTP):
+
+| Level | Holds |
+| --- | --- |
+| Global account | governance: contract (CPEA, PAYG, subscription), currency, cost center, contacts; the purchased entitlements; global role collections; the subdomain scheme |
+| Directories (nested up to 5 levels) | a group of subaccounts with owner and cost center; optionally **own entitlements** (a budget its subaccounts draw from) and **own role collections** (valid for every subaccount below) |
+| Subaccounts | region (`eu10`, `eu11` EU Access, `eu20`, `us10`, …, `onprem`), subdomain, purpose, stage (`sandbox`, `dev`, `test`, `qa`, `prod`), security domain, the sites (tenants) of this instance, entitlements, role collections |
+
+The subdomain follows the scheme of the global account (default
+`{global}-{purpose}-{stage}`, also `{directory}` and `{region}`), e.g.
+`acme-shop-prod`; it must be unique, and — as region — cannot change once the
+subaccount exists. Entitlements flow down: a subaccount draws from the nearest
+directory above it that manages entitlements, else from the global account;
+quotas may be unlimited (pay per use). Every change is refused if it would
+introduce an error: over-assigned quotas, plans the source is not entitled
+to, duplicate subdomains, a site in two subaccounts, more sites than the
+`sites.site` entitlement, cycles or more than five directory levels.
+
+**Where directory entitlements and role collections make sense.** The page
+explains it, and a built-in advisor checks the landscape:
+
+- *Directory entitlements* pay off when a directory groups several
+  subaccounts with their own budget owner or cost center (a business unit, a
+  customer): the owner distributes the quota without the global account
+  administrators. For a single subaccount they only add a level of
+  bookkeeping — the advisor recommends turning them off.
+- *Directory role collections* pay off when the same people administer every
+  subaccount below in the same way (the advisor spots identical role
+  collections on all subaccounts). They do **not** belong on a directory that
+  mixes production and non-production subaccounts when they grant changing
+  rights: the advisor recommends moving them to the subaccounts or splitting
+  the directory (segregation of duties).
+- Further advice: one directory per security domain, no beta features in
+  production, EU Access or self-hosted regions for confidential/secret
+  subaccounts, small global role collections, few production administrators.
+
+Role collections here describe the authorizations of the landscape
+(governance); the platform's own pages are still protected by the roles under
+`/roles`.
+
+**Billing.** The platform measures, per site and month, the requests and
+bytes of its public pages (`/` by host name, `/media/…`) and the peak size of
+its files, and stores them every minute (`usage.json`). A site belongs to one
+subaccount, so usage adds up per subaccount, directory and global account.
+Service plans (`/landscape/billing`, editable) price it: measured plans cost
+quantity × price, plans without a meter cost their entitled quota × price (a
+fixed fee). Usage beyond or without an entitlement is billed as pay per use
+and flagged; sites without a subaccount are listed, unbilled. Prices are not
+versioned: a price change also applies to earlier months when they are
+viewed again.
+
+```bash
+./build/platform-open landscape                      # the tree with costs
+./build/platform-open landscape show subaccount:shop-prod
+./build/platform-open landscape check                # problems and advice; exit 1 on errors
+./build/platform-open landscape billing --month=2026-11 --csv > billing.csv
+```
 
 **Firewall, network traffic, IP lists.** Every request passes, in this order:
 
@@ -298,7 +360,8 @@ On Cloud Foundry, bind a user-provided service named or tagged
 ```bash
 dub test --config=open           # unit tests (domain rules, use cases, adapters)
 BIN=$PWD/build backend/tests/smoke.sh   # end-to-end: CLI, two domains, unix socket, scopes, OData,
-                                        # roles, sites, uploads, monitoring, firewall, IP lists
+                                        # roles, sites, uploads, monitoring, firewall, IP lists,
+                                        # landscape, billing
 ```
 
 ## Deployment (SAP BTP, Cloud Foundry)

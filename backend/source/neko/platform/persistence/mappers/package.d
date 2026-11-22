@@ -267,15 +267,67 @@ Directory toEntity(const DirectoryRecord r) {
 }
 
 SubaccountRecord toRecord(const Subaccount s) {
+  TenantRecord[] tenants;
+  foreach (t; s.tenants) {
+    SpaceRecord[] spaces;
+    foreach (sp; t.spaces)
+      spaces ~= SpaceRecord(sp.key, sp.name, sp.description, sp.sites.dup, timeToText(sp.createdAt));
+    tenants ~= TenantRecord(t.key, t.name, t.description, t.isDefault, spaces, timeToText(t.createdAt),
+      timeToText(t.modifiedAt));
+  }
   return SubaccountRecord(s.key, s.name, s.description, s.directory, s.region, s.subdomain, s.purpose,
-    s.stage.to!string, s.domain.label, s.sites.dup, s.costCenter, s.betaFeatures, toRecords(s.entitlements),
-    toRecords(s.roleCollections), timeToText(s.createdAt), timeToText(s.modifiedAt));
+    s.stage.to!string, s.domain.label, null, s.costCenter, s.betaFeatures, toRecords(s.entitlements),
+    toRecords(s.roleCollections), timeToText(s.createdAt), timeToText(s.modifiedAt), s.admins.dup, s.members.dup,
+    s.services.dup, tenants);
 }
 
 Subaccount toEntity(const SubaccountRecord r) {
-  return Subaccount(r.key, r.name, r.description, r.directory, r.region, r.subdomain, r.purpose,
-    toEnum(r.stage, Stage.dev), toDomain(r.domain), r.sites.dup, r.costCenter, r.betaFeatures,
-    toEntitlements(r.entitlements), toCollections(r.roleCollections), textToTime(r.createdAt), textToTime(r.modifiedAt));
+  Subaccount s;
+  s.key = r.key;
+  s.name = r.name;
+  s.description = r.description;
+  s.directory = r.directory;
+  s.region = r.region;
+  s.subdomain = r.subdomain;
+  s.purpose = r.purpose;
+  s.stage = toEnum(r.stage, Stage.dev);
+  s.domain = toDomain(r.domain);
+  s.costCenter = r.costCenter;
+  s.betaFeatures = r.betaFeatures;
+  s.entitlements = toEntitlements(r.entitlements);
+  s.roleCollections = toCollections(r.roleCollections);
+  s.createdAt = textToTime(r.createdAt);
+  s.modifiedAt = textToTime(r.modifiedAt);
+  s.admins = r.admins.dup;
+  s.members = r.members.dup;
+  s.services = r.services.dup;
+  foreach (t; r.tenants) {
+    Space[] spaces;
+    foreach (sp; t.spaces)
+      spaces ~= Space(sp.key, sp.name, sp.description, sp.sites.dup, textToTime(sp.createdAt));
+    s.tenants ~= Tenant(t.key, t.name, t.description, t.isDefault, spaces, textToTime(t.createdAt),
+      textToTime(t.modifiedAt));
+  }
+  // every subaccount has a default tenant with the default space; sites of
+  // the time before tenants run there
+  s.ensureTenancy(s.createdAt);
+  if (r.tenants.length == 0 && r.sites.length)
+    foreach (ref t; s.tenants)
+      if (t.isDefault)
+        foreach (ref sp; t.spaces)
+          if (sp.isDefault)
+            sp.sites = r.sites.dup;
+  return s;
+}
+
+GlobalAccountEntryRecord toRecord(const GlobalAccountEntry e) {
+  return GlobalAccountEntryRecord(e.key, e.name, e.hosts.dup, e.dataDir, e.isDefault, e.description,
+    timeToText(e.createdAt), timeToText(e.modifiedAt));
+}
+
+GlobalAccountEntry toEntity(const GlobalAccountEntryRecord r) {
+  return GlobalAccountEntry(r.key, r.name, r.hosts.dup, r.dataDir, r.isDefault, r.description,
+    textToTime(r.createdAt), textToTime(r.modifiedAt));
 }
 
 ServicePlanRecord toRecord(const ServicePlan p) {

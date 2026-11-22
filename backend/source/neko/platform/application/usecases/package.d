@@ -8,6 +8,7 @@ public:
   import neko.platform.application.usecases.manage_sites;
   import neko.platform.application.usecases.manage_files;
   import neko.platform.application.usecases.manage_network;
+  import neko.platform.application.usecases.manage_globalaccounts;
   import neko.platform.application.usecases.manage_landscape;
   import neko.platform.application.usecases.manage_users;
   import neko.platform.application.usecases.platform_overview;

@@ -12,7 +12,21 @@
 ///                    optionally manage their own entitlements (a budget that
 ///                    their subaccounts draw from) and role collections
 ///   Subaccounts      where things run: region, subdomain, purpose, stage,
-///                    security domain, the sites (tenants) of this instance
+///                    security domain; logically separate, with their own
+///                    administrators, user group and selected services (whose
+///                    access rights their role collections may grant)
+///   Tenants          one or more per subaccount (exactly one is the default
+///                    tenant), logically separated from each other
+///   Spaces           one or more per tenant, separated within the tenant;
+///                    every tenant has the space "default". Sites run in a space.
+///
+/// Global accounts themselves are physically separate: each has its own
+/// data directory (see domain.entities.globalaccounts); this module models the
+/// inside of one global account.
+///
+/// A service call runs in one tenant and one space (`Landscape.resolveCall`):
+/// the tenant from the headers or the host name, the space from the headers,
+/// else the default space.
 ///
 /// Entitlements flow down: a subaccount draws from the nearest directory
 /// above it that manages entitlements, else from the global account; such a
@@ -21,18 +35,23 @@
 /// entitlements and role collections help — and where they do not.
 module neko.platform.domain.entities.landscape;
 
-import std.algorithm : any, all, canFind, count, filter, map, sort, sum, uniq;
+import std.algorithm : any, all, canFind, count, countUntil, filter, map, sort, sum, uniq;
 import std.array : array, join, replace;
 import std.ascii : isDigit, isLower;
 import std.conv : to;
 import std.datetime.systime : SysTime;
-import std.string : strip, toLower;
+import std.string : split, strip, toLower;
+import neko.platform.domain.enumerations.rights : accessRights;
 import neko.platform.domain.enumerations.security : SecurityDomain;
 import neko.platform.domain.exceptions;
 
 @safe:
 
 enum maxDirectoryDepth = 5;
+/// Key of the space every tenant has; calls without a space run there.
+enum defaultSpaceKey = "default";
+/// Key of the tenant a new subaccount starts with.
+enum defaultTenantKey = "default";
 /// Quota of a pay-per-use entitlement: no fixed amount.
 enum long unlimited = -1;
 
@@ -160,6 +179,70 @@ struct Directory {
   }
 }
 
+/// A data space of a tenant. Spaces are separated from each other within
+/// their tenant; the space `defaultSpaceKey` always exists.
+struct Space {
+  string key;
+  string name;
+  string description;
+  /// Keys of the sites (of this platform instance) that run in this space.
+  string[] sites;
+  SysTime createdAt;
+
+  bool isDefault() const pure nothrow {
+    return key == defaultSpaceKey;
+  }
+
+  Space copy() const pure nothrow {
+    return Space(key, name, description, sites.dup, createdAt);
+  }
+}
+
+/// A tenant of a subaccount: logically separated from the other tenants,
+/// with one or more spaces.
+struct Tenant {
+  string key;
+  string name;
+  string description;
+  /// Calls that name no tenant run in the default tenant of the subaccount.
+  bool isDefault;
+  Space[] spaces;
+  SysTime createdAt;
+  SysTime modifiedAt;
+
+  Tenant copy() const pure nothrow {
+    Space[] list;
+    foreach (sp; spaces)
+      list ~= sp.copy;
+    return Tenant(key, name, description, isDefault, list, createdAt, modifiedAt);
+  }
+
+  bool trySpace(string key, out Space space) const pure nothrow {
+    foreach (sp; spaces)
+      if (sp.key == key) {
+        space = sp.copy;
+        return true;
+      }
+    return false;
+  }
+
+  /// The sites of all spaces.
+  string[] sites() const pure nothrow {
+    string[] list;
+    foreach (sp; spaces)
+      list ~= sp.sites.dup;
+    return list;
+  }
+
+  /// Adds the default space if it is missing (first, as the tenant's home).
+  void ensureDefaultSpace(SysTime now) pure nothrow {
+    foreach (sp; spaces)
+      if (sp.isDefault)
+        return;
+    spaces = Space(defaultSpaceKey, "Default", "", null, now) ~ spaces;
+  }
+}
+
 struct Subaccount {
   string key;
   string name;
@@ -172,8 +255,6 @@ struct Subaccount {
   string purpose;
   Stage stage = Stage.dev;
   SecurityDomain domain;
-  /// Keys of the sites (tenants) of this platform instance it hosts.
-  string[] sites;
   /// "" = inherited from the directory / global account.
   string costCenter;
   bool betaFeatures;
@@ -181,11 +262,157 @@ struct Subaccount {
   RoleCollection[] roleCollections;
   SysTime createdAt;
   SysTime modifiedAt;
+  /// Subaccount administrators (user names): manage its tenants, spaces,
+  /// user group, services and role collections.
+  string[] admins;
+  /// The user group of the subaccount (user names): the people its role
+  /// collections can be given to (besides its administrators).
+  string[] members;
+  /// Keys of the services selected for the subaccount (`serviceCatalogue`):
+  /// its role collections can only grant their access rights. Empty = every
+  /// service.
+  string[] services;
+  /// One or more, exactly one of them the default tenant.
+  Tenant[] tenants;
 
   Subaccount copy() const pure nothrow {
-    return Subaccount(key, name, description, directory, region, subdomain, purpose, stage, domain, sites.dup,
-      costCenter, betaFeatures, entitlements.dup, copyAll(roleCollections), createdAt, modifiedAt);
+    Tenant[] list;
+    foreach (t; tenants)
+      list ~= t.copy;
+    return Subaccount(key, name, description, directory, region, subdomain, purpose, stage, domain, costCenter,
+      betaFeatures, entitlements.dup, copyAll(roleCollections), createdAt, modifiedAt, admins.dup, members.dup,
+      services.dup, list);
   }
+
+  /// Keys of the sites in all tenants and spaces.
+  string[] sites() const pure nothrow {
+    string[] list;
+    foreach (t; tenants)
+      list ~= t.sites;
+    return list;
+  }
+
+  bool tryTenant(string key, out Tenant tenant) const pure nothrow {
+    foreach (t; tenants)
+      if (t.key == key) {
+        tenant = t.copy;
+        return true;
+      }
+    return false;
+  }
+
+  /// The default tenant (the first one if none is marked).
+  bool tryDefaultTenant(out Tenant tenant) const pure nothrow {
+    foreach (t; tenants)
+      if (t.isDefault) {
+        tenant = t.copy;
+        return true;
+      }
+    if (tenants.length == 0)
+      return false;
+    tenant = tenants[0].copy;
+    return true;
+  }
+
+  /// Where a site runs: tenant and space.
+  bool tryPlacement(string site, out string tenant, out string space) const pure nothrow {
+    foreach (t; tenants)
+      foreach (sp; t.spaces)
+        if (sp.sites.canFind(site)) {
+          tenant = t.key;
+          space = sp.key;
+          return true;
+        }
+    return false;
+  }
+
+  bool isAdmin(string user) const pure nothrow {
+    return admins.canFind(user);
+  }
+
+  /// Administrators and members.
+  bool isUser(string user) const pure nothrow {
+    return admins.canFind(user) || members.canFind(user);
+  }
+
+  /// Whether the role collections of the subaccount may grant rights of `service`.
+  bool allowsService(string service) const pure nothrow {
+    return services.length == 0 || services.canFind(service);
+  }
+
+  /// A default tenant with its default space, if there is none; the default
+  /// space in every tenant; exactly one default tenant.
+  void ensureTenancy(SysTime now) pure nothrow {
+    if (tenants.length == 0)
+      tenants = [Tenant(defaultTenantKey, "Default", "", true, null, now, now)];
+    foreach (ref t; tenants)
+      t.ensureDefaultSpace(now);
+    if (!tenants.any!(t => t.isDefault))
+      tenants[0].isDefault = true;
+  }
+}
+
+/// A service whose access rights a subaccount can select (the area of the
+/// rights: "sites" for sites.read and sites.manage).
+struct ServiceInfo {
+  string key;
+  string label;
+  /// Access right keys.
+  string[] rights;
+}
+
+/// The services of the platform, derived from the access right catalogue.
+ServiceInfo[] serviceCatalogue() pure {
+  ServiceInfo[] list;
+  foreach (r; accessRights) {
+    auto service = serviceOfRight(r.key);
+    auto i = list.countUntil!(x => x.key == service);
+    if (i < 0)
+      list ~= ServiceInfo(service, r.area == service.capitalizedWord ? r.area : r.area ~ " · " ~ service, [r.key]);
+    else
+      list[i].rights ~= r.key;
+  }
+  return list;
+}
+
+/// "sites.manage" → "sites"
+string serviceOfRight(string right) pure nothrow {
+  foreach (i, c; right)
+    if (c == '.')
+      return right[0 .. i];
+  return right;
+}
+
+private string capitalizedWord(string s) pure {
+  import std.ascii : toUpper;
+
+  return s.length ? toUpper(s[0]) ~ s[1 .. $] : s;
+}
+
+/// Where a service call runs.
+struct CallContext {
+  /// Key of the global account (set by the caller: global accounts are physically separate).
+  string globalAccount;
+  string subaccount;
+  string subdomain;
+  string tenant;
+  string space;
+  /// How the tenant was found: "header", "subdomain", "site" or "default".
+  string source;
+}
+
+/// What a request says about its tenant and space.
+struct CallRequest {
+  /// Host name of the request (lower case, without port).
+  string host;
+  /// X-Neko-Subaccount: key or subdomain.
+  string subaccount;
+  /// X-Neko-Tenant
+  string tenant;
+  /// X-Neko-Space
+  string space;
+  /// The site the request is for (by host name), if any.
+  string site;
 }
 
 /// What a unit of a service plan is measured with.
@@ -501,7 +728,49 @@ struct Landscape {
           foreach (site; s.sites)
             if (other.sites.canFind(site))
               error(node, "The site '" ~ site ~ "' is also assigned to " ~ other.key);
+
+      // tenants and spaces
+      if (s.tenants.length == 0)
+        error(node, "Has no tenant; every subaccount needs at least one");
+      else if (s.tenants.count!(t => t.isDefault) != 1)
+        error(node, "Needs exactly one default tenant, has " ~ s.tenants.count!(t => t.isDefault).to!string);
+      string[] tenantKeys, placed;
+      foreach (t; s.tenants) {
+        if (tenantKeys.canFind(t.key))
+          error(node, "The tenant key '" ~ t.key ~ "' is used twice");
+        tenantKeys ~= t.key;
+        if (!t.spaces.any!(sp => sp.isDefault))
+          error(node, "The tenant " ~ t.key ~ " has no space '" ~ defaultSpaceKey ~ "'");
+        string[] spaceKeys;
+        foreach (sp; t.spaces) {
+          if (spaceKeys.canFind(sp.key))
+            error(node, "The space key '" ~ sp.key ~ "' is used twice in tenant " ~ t.key);
+          spaceKeys ~= sp.key;
+          foreach (site; sp.sites) {
+            if (placed.canFind(site))
+              error(node, "The site '" ~ site ~ "' runs in more than one space");
+            placed ~= site;
+          }
+        }
+      }
+
+      // user group and services: what role collections may grant, and to whom
+      foreach (svc; s.services)
+        if (!serviceCatalogue().any!(x => x.key == svc))
+          error(node, "Unknown service '" ~ svc ~ "'");
+      foreach (rc; s.roleCollections) {
+        foreach (m; rc.members)
+          if (!s.isUser(m))
+            error(node, "The role collection '" ~ rc.name ~ "' names " ~ m
+                ~ ", who is not in the user group of the subaccount");
+        foreach (r; rc.rights)
+          if (!s.allowsService(serviceOfRight(r)))
+            error(node, "The role collection '" ~ rc.name ~ "' grants " ~ r ~ ", but the service "
+                ~ serviceOfRight(r) ~ " is not selected for the subaccount");
+      }
     }
+    if (global.admins.length == 0)
+      warning("global", "No global account administrator is named");
 
     // entitlements
     void checkPlans(string node, const(Entitlement)[] list) {
@@ -644,6 +913,131 @@ struct Landscape {
     return advice;
   }
 
+  // ── authority ───────────────────────────────────────────────────────────
+
+  /// A global account administrator: everything in this global account.
+  bool isGlobalAdmin(string user) const pure nothrow {
+    return user.length > 0 && global.admins.canFind(user);
+  }
+
+  /// Global account administrators and the administrators of the subaccount.
+  bool mayAdminister(string subaccountKey, string user) const pure nothrow {
+    if (isGlobalAdmin(user))
+      return true;
+    Subaccount s;
+    return user.length > 0 && trySubaccount(subaccountKey, s) && s.isAdmin(user);
+  }
+
+  /// Keys of the subaccounts whose administrators or user group name `user`.
+  string[] subaccountsOf(string user) const pure nothrow {
+    string[] list;
+    foreach (s; subaccounts)
+      if (s.isUser(user))
+        list ~= s.key;
+    return list;
+  }
+
+  // ── service calls ───────────────────────────────────────────────────────
+
+  /// The subaccount with this key or subdomain.
+  bool trySubaccountByName(string keyOrSubdomain, out Subaccount s) const pure nothrow {
+    foreach (x; subaccounts)
+      if (x.key == keyOrSubdomain || x.subdomain == keyOrSubdomain) {
+        s = x.copy;
+        return true;
+      }
+    return false;
+  }
+
+  /// The tenant and space a service call runs in. In order:
+  ///   headers   X-Neko-Subaccount (key or subdomain), X-Neko-Tenant, X-Neko-Space
+  ///   host      <subaccount-subdomain>.… (default tenant) or <tenant>.<subaccount-subdomain>.…
+  ///   site      the tenant and space of the site the request is for
+  ///   default   the default tenant of the first subaccount
+  /// The space is the one named, else the site's, else the default space.
+  /// Throws NotFoundException for a subaccount, tenant or space that does not
+  /// exist, ValidationException for a tenant that is ambiguous.
+  CallContext resolveCall(const CallRequest r) const pure {
+    CallContext c;
+    Subaccount sub;
+    auto haveSub = false;
+    auto tenant = r.tenant.strip.toLower;
+    auto space = r.space.strip.toLower;
+    string siteTenant, siteSpace;
+
+    if (r.subaccount.strip.length) {
+      if (!trySubaccountByName(r.subaccount.strip.toLower, sub))
+        throw new NotFoundException("Subaccount", r.subaccount.strip);
+      haveSub = true;
+      c.source = "header";
+    }
+    if (!haveSub && r.host.length) {
+      auto labels = r.host.toLower.split(".");
+      if (labels.length >= 2 && trySubaccountByName(labels[0], sub) && sub.subdomain == labels[0]) {
+        haveSub = true;
+        c.source = "subdomain";
+      } else if (labels.length >= 3 && trySubaccountByName(labels[1], sub) && sub.subdomain == labels[1]) {
+        haveSub = true;
+        c.source = "subdomain";
+        if (tenant.length == 0)
+          tenant = labels[0];
+      }
+    }
+    if (!haveSub && tenant.length) {
+      // a tenant header alone: the subaccount that has it
+      Subaccount[] owners;
+      foreach (x; subaccounts) {
+        Tenant t;
+        if (x.tryTenant(tenant, t))
+          owners ~= x.copy;
+      }
+      if (owners.length == 0)
+        throw new NotFoundException("Tenant", tenant);
+      if (owners.length > 1)
+        throw new ValidationException("The tenant '" ~ tenant ~ "' exists in several subaccounts; name the "
+            ~ "subaccount (X-Neko-Subaccount)");
+      sub = owners[0];
+      haveSub = true;
+      c.source = "header";
+    }
+    if (!haveSub && r.site.length && tryHost(r.site, sub) && sub.tryPlacement(r.site, siteTenant, siteSpace)) {
+      haveSub = true;
+      c.source = "site";
+    }
+    if (!haveSub) {
+      if (subaccounts.length == 0)
+        throw new NotFoundException("Subaccount", "(none)");
+      sub = subaccounts[0].copy;
+      c.source = "default";
+    }
+
+    Tenant t;
+    if (tenant.length) {
+      if (!sub.tryTenant(tenant, t))
+        throw new NotFoundException("Tenant", sub.key ~ "/" ~ tenant);
+      if (c.source != "subdomain")
+        c.source = "header";
+    } else if (siteTenant.length)
+      sub.tryTenant(siteTenant, t);
+    else if (!sub.tryDefaultTenant(t))
+      throw new NotFoundException("Tenant", sub.key ~ "/(default)");
+
+    Space sp;
+    if (space.length) {
+      if (!t.trySpace(space, sp))
+        throw new NotFoundException("Space", sub.key ~ "/" ~ t.key ~ "/" ~ space);
+    } else if (siteSpace.length && t.key == siteTenant)
+      t.trySpace(siteSpace, sp);
+    else if (!t.trySpace(defaultSpaceKey, sp))
+      throw new NotFoundException("Space", sub.key ~ "/" ~ t.key ~ "/" ~ defaultSpaceKey);
+
+    c.subaccount = sub.key;
+    c.subdomain = sub.subdomain;
+    c.tenant = t.key;
+    c.space = sp.key;
+    return c;
+  }
+
   /// "the global account", "directory shop"
   string label(string node) const pure {
     if (node == "global")
@@ -685,6 +1079,9 @@ unittest {
   prod.entitlements = [Entitlement("sites.site", 3)];
   dev.subdomain = subdomainFor(l.global, dev, "shop-eu");
   prod.subdomain = subdomainFor(l.global, prod, "shop-eu");
+  dev.ensureTenancy(SysTime.init);
+  prod.ensureTenancy(SysTime.init);
+  l.global.admins = ["root"];
   l.subaccounts = [dev, prod];
 
   assert(dev.subdomain == "acme-shop-dev" && prod.subdomain == "acme-shop-prod");
@@ -722,6 +1119,83 @@ unittest {
   Subaccount bare;
   bare.key = "x1";
   assert(subdomainFor(g, bare, "") == "neko-x1-dev");
+}
+
+/// Tenants, spaces, user groups, services and service calls.
+unittest {
+  Landscape l;
+  l.global.admins = ["root"];
+  Subaccount shop;
+  shop.key = "shop-prod";
+  shop.subdomain = "acme-shop-prod";
+  shop.ensureTenancy(SysTime.init);
+  assert(shop.tenants.length == 1 && shop.tenants[0].isDefault && shop.tenants[0].spaces[0].key == defaultSpaceKey);
+  auto eu = Tenant("eu", "Europe");
+  eu.ensureDefaultSpace(SysTime.init);
+  eu.spaces ~= Space("staging", "Staging", "", ["outlet"]);
+  shop.tenants[0].spaces[0].sites = ["shop"];
+  shop.tenants ~= eu;
+  shop.admins = ["ann"];
+  shop.members = ["bob"];
+  shop.services = ["sites", "files"];
+  Subaccount other;
+  other.key = "blog";
+  other.subdomain = "acme-blog";
+  other.ensureTenancy(SysTime.init);
+  l.subaccounts = [other, shop];
+  assert(l.validate().length == 0, l.validate().map!(i => i.message).join("; "));
+  assert(shop.sites == ["shop", "outlet"] && l.mayAdminister("shop-prod", "ann") && l.mayAdminister("blog", "root"));
+  assert(!l.mayAdminister("blog", "ann") && l.subaccountsOf("bob") == ["shop-prod"]);
+
+  // role collections: members of the user group, rights of the selected services
+  l.subaccounts[1].roleCollections = [RoleCollection("Editors", "", ["sites.manage"], ["bob"])];
+  assert(l.validate().length == 0);
+  l.subaccounts[1].roleCollections = [RoleCollection("Editors", "", ["users.manage"], ["eve"])];
+  auto issues = l.validate();
+  assert(issues.length == 2 && issues.any!(i => i.message.canFind("eve")) && issues.any!(i => i.message.canFind("users")));
+  l.subaccounts[1].roleCollections = null;
+
+  // broken tenancy
+  auto broken = l.copy;
+  broken.subaccounts[1].tenants[1].isDefault = true;
+  broken.subaccounts[1].tenants[1].spaces[1].sites = ["shop"];
+  broken.subaccounts[1].tenants[1].spaces = broken.subaccounts[1].tenants[1].spaces[1 .. $];
+  auto bad = broken.validate().map!(i => i.message).join("; ");
+  assert(bad.canFind("exactly one default tenant") && bad.canFind("no space 'default'") && bad.canFind("more than one"));
+
+  // service calls
+  CallContext call(string host, string sub = "", string tenant = "", string space = "", string site = "") {
+    return l.resolveCall(CallRequest(host, sub, tenant, space, site));
+  }
+
+  auto c = call("acme-shop-prod.neko.example");
+  assert(c.subaccount == "shop-prod" && c.tenant == "default" && c.space == "default" && c.source == "subdomain");
+  c = call("eu.acme-shop-prod.neko.example", "", "", "staging");
+  assert(c.tenant == "eu" && c.space == "staging" && c.subdomain == "acme-shop-prod");
+  c = call("localhost", "", "eu");
+  assert(c.subaccount == "shop-prod" && c.tenant == "eu" && c.space == "default" && c.source == "header");
+  c = call("localhost", "", "", "", "outlet");
+  assert(c.tenant == "eu" && c.space == "staging" && c.source == "site");
+  c = call("localhost");
+  assert(c.subaccount == "blog" && c.source == "default");
+  c = call("localhost", "acme-shop-prod");
+  assert(c.subaccount == "shop-prod" && c.tenant == "default");
+  bool notFound(string tenant, string space) {
+    try
+      call("acme-shop-prod.x", "", tenant, space);
+    catch (NotFoundException)
+      return true;
+    return false;
+  }
+
+  assert(notFound("nope", "") && notFound("eu", "nope") && !notFound("eu", "staging"));
+  bool ambiguous;
+  try
+    call("localhost", "", "default");
+  catch (ValidationException)
+    ambiguous = true;
+  assert(ambiguous);
+  assert(serviceCatalogue().any!(x => x.key == "sites" && x.rights == ["sites.read", "sites.manage"]));
 }
 
 /// A deep copy (const → mutable).

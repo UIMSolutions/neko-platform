@@ -156,7 +156,8 @@ string normalizeHost(string hostHeader) pure {
   return h;
 }
 
-private string validHost(string name) pure {
+/// A host name (lower case, without port), or ValidationException.
+string validHost(string name) pure {
   auto h = normalizeHost(name);
   if (h.length == 0 || h.length > 253 || h[0] == '.' || h[0] == '-'
       || !h.all!(c => (c.isAlphaNum && c < 0x80) || c == '.' || c == '-' || c == '[' || c == ']' || c == ':'))

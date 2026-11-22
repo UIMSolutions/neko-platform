@@ -7,8 +7,6 @@
 /// adapters can translate it without knowing the concrete type.
 module neko.platform.domain.exceptions;
 
-@safe:
-
 public:
   import neko.platform.domain.exceptions.authentication;
   import neko.platform.domain.exceptions.conflict;

@@ -15,3 +15,4 @@ public:
   import neko.platform.domain.entities.iprule;
   import neko.platform.domain.entities.landscape;
   import neko.platform.domain.entities.billing;
+  import neko.platform.domain.entities.globalaccounts;

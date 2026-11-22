@@ -16,6 +16,7 @@ import neko.platform.persistence.repositories.mixins;
 
 public: 
   import neko.platform.persistence.repositories.documentfile;
+  import neko.platform.persistence.repositories.documentglobalaccount;
   import neko.platform.persistence.repositories.documentiprule;
   import neko.platform.persistence.repositories.documentlandscape;
   import neko.platform.persistence.repositories.documentrole;

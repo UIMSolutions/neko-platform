@@ -23,6 +23,7 @@ enum directoriesCollection = "directories";
 enum subaccountsCollection = "subaccounts";
 enum plansCollection = "serviceplans";
 enum usageCollection = "usage";
+enum globalAccountsCollection = "globalaccounts";
 
 struct ServiceRecord {
   string id;
@@ -176,6 +177,24 @@ struct DirectoryRecord {
   string modifiedAt;
 }
 
+struct SpaceRecord {
+  string key;
+  @optional string name;
+  @optional string description;
+  @optional string[] sites;
+  @optional string createdAt;
+}
+
+struct TenantRecord {
+  string key;
+  @optional string name;
+  @optional string description;
+  @optional bool isDefault;
+  @optional SpaceRecord[] spaces;
+  @optional string createdAt;
+  @optional string modifiedAt;
+}
+
 struct SubaccountRecord {
   string key;
   string name;
@@ -186,6 +205,8 @@ struct SubaccountRecord {
   @optional string purpose;
   string stage;
   string domain;
+  /// Before tenants: the sites of the subaccount (read once, moved to the
+  /// default space of the default tenant).
   @optional string[] sites;
   @optional string costCenter;
   @optional bool betaFeatures;
@@ -193,6 +214,23 @@ struct SubaccountRecord {
   @optional RoleCollectionRecord[] roleCollections;
   string createdAt;
   string modifiedAt;
+  @optional string[] admins;
+  @optional string[] members;
+  @optional string[] services;
+  @optional TenantRecord[] tenants;
+}
+
+/// A global account of the instance (collection "globalaccounts" in the
+/// instance's data directory).
+struct GlobalAccountEntryRecord {
+  string key;
+  string name;
+  @optional string[] hosts;
+  @optional string dataDir;
+  @optional bool isDefault;
+  @optional string description;
+  @optional string createdAt;
+  @optional string modifiedAt;
 }
 
 struct ServicePlanRecord {

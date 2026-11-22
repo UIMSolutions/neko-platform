@@ -48,6 +48,9 @@ enum AccessRight {
   rolesRead,
   /// Create, change and remove roles.
   rolesManage,
+  /// The global accounts of the instance: create, change, unregister (only
+  /// in the default global account, the operator's).
+  accountsManage,
 }
 
 /// Describes one access right for the UI and the CLI.
@@ -95,6 +98,9 @@ immutable AccessRightInfo[] accessRights = [
     "List roles and the rights they grant", "Roles"),
   AccessRightInfo(AccessRight.rolesManage, "roles.manage", "Manage roles",
     "Create, change and remove roles", "Roles"),
+  AccessRightInfo(AccessRight.accountsManage, "accounts.manage", "Manage global accounts",
+    "Create, change and unregister the global accounts of the instance (operator; default global account only)",
+    "Global accounts"),
 ];
 
 static assert(accessRights.length == [EnumMembers!AccessRight].length, "Describe every AccessRight");

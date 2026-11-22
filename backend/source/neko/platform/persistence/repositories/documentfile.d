@@ -55,7 +55,7 @@ unittest {
   auto repo = new DocumentFileRepository(new MemoryDocumentStore);
   StoredFile f;
   f.id = FileId("1");
-  f.site = SiteId("shop");
+  f.site = SiteKey("shop");
   repo.save(f);
 
   StoredFile found;

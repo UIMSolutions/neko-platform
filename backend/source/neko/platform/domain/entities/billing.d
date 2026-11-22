@@ -140,6 +140,7 @@ Bill computeBill(const Landscape l, string month, const(UsageRecord)[] usage) pu
 
 ///
 unittest {
+  import std.datetime.systime : SysTime;
   import std.math : isClose;
 
   Landscape l;
@@ -150,7 +151,8 @@ unittest {
   Subaccount prod;
   prod.key = "shop-prod";
   prod.directory = "shop";
-  prod.sites = ["shop", "outlet"];
+  prod.ensureTenancy(SysTime.init);
+  prod.tenants[0].spaces[0].sites = ["shop", "outlet"];
   prod.entitlements = [Entitlement("sites.site", 1), Entitlement("platform.requests", unlimited),
     Entitlement("support.premium", 2)];
   l.subaccounts = [prod];

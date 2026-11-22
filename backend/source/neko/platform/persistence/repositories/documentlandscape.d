@@ -93,11 +93,26 @@ unittest {
 
   auto repo = new DocumentLandscapeRepository(new MemoryDocumentStore);
   GlobalAccount g;
-  g.id = AccountId("1");
+  g.name = "ACME";
   repo.saveGlobal(g);
 
   Landscape l = repo.load();
-  assert(l.global.id.value == "1");
+  assert(l.global.name == "ACME");
+
+  // subaccounts stored before tenants: their sites move to the default space
+  auto store = new MemoryDocumentStore;
+  store.store("subaccounts", ["old": parseJsonString(`{"key": "old", "name": "Old", "region": "eu10",
+    "subdomain": "old", "stage": "dev", "domain": "open", "sites": ["main"], "createdAt": "", "modifiedAt": ""}`)]);
+  auto old = new DocumentLandscapeRepository(store).load().subaccounts[0];
+  assert(old.tenants.length == 1 && old.tenants[0].isDefault && old.tenants[0].spaces[0].sites == ["main"]);
+  old.tenants ~= Tenant("eu", "EU", "", false, [Space("default"), Space("qa", "QA", "", ["shop"])]);
+  old.admins = ["ann"];
+  old.services = ["sites"];
+  auto repo2 = new DocumentLandscapeRepository(store);
+  repo2.saveSubaccount(old);
+  auto back = repo2.load().subaccounts[0];
+  assert(back.tenants.length == 2 && back.tenants[1].spaces[1].sites == ["shop"] && back.admins == ["ann"]);
+  assert(back.sites == ["main", "shop"] && back.services == ["sites"]);
   Directory d;
   d.key = "dir1";
   repo.saveDirectory(d);

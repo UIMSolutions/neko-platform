@@ -50,7 +50,6 @@ class LoggingEventPublisher : IEventPublisher {
     return result;
   }
 }
-
 ///
 unittest {
   auto p = new LoggingEventPublisher(2);

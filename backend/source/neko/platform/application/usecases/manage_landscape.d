@@ -50,6 +50,50 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
     return repo.load();
   }
 
+  // Service calls resolve their tenant on every request: they read a copy
+  // that is refreshed after each change here and at least every 10 seconds
+  // (changes by another process, e.g. the CLI).
+  private Landscape cached;
+  private SysTime cachedAt;
+  private bool haveCache;
+
+  private const(Landscape) current() {
+    import core.time : seconds;
+
+    auto now = clock.now;
+    if (!haveCache || now - cachedAt > 10.seconds || now < cachedAt) {
+      cached = repo.load();
+      cachedAt = now;
+      haveCache = true;
+    }
+    return cached;
+  }
+
+  private void invalidate() {
+    haveCache = false;
+  }
+
+  CallContext resolveCall(CallRequest request) {
+    return current().resolveCall(request);
+  }
+
+  bool isGlobalAdmin(string user) {
+    return current().isGlobalAdmin(user);
+  }
+
+  bool mayAdminister(string subaccount, string user) {
+    return current().mayAdminister(subaccount, user);
+  }
+
+  string[] grantedRights(string user) {
+    auto l = current();
+    if (l.isGlobalAdmin(user))
+      return ["landscape.read", "landscape.manage", "billing.read"];
+    if (l.subaccountsOf(user).length)
+      return ["landscape.read"];
+    return null;
+  }
+
   LandscapeDto overview(string month = "") {
     auto l = repo.load();
     auto m = monthOrNow(month);
@@ -226,21 +270,11 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
         throw new InvalidStateTransitionException("The subdomain of a subaccount cannot change; it is part of every URL");
     }
 
-    // sites of this instance
-    string[] assigned;
-    foreach (site; r.sites) {
-      auto k = site.strip.toLower;
-      if (k.length == 0 || assigned.canFind(k))
-        continue;
-      Site existing;
-      if (!sites.tryGet(k, existing))
-        throw new ValidationException("There is no site '" ~ k ~ "' on this instance");
-      assigned ~= k;
-    }
-    if (assigned.length && s.domain != domain)
+    if (create)
+      s.ensureTenancy(now);
+    if (s.sites.length && s.domain != domain)
       throw new ValidationException("Sites of this instance (" ~ domain.label ~ ") can only be hosted by a subaccount of "
-          ~ "the " ~ domain.label ~ " domain");
-    s.sites = assigned.sort.array;
+          ~ "the " ~ domain.label ~ " domain; " ~ s.key ~ " hosts " ~ s.sites.join(", "));
     s.modifiedAt = now;
     change(l, (ref Landscape x) {
       auto i = x.subaccounts.countUntil!(e => e.key == key);
@@ -376,7 +410,7 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
     emit("landscape.plan.removed", p.key, actor, "Removed service plan " ~ p.key);
   }
 
-  void ensureDefaults(string serviceName, string environment, string defaultSite) {
+  void ensureDefaults(string serviceName, string environment, string defaultSite, string[] admins = null) {
     auto l = repo.load();
     if (l.plans.length == 0)
       foreach (p; defaultPlans())
@@ -387,6 +421,7 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
       g.subdomainPrefix = subdomainLabel(serviceName.toLower.replaceNonLabel);
       g.entitlements = [Entitlement("platform.requests", unlimited), Entitlement("network.egress", unlimited),
         Entitlement("files.storage", 100), Entitlement("sites.site", 10)];
+      g.admins = admins.dup;
       g.modifiedAt = clock.now;
       repo.saveGlobal(g);
       l.global = g;
@@ -402,14 +437,182 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
       s.region = "eu10";
       s.subdomain = subdomainLabel(subdomainFor(l.global, s, "") ~ (domain == SecurityDomain.open ? "" : "-"
           ~ domain.label));
+      s.createdAt = clock.now;
+      s.ensureTenancy(s.createdAt);
       Site site;
       if (defaultSite.length && sites.tryGet(defaultSite, site))
-        s.sites = [defaultSite];
+        s.tenants[0].spaces[0].sites = [defaultSite];
       s.entitlements = [Entitlement("platform.requests", unlimited), Entitlement("network.egress", unlimited),
         Entitlement("files.storage", 50), Entitlement("sites.site", 5)];
-      s.createdAt = s.modifiedAt = clock.now;
+      s.modifiedAt = s.createdAt;
       repo.saveSubaccount(s);
     }
+    invalidate();
+  }
+
+  // ── subaccount access, tenants and spaces ───────────────────────────────
+
+  NodeDto setSubaccountAccess(string key, SubaccountAccessRequest r, string actor) {
+    auto l = repo.load();
+    auto id = "subaccount:" ~ key.strip;
+    auto admins = userNames(r.admins), members = userNames(r.members);
+    string[] services;
+    foreach (svc; r.services) {
+      auto k = svc.strip.toLower;
+      if (k.length == 0 || services.canFind(k))
+        continue;
+      if (!serviceCatalogue().any!(x => x.key == k))
+        throw new ValidationException("Unknown service '" ~ svc ~ "'");
+      services ~= k;
+    }
+    persist(l, id, (ref Landscape x) {
+      auto s = subaccountRef(x, key.strip);
+      s.admins = admins;
+      s.members = members.filter!(m => !admins.canFind(m)).array;
+      s.services = services.sort.array;
+      s.modifiedAt = clock.now;
+    });
+    emit("landscape.subaccount.access", key, actor, "Changed the administrators (" ~ admins.join(", ") ~ "), the user "
+        ~ "group (" ~ members.length.to!string ~ " members) and the services (" ~ (services.length ? services.join(", ")
+        : "all") ~ ") of subaccount " ~ key);
+    return node(id);
+  }
+
+  NodeDto saveTenant(string subaccount, TenantRequest r, bool create, string actor) {
+    auto l = repo.load();
+    auto key = subdomainLabel(r.key);
+    if (key.length < 2)
+      throw new ValidationException("A tenant key needs at least 2 characters");
+    auto now = clock.now;
+    persist(l, "subaccount:" ~ subaccount.strip, (ref Landscape x) {
+      auto s = subaccountRef(x, subaccount.strip);
+      auto i = s.tenants.countUntil!(t => t.key == key);
+      if (create && i >= 0)
+        throw new ConflictException("The subaccount " ~ s.key ~ " already has a tenant '" ~ key ~ "'");
+      if (!create && i < 0)
+        throw new NotFoundException("Tenant", s.key ~ "/" ~ key);
+      Tenant t;
+      if (create) {
+        t.key = key;
+        t.createdAt = now;
+        t.ensureDefaultSpace(now);
+      } else
+        t = s.tenants[i];
+      t.name = requireName(r.name, key);
+      t.description = r.description.strip;
+      t.modifiedAt = now;
+      if (r.isDefault)
+        foreach (ref other; s.tenants)
+          other.isDefault = false;
+      if (r.isDefault)
+        t.isDefault = true;
+      else if (!create && t.isDefault)
+        throw new ValidationException("Make another tenant the default instead; a subaccount always has one");
+      if (i < 0)
+        s.tenants ~= t;
+      else
+        s.tenants[i] = t;
+      s.modifiedAt = now;
+    });
+    emit(create ? "landscape.tenant.created" : "landscape.tenant.changed", subaccount ~ "/" ~ key, actor,
+      (create ? "Created" : "Changed") ~ " tenant " ~ key ~ " of subaccount " ~ subaccount);
+    return node("subaccount:" ~ subaccount.strip);
+  }
+
+  NodeDto removeTenant(string subaccount, string tenant, string actor) {
+    auto l = repo.load();
+    persist(l, "subaccount:" ~ subaccount.strip, (ref Landscape x) {
+      auto s = subaccountRef(x, subaccount.strip);
+      auto i = s.tenants.countUntil!(t => t.key == tenant.strip);
+      if (i < 0)
+        throw new NotFoundException("Tenant", s.key ~ "/" ~ tenant);
+      if (s.tenants[i].isDefault)
+        throw new ConflictException("The default tenant cannot be removed; make another tenant the default first");
+      if (s.tenants[i].sites.length)
+        throw new ConflictException("The tenant " ~ tenant ~ " still runs " ~ s.tenants[i].sites.join(", ")
+            ~ "; move the sites to another space first");
+      s.tenants = s.tenants.remove(i);
+      s.modifiedAt = clock.now;
+    });
+    emit("landscape.tenant.removed", subaccount ~ "/" ~ tenant, actor, "Removed tenant " ~ tenant ~ " of subaccount "
+        ~ subaccount);
+    return node("subaccount:" ~ subaccount.strip);
+  }
+
+  NodeDto saveSpace(string subaccount, string tenant, SpaceRequest r, bool create, string actor) {
+    auto l = repo.load();
+    auto key = subdomainLabel(r.key);
+    auto now = clock.now;
+    string[] assigned;
+    foreach (site; r.sites) {
+      auto k = site.strip.toLower;
+      if (k.length == 0 || assigned.canFind(k))
+        continue;
+      Site existing;
+      if (!sites.tryGet(k, existing))
+        throw new ValidationException("There is no site '" ~ k ~ "' on this instance");
+      assigned ~= k;
+    }
+    Subaccount target;
+    if (!l.trySubaccount(subaccount.strip, target))
+      throw new NotFoundException("Subaccount", subaccount);
+    if (assigned.length && target.domain != domain)
+      throw new ValidationException("Sites of this instance (" ~ domain.label ~ ") can only run in a subaccount of the "
+          ~ domain.label ~ " domain");
+    persist(l, "subaccount:" ~ target.key, (ref Landscape x) {
+      auto s = subaccountRef(x, target.key);
+      auto ti = s.tenants.countUntil!(t => t.key == tenant.strip);
+      if (ti < 0)
+        throw new NotFoundException("Tenant", s.key ~ "/" ~ tenant);
+      auto t = &s.tenants[ti];
+      auto i = t.spaces.countUntil!(sp => sp.key == key);
+      if (create && i >= 0)
+        throw new ConflictException("The tenant " ~ t.key ~ " already has a space '" ~ key ~ "'");
+      if (!create && i < 0)
+        throw new NotFoundException("Space", s.key ~ "/" ~ t.key ~ "/" ~ key);
+      Space sp;
+      if (create) {
+        sp.key = key;
+        sp.createdAt = now;
+      } else
+        sp = t.spaces[i];
+      sp.name = requireName(r.name, key);
+      sp.description = r.description.strip;
+      sp.sites = assigned.sort.array;
+      if (i < 0)
+        t.spaces ~= sp;
+      else
+        t.spaces[i] = sp;
+      t.modifiedAt = s.modifiedAt = now;
+    });
+    emit(create ? "landscape.space.created" : "landscape.space.changed", subaccount ~ "/" ~ tenant ~ "/" ~ key, actor,
+      (create ? "Created" : "Changed") ~ " space " ~ key ~ " of tenant " ~ tenant ~ " in subaccount " ~ subaccount
+        ~ (assigned.length ? " (sites " ~ assigned.join(", ") ~ ")" : ""));
+    return node("subaccount:" ~ target.key);
+  }
+
+  NodeDto removeSpace(string subaccount, string tenant, string space, string actor) {
+    auto l = repo.load();
+    persist(l, "subaccount:" ~ subaccount.strip, (ref Landscape x) {
+      auto s = subaccountRef(x, subaccount.strip);
+      auto ti = s.tenants.countUntil!(t => t.key == tenant.strip);
+      if (ti < 0)
+        throw new NotFoundException("Tenant", s.key ~ "/" ~ tenant);
+      auto t = &s.tenants[ti];
+      auto i = t.spaces.countUntil!(sp => sp.key == space.strip);
+      if (i < 0)
+        throw new NotFoundException("Space", s.key ~ "/" ~ tenant ~ "/" ~ space);
+      if (t.spaces[i].isDefault)
+        throw new ConflictException("The default space cannot be removed; service calls without a space run there");
+      if (t.spaces[i].sites.length)
+        throw new ConflictException("The space " ~ space ~ " still runs " ~ t.spaces[i].sites.join(", ")
+            ~ "; move the sites first");
+      t.spaces = t.spaces.remove(i);
+      t.modifiedAt = s.modifiedAt = clock.now;
+    });
+    emit("landscape.space.removed", subaccount ~ "/" ~ tenant ~ "/" ~ space, actor, "Removed space " ~ space
+        ~ " of tenant " ~ tenant ~ " in subaccount " ~ subaccount);
+    return node("subaccount:" ~ subaccount.strip);
   }
 
   // ── billing ─────────────────────────────────────────────────────────────
@@ -561,7 +764,7 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
       d.owner = x.owner;
       d.depth = l.depth(x.key);
       d.costCenter = x.costCenter;
-      d.effectiveCostCenter = x.costCenter.length ? x.costCenter : l.costCenterOf(Subaccount("", "", "", x.parent));
+      d.effectiveCostCenter = x.costCenter.length ? x.costCenter : l.costCenterOf(subaccountIn(x.parent));
       d.entitlementSource = x.manageEntitlements ? l.sourceOf(x) : l.entitlementSource(x.key);
       if (x.manageEntitlements)
         d.entitlements = sourceRows(l, node);
@@ -587,8 +790,13 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
       d.purpose = x.purpose;
       d.stage = x.stage.to!string;
       d.domain = x.domain.label;
-      d.sites = x.sites.dup;
+      d.sites = x.sites;
       d.betaFeatures = x.betaFeatures;
+      d.admins = x.admins.dup;
+      d.members = x.members.dup;
+      d.services = x.services.dup;
+      foreach (t; x.tenants)
+        d.tenants ~= t.copy;
       d.costCenter = x.costCenter;
       d.effectiveCostCenter = l.costCenterOf(x);
       d.entitlementSource = l.sourceOf(x);
@@ -695,6 +903,7 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
           t.domain = s.domain.label;
           t.subdomain = s.subdomain;
           t.sites = s.sites.length;
+          t.tenants = s.tenants.length;
           foreach (sb; bill.subaccounts)
             if (sb.subaccount == s.key)
               t.monthCost = sb.total;
@@ -725,6 +934,7 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
   }
 
   private void emit(string type, string subject, string actor, string message) {
+    invalidate();
     events.publish(PlatformEvent(type, subject, actor, message, clock.now));
   }
 }
@@ -775,6 +985,33 @@ private void patchCollections(ref Landscape x, string node, RoleCollection rc, b
     if ("subaccount:" ~ s.key == node)
       return patch(s.roleCollections);
   throw new NotFoundException("Node", node);
+}
+
+/// The subaccount `key` of `x`, to change in place.
+private Subaccount* subaccountRef(return ref Landscape x, string key) @trusted {
+  foreach (ref s; x.subaccounts)
+    if (s.key == key)
+      return &s;
+  throw new NotFoundException("Subaccount", key);
+}
+
+/// A subaccount placed in `directory` (for inherited values).
+private Subaccount subaccountIn(string directory) pure nothrow {
+  Subaccount s;
+  s.directory = directory;
+  return s;
+}
+
+/// Valid, unique user names.
+private string[] userNames(const(string)[] names) {
+  string[] list;
+  foreach (n; names)
+    if (n.strip.length) {
+      auto u = UserName(n).value;
+      if (!list.canFind(u))
+        list ~= u;
+    }
+  return list.sort.array;
 }
 
 private string requireName(string name, string fallback) {
@@ -921,7 +1158,7 @@ unittest {
   auto uc = new ManageLandscapeUseCase(repo, usage, siteRepo, new NoEvents,
     new FixedClock(SysTime(DateTime(2026, 11, 20, 8, 0, 0), UTC())), SecurityDomain.open);
 
-  uc.ensureDefaults("ACME Platform", "development", "main");
+  uc.ensureDefaults("ACME Platform", "development", "main", ["root"]);
   uc.ensureDefaults("Other", "production", "main"); // only once
   auto start = uc.overview();
   assert(start.month == "2026-11" && start.subaccounts == 1 && start.plans.length == defaultPlans().length);
@@ -937,10 +1174,13 @@ unittest {
   assert(fails!ValidationException(() { uc.setEntitlement("directory:shop", "support.premium", 1, false, "admin"); }));
 
   SubaccountRequest prod = {key: "shop-prod", name: "Shop production", directory: "shop", region: "eu11",
-    purpose: "shop", stage: "prod", sites: ["shop", "outlet"]};
-  // two sites but no sites entitlement yet → fine (pay per use) …
+    purpose: "shop", stage: "prod"};
   auto p = uc.saveSubaccount(prod, true, "admin");
   assert(p.subdomain == "acme-platform-shop-prod" && p.entitlementSource == "directory:shop");
+  assert(p.tenants.length == 1 && p.tenants[0].isDefault && p.tenants[0].spaces[0].key == "default");
+  // sites run in spaces: two sites but no sites entitlement yet → fine (pay per use) …
+  uc.saveSpace("shop-prod", "default", SpaceRequest("default", "Default", "", ["shop", "outlet"]), false, "admin");
+  assert(uc.node("subaccount:shop-prod").sites == ["outlet", "shop"]);
   // … but a quota below the number of hosted sites is refused, and so is more than the directory has
   assert(fails!ValidationException(() { uc.setEntitlement("subaccount:shop-prod", "sites.site", 1, false, "admin"); }));
   assert(fails!ValidationException(() { uc.setEntitlement("subaccount:shop-prod", "sites.site", 5, false, "admin"); }));
@@ -948,17 +1188,65 @@ unittest {
   auto dir = uc.node("directory:shop");
   assert(dir.entitlements[0].assignedBelow == 3 && dir.entitlements[0].available == 1);
 
-  // sites belong to one subaccount; region and subdomain are fixed
-  SubaccountRequest dev = {key: "shop-dev", name: "Shop dev", directory: "shop", purpose: "shop", stage: "dev",
-    sites: ["shop"]};
-  assert(fails!ValidationException(() { uc.saveSubaccount(dev, true, "admin"); }));
-  dev.sites = null;
+  // sites run in one space; region and subdomain are fixed
+  SubaccountRequest dev = {key: "shop-dev", name: "Shop dev", directory: "shop", purpose: "shop", stage: "dev"};
   uc.saveSubaccount(dev, true, "admin");
+  assert(fails!ValidationException(() {
+      uc.saveSpace("shop-dev", "default", SpaceRequest("default", "", "", ["shop"]), false, "admin");
+    }));
+  assert(fails!ValidationException(() {
+      uc.saveSpace("shop-dev", "default", SpaceRequest("default", "", "", ["nowhere"]), false, "admin");
+    }));
   prod.region = "eu20";
   assert(fails!InvalidStateTransitionException(() { uc.saveSubaccount(prod, false, "admin"); }));
   prod.region = "";
   prod.domain = "secret";
   assert(fails!ValidationException(() { uc.saveSubaccount(prod, false, "admin"); })); // sites of an open instance
+  prod.domain = "";
+
+  // tenants and spaces
+  uc.saveTenant("shop-prod", TenantRequest("eu", "Europe"), true, "admin");
+  assert(fails!ConflictException(() { uc.saveTenant("shop-prod", TenantRequest("eu"), true, "admin"); }));
+  uc.saveSpace("shop-prod", "eu", SpaceRequest("staging", "Staging"), true, "admin");
+  auto eu = uc.node("subaccount:shop-prod").tenants[1];
+  assert(eu.key == "eu" && !eu.isDefault && eu.spaces.length == 2 && eu.spaces[0].isDefault);
+  auto call = uc.resolveCall(CallRequest("eu.acme-platform-shop-prod.example", "", "", "staging"));
+  assert(call.subaccount == "shop-prod" && call.tenant == "eu" && call.space == "staging");
+  assert(uc.resolveCall(CallRequest("localhost", "", "", "", "outlet")).tenant == "default");
+  assert(fails!ConflictException(() { uc.removeSpace("shop-prod", "eu", "default", "admin"); }));
+  assert(fails!ConflictException(() { uc.removeTenant("shop-prod", "default", "admin"); }));
+  assert(fails!ValidationException(() { uc.saveTenant("shop-prod", TenantRequest("default"), false, "admin"); }));
+  uc.saveTenant("shop-prod", TenantRequest("eu", "Europe", "", true), false, "admin"); // eu becomes the default
+  assert(uc.resolveCall(CallRequest("acme-platform-shop-prod.example")).tenant == "eu");
+  uc.saveTenant("shop-prod", TenantRequest("default", "Default", "", true), false, "admin");
+  uc.removeSpace("shop-prod", "eu", "staging", "admin");
+  uc.removeTenant("shop-prod", "eu", "admin");
+  assert(uc.node("subaccount:shop-prod").tenants.length == 1);
+  assert(fails!NotFoundException(() { uc.removeTenant("shop-prod", "nope", "admin"); }));
+
+  // administrators, user group, services
+  uc.setSubaccountAccess("shop-prod", SubaccountAccessRequest(["Ann"], ["bob", "ann"], ["sites", "files"]), "admin");
+  auto access = uc.node("subaccount:shop-prod");
+  assert(access.admins == ["ann"] && access.members == ["bob"] && access.services == ["files", "sites"]);
+  assert(uc.mayAdminister("shop-prod", "ann") && !uc.mayAdminister("shop-dev", "ann"));
+  assert(uc.grantedRights("bob") == ["landscape.read"] && uc.grantedRights("eve").length == 0);
+  assert(uc.mayAdminister("shop-dev", "root") && uc.grantedRights("root").length == 3);
+  assert(fails!ValidationException(() {
+      uc.setSubaccountAccess("shop-prod", SubaccountAccessRequest(null, null, ["nosuch"]), "admin");
+    }));
+  uc.saveRoleCollection("subaccount:shop-prod", RoleCollectionRequest("Editors", "", ["sites.manage"], ["bob"]),
+    "ann");
+  // not in the user group / a service not selected / dropping a member still in a role collection
+  assert(fails!ValidationException(() {
+      uc.saveRoleCollection("subaccount:shop-prod", RoleCollectionRequest("X", "", ["sites.read"], ["eve"]), "ann");
+    }));
+  assert(fails!ValidationException(() {
+      uc.saveRoleCollection("subaccount:shop-prod", RoleCollectionRequest("X", "", ["users.read"], ["bob"]), "ann");
+    }));
+  assert(fails!ValidationException(() {
+      uc.setSubaccountAccess("shop-prod", SubaccountAccessRequest(["ann"], null, ["sites", "files"]), "ann");
+    }));
+  uc.removeRoleCollection("subaccount:shop-prod", "Editors", "ann");
 
   // role collections: directories only with authorizations enabled
   auto admins = RoleCollectionRequest("Shop Admin", "", ["sites.manage", "files.manage"], ["Jane", "jane"]);

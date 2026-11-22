@@ -480,6 +480,12 @@ struct NodeDto {
   string domain;
   string[] sites;
   bool betaFeatures;
+  /// Subaccounts: the user group and the selected services ("" = every
+  /// service); `admins` holds the subaccount administrators.
+  string[] members;
+  string[] services;
+  /// Subaccounts: tenants with their spaces.
+  Tenant[] tenants;
   /// Own cost center ("" = inherited) and the one that applies.
   string costCenter;
   string effectiveCostCenter;
@@ -518,6 +524,7 @@ struct TreeItemDto {
   /// Subaccounts in the subtree (directories).
   size_t subaccounts;
   size_t sites;
+  size_t tenants;
   double monthCost = 0;
 }
 

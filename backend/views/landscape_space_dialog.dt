@@ -1,0 +1,46 @@
+//- Create / edit a space of a tenant. Needs page, form (SpaceForm), siteList (SiteDto[]), placedIn (string[string]: site → subaccount/tenant/space), here (string).
+- import std.algorithm : canFind;
+- import neko.platform.presentation.web.icons : icon;
+- auto base = "/landscape/subaccounts/" ~ form.subaccount ~ "/tenants/" ~ form.tenant ~ "/spaces";
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered.modal-lg
+    .modal-content
+      form(hx-post=(form.existing ? base ~ "/" ~ form.values.key : base), hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title= form.existing ? "Space " ~ form.tenant ~ "/" ~ form.values.key : "New space in tenant " ~ form.tenant
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          - auto v = form.values;
+          .row
+            - if (!form.existing)
+              .col-md-5.mb-3
+                label.form-label.required(for="sp-key") Key
+                input#sp-key.form-control(type="text", name="key", value=v.key, required=true, maxlength="63", spellcheck="false", autocapitalize="none")
+            div.mb-3(class=(form.existing ? "col-12" : "col-md-7"))
+              label.form-label(for="sp-name") Name
+              input#sp-name.form-control(type="text", name="name", value=v.name, maxlength="128")
+          .mb-3
+            label.form-label(for="sp-desc") Description
+            input#sp-desc.form-control(type="text", name="description", value=v.description, maxlength="256")
+          .form-label Sites of this instance (#{page.domain}) running in this space
+          .d-flex.flex-column.gap-2
+            - foreach (s; siteList)
+              - auto elsewhere = s.key in placedIn;
+              - auto other = elsewhere !is null && *elsewhere != here;
+              label.form-check.mb-0
+                input.form-check-input(type="checkbox", name="sites", value=s.key, checked=v.sites.canFind(s.key), disabled=other)
+                span.form-check-label #{s.name} 
+                  code.small= s.key
+                  - if (other)
+                    span.small.text-secondary.ms-2 runs in #{*elsewhere}
+          .form-hint A site runs in exactly one space; its usage is billed to the subaccount. Move a site by removing it from its space first.
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | #{form.existing ? "Save" : "Create"}

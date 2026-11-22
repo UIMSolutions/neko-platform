@@ -1,5 +1,4 @@
-//- Create / edit a subaccount. Needs page, form (SubaccountForm), view (LandscapeDto), g (NodeDto: global), siteList (SiteDto[]), regionList (RegionInfo[]).
-- import std.algorithm : canFind;
+//- Create / edit a subaccount. Needs page, form (SubaccountForm), view (LandscapeDto), g (NodeDto: global), regionList (RegionInfo[]).
 - import std.array : replicate;
 - import neko.platform.presentation.web.icons : icon;
 .modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
@@ -66,15 +65,8 @@
           .mb-3
             label.form-label(for="s-desc") Description
             input#s-desc.form-control(type="text", name="description", value=v.description, maxlength="256")
-          .mb-3
-            .form-label Sites of this instance (#{page.domain})
-            .d-flex.flex-wrap.gap-3
-              - foreach (s; siteList)
-                label.form-check.mb-0
-                  input.form-check-input(type="checkbox", name="sites", value=s.key, checked=v.sites.canFind(s.key))
-                  span.form-check-label #{s.name} 
-                    code.small= s.key
-            .form-hint A site belongs to one subaccount; its usage is billed there. Only subaccounts of the #{page.domain} domain host sites of this instance.
+          - if (!form.existing)
+            .form-hint.mb-3 A new subaccount starts with the tenant “default” and its space “default”. Sites, tenants, spaces, administrators and the user group are set on the subaccount afterwards.
           .row
             .col-md-6.mb-3
               label.form-label(for="s-cc") Cost center

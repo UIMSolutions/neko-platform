@@ -1,0 +1,46 @@
+//- The global accounts; swapped after every change. Needs page, list (GlobalAccountEntry[]), notice (string).
+- import std.array : join;
+- import neko.platform.presentation.web.icons : icon;
+- import neko.platform.presentation.web.support : shortTime;
+#accounts-table
+  - if (notice.length)
+    .alert.alert-info(role="alert")
+      .d-flex.gap-2
+        | !{icon("info-circle")}
+        div= notice
+  .card
+    .table-responsive
+      table.table.table-vcenter.card-table
+        thead
+          tr
+            th Global account
+            th Host names
+            th Data directory
+            th.w-1
+        tbody
+          - foreach (e; list)
+            tr
+              td
+                .fw-medium
+                  | #{e.name}
+                  code.small.ms-2.fw-normal= e.key
+                  - if (e.isDefault)
+                    span.badge.bg-primary-lt.ms-2 default
+                - if (e.description.length)
+                  .small.text-secondary= e.description
+              td
+                - if (e.hosts.length)
+                  | #{e.hosts.join(", ")}
+                - else if (e.isDefault)
+                  span.text-secondary every host name no other global account claims
+                - else
+                  span.text-secondary only by header (X-Neko-Global-Account: #{e.key})
+              td
+                code= e.dataDir.length ? e.dataDir : "."
+              td.text-nowrap
+                .d-flex.gap-1
+                  button.btn.btn-ghost-secondary.btn-icon(hx-get="/accounts/" ~ e.key ~ "/edit", hx-target="#dialog-host", title="Settings", aria-label="Settings of #{e.key}")
+                    | !{icon("settings")}
+                  - if (!e.isDefault)
+                    button.btn.btn-ghost-danger.btn-icon(hx-post="/accounts/" ~ e.key ~ "/delete", hx-target="#accounts-table", hx-swap="outerHTML", hx-confirm="Unregister global account #{e.key}? Its data directory is kept.", title="Unregister", aria-label="Unregister #{e.key}")
+                      | !{icon("trash")}

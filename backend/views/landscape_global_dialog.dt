@@ -40,9 +40,9 @@
               input#g-pattern.form-control(type="text", name="subdomainPattern", value=v.subdomainPattern, maxlength="120", spellcheck="false", autocapitalize="none")
               .form-hint {global}, {directory}, {purpose}, {stage}, {region} — e.g. {global}-{purpose}-{stage} → acme-shop-prod. Applies to new subaccounts; existing subdomains never change.
           .mb-3
-            label.form-label(for="g-admins") Governance contacts
-            input#g-admins.form-control(type="text", name="admins", value=join(v.admins, ", "), maxlength="400")
-            .form-hint User names or e-mail addresses, comma separated
+            label.form-label(for="g-admins") Global account administrators
+            input#g-admins.form-control(type="text", name="admins", value=join(v.admins, ", "), maxlength="400", spellcheck="false", autocapitalize="none")
+            .form-hint User names of this global account, comma separated. They administer everything in it: directories, subaccounts, entitlements, billing.
         .modal-footer
           button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
           button.btn.btn-primary(type="submit")

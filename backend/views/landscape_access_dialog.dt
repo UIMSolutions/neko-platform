@@ -1,0 +1,41 @@
+//- Administrators, user group and services of a subaccount. Needs page, form (AccessForm), catalogue (ServiceInfo[]).
+- import std.algorithm : canFind;
+- import std.array : join;
+- import neko.platform.presentation.web.icons : icon;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered.modal-lg
+    .modal-content
+      form(hx-post="/landscape/subaccounts/" ~ form.subaccount ~ "/access", hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title= "Access to subaccount " ~ form.subaccount
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          - auto v = form.values;
+          .mb-3
+            label.form-label(for="a-admins") Subaccount administrators
+            input#a-admins.form-control(type="text", name="admins", value=join(v.admins, ", "), maxlength="1000", spellcheck="false", autocapitalize="none")
+            .form-hint User names, comma separated. They manage the tenants, spaces, user group, services and role collections of this subaccount.
+          .mb-3
+            label.form-label(for="a-members") User group
+            textarea#a-members.form-control(name="members", rows="3", spellcheck="false", autocapitalize="none")= join(v.members, ", ")
+            .form-hint The users of this subaccount. Role collections of the subaccount can only be given to them (and to its administrators).
+          .form-label Services
+          .form-hint.mb-2 The access rights of the selected services are the ones role collections of this subaccount can grant. None selected = every service.
+          .row
+            - foreach (svc; catalogue)
+              .col-md-6.mb-2
+                label.form-check.mb-0
+                  input.form-check-input(type="checkbox", name="services", value=svc.key, checked=v.services.canFind(svc.key))
+                  span.form-check-label
+                    span.fw-medium= svc.label
+                    .small.text-secondary= svc.rights.join(", ")
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | Save

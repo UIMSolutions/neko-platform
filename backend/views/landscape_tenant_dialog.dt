@@ -1,0 +1,40 @@
+//- Create / edit a tenant of a subaccount. Needs page, form (TenantForm).
+- import neko.platform.presentation.web.icons : icon;
+- auto base = "/landscape/subaccounts/" ~ form.subaccount ~ "/tenants";
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered
+    .modal-content
+      form(hx-post=(form.existing ? base ~ "/" ~ form.values.key : base), hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title= form.existing ? "Tenant " ~ form.values.key : "New tenant in " ~ form.subaccount
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          - auto v = form.values;
+          .row
+            - if (!form.existing)
+              .col-md-5.mb-3
+                label.form-label.required(for="t-key") Key
+                input#t-key.form-control(type="text", name="key", value=v.key, required=true, maxlength="63", spellcheck="false", autocapitalize="none")
+                .form-hint Also a host name label: #{"<tenant>"}.#{"<subdomain>"}…
+            div.mb-3(class=(form.existing ? "col-12" : "col-md-7"))
+              label.form-label(for="t-name") Name
+              input#t-name.form-control(type="text", name="name", value=v.name, maxlength="128")
+          .mb-3
+            label.form-label(for="t-desc") Description
+            input#t-desc.form-control(type="text", name="description", value=v.description, maxlength="256")
+          label.form-check.form-switch
+            input.form-check-input(type="checkbox", name="isDefault", checked=v.isDefault, disabled=(form.existing && v.isDefault))
+            span.form-check-label Default tenant
+          - if (form.existing && v.isDefault)
+            input(type="hidden", name="isDefault", value="on")
+          .form-hint Service calls that name no tenant run in the default tenant. A new tenant starts with the space “default”.
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | #{form.existing ? "Save" : "Create"}

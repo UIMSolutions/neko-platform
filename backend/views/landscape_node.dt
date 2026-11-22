@@ -9,6 +9,7 @@
 - import neko.platform.presentation.web.support : shortTime;
 - auto n = selected;
 - auto manage = page.isLandscapeManage;
+- auto administer = manage || (n.kind == "subaccount" && page.mayAdministerNode);
 - string nodeName(string id) { foreach (t; view.tree) if (t.node == id) return t.name; return id; }
 - string vals(string[string] m) { auto j = Json.emptyObject; foreach (k, v; m) j[k] = v; return j.toString; }
 - auto mayEntitle = n.kind != "directory" || n.manageEntitlements;
@@ -28,7 +29,7 @@
         - if (n.kind == "subaccount")
           span.badge(class="bg-" ~ stageColor(n.stage) ~ "-lt")= n.stage
           span.badge.domain-badge(data-domain=n.domain)= n.domain
-      - if (manage)
+      - if (manage || (administer && n.kind == "subaccount"))
         .card-actions.d-flex.gap-1
           - if (n.kind == "global")
             button.btn.btn-sm(hx-get="/landscape/global/edit", hx-target="#dialog-host")
@@ -47,10 +48,18 @@
             button.btn.btn-ghost-danger.btn-icon(hx-post="/landscape/directories/#{n.key}/delete", hx-target="#landscape", hx-swap="outerHTML", hx-confirm="Remove directory #{n.key}?", title="Remove", aria-label="Remove directory #{n.key}")
               | !{icon("trash")}
           - if (n.kind == "subaccount")
-            button.btn.btn-ghost-secondary.btn-icon(hx-get="/landscape/subaccounts/#{n.key}/edit", hx-target="#dialog-host", title="Edit", aria-label="Edit subaccount #{n.key}")
-              | !{icon("pencil")}
-            button.btn.btn-ghost-danger.btn-icon(hx-post="/landscape/subaccounts/#{n.key}/delete", hx-target="#landscape", hx-swap="outerHTML", hx-confirm="Remove subaccount #{n.key}?", title="Remove", aria-label="Remove subaccount #{n.key}")
-              | !{icon("trash")}
+            button.btn.btn-sm(hx-get="/landscape/subaccounts/#{n.key}/access", hx-target="#dialog-host", title="Administrators, user group and services")
+              | !{icon("users")}
+              | Access
+            button.btn.btn-sm(hx-get="/landscape/subaccounts/#{n.key}/tenants/new", hx-target="#dialog-host", title="New tenant")
+              | !{icon("plus")}
+              | Tenant
+            - if (manage)
+              button.btn.btn-ghost-secondary.btn-icon(hx-get="/landscape/subaccounts/#{n.key}/edit", hx-target="#dialog-host", title="Edit", aria-label="Edit subaccount #{n.key}")
+                | !{icon("pencil")}
+            - if (manage)
+              button.btn.btn-ghost-danger.btn-icon(hx-post="/landscape/subaccounts/#{n.key}/delete", hx-target="#landscape", hx-swap="outerHTML", hx-confirm="Remove subaccount #{n.key}?", title="Remove", aria-label="Remove subaccount #{n.key}")
+                | !{icon("trash")}
     .card-body
       - if (n.description.length)
         p.text-secondary= n.description
@@ -68,8 +77,12 @@
               code= n.subdomainPattern
               .small.text-secondary {global} = #{n.subdomainPrefix}
           .datagrid-item
-            .datagrid-title Governance contacts
-            .datagrid-content= n.admins.length ? n.admins.join(", ") : "–"
+            .datagrid-title Global account administrators
+            .datagrid-content
+              - if (n.admins.length)
+                | #{n.admins.join(", ")}
+              - else
+                span.text-yellow none named
         - if (n.kind == "directory")
           .datagrid-item
             .datagrid-title Parent
@@ -107,12 +120,30 @@
             .datagrid-title Cost center
             .datagrid-content #{n.effectiveCostCenter.length ? n.effectiveCostCenter : "–"}#{n.costCenter.length ? "" : " (inherited)"}
           .datagrid-item
-            .datagrid-title Sites (tenants)
+            .datagrid-title Sites
             .datagrid-content
               - if (n.sites.length == 0)
                 span.text-secondary none
               - foreach (s; n.sites)
                 a.badge.bg-azure-lt.me-1(href="/?site=" ~ s, target="_blank", rel="noopener")= s
+          .datagrid-item
+            .datagrid-title Subaccount administrators
+            .datagrid-content= n.admins.length ? n.admins.join(", ") : "– (global account administrators)"
+          .datagrid-item
+            .datagrid-title User group
+            .datagrid-content
+              - if (n.members.length == 0)
+                span.text-secondary no members
+              - else
+                | !{icon("users")}
+                |  #{n.members.join(", ")}
+          .datagrid-item
+            .datagrid-title Services
+            .datagrid-content
+              - if (n.services.length == 0)
+                span.text-secondary every service
+              - foreach (svc; n.services)
+                span.badge.bg-secondary-lt.me-1= svc
         .datagrid-item
           .datagrid-title Costs #{view.month}
           .datagrid-content
@@ -138,6 +169,77 @@
         div
           .fw-medium= a.recommendation
           .small.text-secondary= a.reason
+
+  - if (n.kind == "subaccount")
+    - auto base = "/landscape/subaccounts/" ~ n.key ~ "/tenants/";
+    .card.mt-3
+      .card-header
+        h3.card-title Tenants and spaces
+        .card-subtitle.ms-2.text-secondary tenants are separated from each other, spaces within their tenant
+        - if (administer)
+          .card-actions
+            button.btn.btn-sm(hx-get=base ~ "new", hx-target="#dialog-host")
+              | !{icon("plus")}
+              | Tenant
+      .list-group.list-group-flush
+        - foreach (t; n.tenants)
+          .list-group-item
+            .d-flex.align-items-start.gap-2
+              span.text-secondary
+                | !{icon("apps")}
+              .flex-fill
+                .fw-medium
+                  | #{t.name.length ? t.name : t.key}
+                  code.small.ms-2.fw-normal= t.key
+                  - if (t.isDefault)
+                    span.badge.bg-primary-lt.ms-2 default
+                - if (t.description.length)
+                  .small.text-secondary= t.description
+                .small.text-secondary
+                  | Host: 
+                  code #{t.key}.#{n.subdomain}.…
+                  |  · header 
+                  code X-Neko-Tenant: #{t.key}
+              - if (administer)
+                .d-flex.gap-1
+                  button.btn.btn-sm(hx-get=base ~ t.key ~ "/spaces/new", hx-target="#dialog-host", title="New space")
+                    | !{icon("plus")}
+                    | Space
+                  button.btn.btn-ghost-secondary.btn-icon(hx-get=base ~ t.key ~ "/edit", hx-target="#dialog-host", title="Edit", aria-label="Edit tenant #{t.key}")
+                    | !{icon("pencil")}
+                  - if (!t.isDefault)
+                    button.btn.btn-ghost-danger.btn-icon(hx-post=base ~ t.key ~ "/delete", hx-target="#landscape", hx-swap="outerHTML", hx-confirm="Remove tenant #{t.key}?", title="Remove", aria-label="Remove tenant #{t.key}")
+                      | !{icon("trash")}
+            .table-responsive.mt-2
+              table.table.table-sm.table-vcenter.mb-0
+                tbody
+                  - foreach (sp; t.spaces)
+                    tr
+                      td.w-25
+                        span.text-secondary.me-1
+                          | !{icon("database")}
+                        code= sp.key
+                        - if (sp.isDefault)
+                          span.badge.bg-secondary-lt.ms-1 default
+                      td
+                        | #{sp.name}
+                        - if (sp.description.length)
+                          .small.text-secondary= sp.description
+                      td
+                        - if (sp.sites.length == 0)
+                          span.small.text-secondary no sites
+                        - foreach (site; sp.sites)
+                          a.badge.bg-azure-lt.me-1(href="/?site=" ~ site, target="_blank", rel="noopener")= site
+                      - if (administer)
+                        td.w-1.text-nowrap
+                          .d-flex.gap-1.justify-content-end
+                            button.btn.btn-ghost-secondary.btn-icon(hx-get=base ~ t.key ~ "/spaces/" ~ sp.key ~ "/edit", hx-target="#dialog-host", title="Edit", aria-label="Edit space #{sp.key}")
+                              | !{icon("pencil")}
+                            - if (!sp.isDefault)
+                              button.btn.btn-ghost-danger.btn-icon(hx-post=base ~ t.key ~ "/spaces/" ~ sp.key ~ "/delete", hx-target="#landscape", hx-swap="outerHTML", hx-confirm="Remove space #{t.key}/#{sp.key}?", title="Remove", aria-label="Remove space #{sp.key}")
+                                | !{icon("trash")}
+      .card-footer.small.text-secondary
+        | A service call runs in one tenant and one space: the tenant from the host name or the X-Neko-Tenant header (else the default tenant), the space from X-Neko-Space (else “default”).
 
   .card.mt-3
     .card-header
@@ -213,7 +315,7 @@
           | for this subaccount
         - else
           | for everything below
-      - if (manage && mayAuthorize)
+      - if (administer && mayAuthorize)
         .card-actions
           button.btn.btn-sm(hx-get="/landscape/rolecollection?node=" ~ n.node, hx-target="#dialog-host")
             | !{icon("plus")}
@@ -240,7 +342,7 @@
                 .small.text-secondary.mt-1
                   | !{icon("users")}
                   |  #{rc.members.length ? rc.members.join(", ") : "no members"}
-              - if (manage && mayAuthorize)
+              - if (administer && mayAuthorize)
                 .d-flex.gap-1
                   button.btn.btn-ghost-secondary.btn-icon(hx-get="/landscape/rolecollection?node=" ~ n.node ~ "&name=" ~ rc.name, hx-target="#dialog-host", title="Edit", aria-label="Edit #{rc.name}")
                     | !{icon("pencil")}

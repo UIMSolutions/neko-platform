@@ -1,0 +1,40 @@
+//- Create / edit a global account. Needs page, form (GlobalAccountForm).
+- import std.array : join;
+- import neko.platform.presentation.web.icons : icon;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered
+    .modal-content
+      form(hx-post=(form.existing ? "/accounts/" ~ form.values.key : "/accounts"), hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title= form.existing ? "Global account " ~ form.values.key : "New global account"
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          - auto v = form.values;
+          .row
+            - if (!form.existing)
+              .col-md-5.mb-3
+                label.form-label.required(for="ga-key") Key
+                input#ga-key.form-control(type="text", name="key", value=v.key, required=true, maxlength="40", spellcheck="false", autocapitalize="none")
+                .form-hint Data in global-accounts/#{"<key>"}
+            div.mb-3(class=(form.existing ? "col-12" : "col-md-7"))
+              label.form-label(for="ga-name") Name
+              input#ga-name.form-control(type="text", name="name", value=v.name, maxlength="128")
+          .mb-3
+            label.form-label(for="ga-hosts") Host names
+            textarea#ga-hosts.form-control(name="hosts", rows="3", spellcheck="false", autocapitalize="none")= join(v.hosts, "\n")
+            .form-hint One per line. A host name also takes its subdomains (acme.example → shop.acme.example).
+          .mb-3
+            label.form-label(for="ga-desc") Description
+            input#ga-desc.form-control(type="text", name="description", value=v.description, maxlength="256")
+          - if (!form.existing)
+            .form-hint A new global account gets its own administrator (the configured adminUser) with a generated password, shown once after creation.
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | #{form.existing ? "Save" : "Create"}

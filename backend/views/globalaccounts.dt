@@ -1,0 +1,10 @@
+extends layout
+//- The global accounts of the instance. Needs page, list (GlobalAccountEntry[]), notice (string).
+block actions
+  - import neko.platform.presentation.web.icons : icon;
+  button.btn.btn-primary(hx-get="/accounts/new", hx-target="#dialog-host")
+    | !{icon("plus")}
+    | Global account
+block content
+  p.text-secondary Global accounts are physically separate: each has its own data directory with its own users, roles, sessions, sites, files, landscape (directories, subaccounts, tenants, spaces) and billing. A request belongs to the global account whose host names match its host (a parent domain also matches), else to the one named in the X-Neko-Global-Account header, else to the default one.
+  include globalaccounts_table

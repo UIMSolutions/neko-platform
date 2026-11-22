@@ -12,7 +12,13 @@
 ///   GET  /landscape/subaccounts/new?directory=, POST /landscape/subaccounts          landscape.manage
 ///   GET  /landscape/subaccounts/:key/edit, POST /landscape/subaccounts/:key[/delete] landscape.manage
 ///   GET  /landscape/entitlement?node=&plan=, POST /landscape/entitlement[/delete]    landscape.manage
-///   GET  /landscape/rolecollection?node=&name=, POST /landscape/rolecollection[/delete]  landscape.manage
+///   GET  /landscape/rolecollection?node=&name=, POST /landscape/rolecollection[/delete]  landscape.manage (*)
+///   GET  /landscape/subaccounts/:key/access, POST                                  (*)
+///   GET  /landscape/subaccounts/:key/tenants/new, …/tenants/:tenant/edit           (*)
+///   POST /landscape/subaccounts/:key/tenants, …/tenants/:tenant[/delete]           (*)
+///   GET  …/tenants/:tenant/spaces/new, …/spaces/:space/edit                         (*)
+///   POST …/tenants/:tenant/spaces, …/spaces/:space[/delete]                         (*)
+///   (*) landscape.manage, or administrator of the subaccount (landscape.read)
 ///   GET  /landscape/billing?month=, GET /landscape/billing.csv?month=                billing.read
 ///   GET  /landscape/plans/new, /landscape/plans/:key/edit, POST /landscape/plans[/:key/delete]  landscape.manage
 module neko.platform.presentation.web.landscape;
@@ -71,6 +77,27 @@ struct RoleCollectionForm {
   string error;
 }
 
+struct AccessForm {
+  string subaccount;
+  SubaccountAccessRequest values;
+  string error;
+}
+
+struct TenantForm {
+  string subaccount;
+  bool existing;
+  TenantRequest values;
+  string error;
+}
+
+struct SpaceForm {
+  string subaccount;
+  string tenant;
+  bool existing;
+  SpaceRequest values;
+  string error;
+}
+
 struct PlanForm {
   bool existing;
   ServicePlanRequest values;
@@ -102,6 +129,7 @@ class LandscapeWeb {
       selected = landscape.node(node, month);
     catch (PlatformException)
       selected = landscape.node("global", month);
+    page.mayAdministerNode = mayAdminister(page, selected.node);
     render!("landscape.dt", page, view, selected);
   }
 
@@ -207,7 +235,7 @@ class LandscapeWeb {
     if (!load(res, page, "subaccount:" ~ _key, s))
       return;
     auto form = SubaccountForm(true, SubaccountRequest(s.key, s.name, s.description, s.directory, s.region,
-      s.subdomain, s.purpose, s.stage, s.domain, s.sites, s.costCenter, s.betaFeatures));
+      s.subdomain, s.purpose, s.stage, s.domain, s.costCenter, s.betaFeatures));
     subaccountDialog(page, form);
   }
 
@@ -230,7 +258,7 @@ class LandscapeWeb {
     auto form = SubaccountForm(existing, SubaccountRequest(key, req.form.get("name", ""),
       req.form.get("description", ""), req.form.get("directory", ""), req.form.get("region", ""),
       req.form.get("subdomain", ""), req.form.get("purpose", ""), req.form.get("stage", "dev"),
-      req.form.get("domain", ""), req.form.getAll("sites").dup, req.form.get("costCenter", ""),
+      req.form.get("domain", ""), req.form.get("costCenter", ""),
       req.form.get("betaFeatures", "") == "on"));
     try {
       auto s = landscape.saveSubaccount(form.values, !existing, page.user.userName);
@@ -245,9 +273,178 @@ class LandscapeWeb {
     auto view = landscape.overview();
     auto g = landscape.node("global");
     form.schemeHint = g.subdomainPattern.length ? g.subdomainPattern : "";
-    auto siteList = sites.list("system");
     auto regionList = regions.dup;
-    render!("landscape_subaccount_dialog.dt", page, form, view, g, siteList, regionList);
+    render!("landscape_subaccount_dialog.dt", page, form, view, g, regionList);
+  }
+
+  // ── subaccount access: administrators, user group, services ─────────────
+
+  @auth(Role.landscapeRead) @path("/landscape/subaccounts/:key/access")
+  void getAccess(PageContext page, HTTPServerResponse res, string _key) {
+    NodeDto s;
+    if (!load(res, page, "subaccount:" ~ _key, s) || !allowed(res, page, s.node))
+      return;
+    auto form = AccessForm(s.key, SubaccountAccessRequest(s.admins, s.members, s.services));
+    accessDialog(page, form);
+  }
+
+  @auth(Role.landscapeRead) @path("/landscape/subaccounts/:key/access")
+  void postAccess(PageContext page, HTTPServerRequest req, HTTPServerResponse res, string _key) {
+    if (!allowed(res, page, "subaccount:" ~ _key))
+      return;
+    auto form = AccessForm(_key, SubaccountAccessRequest(words(req.form.get("admins", "")),
+      words(req.form.get("members", "")), req.form.getAll("services").dup));
+    try {
+      landscape.setSubaccountAccess(_key, form.values, page.user.userName);
+      refresh(res, page, "subaccount:" ~ _key, "Administrators, user group and services of " ~ _key ~ " saved", false);
+    } catch (PlatformException e) {
+      form.error = e.msg;
+      accessDialog(page, form);
+    }
+  }
+
+  @noRoute void accessDialog(PageContext page, AccessForm form) {
+    import neko.platform.domain.entities.landscape : serviceCatalogue;
+
+    auto catalogue = serviceCatalogue();
+    render!("landscape_access_dialog.dt", page, form, catalogue);
+  }
+
+  // ── tenants ─────────────────────────────────────────────────────────────
+
+  @auth(Role.landscapeRead) @path("/landscape/subaccounts/:key/tenants/new")
+  void getNewTenant(PageContext page, HTTPServerResponse res, string _key) {
+    if (!allowed(res, page, "subaccount:" ~ _key))
+      return;
+    TenantForm form;
+    form.subaccount = _key;
+    render!("landscape_tenant_dialog.dt", page, form);
+  }
+
+  @auth(Role.landscapeRead) @path("/landscape/subaccounts/:key/tenants/:tenant/edit")
+  void getEditTenant(PageContext page, HTTPServerResponse res, string _key, string _tenant) {
+    NodeDto s;
+    if (!load(res, page, "subaccount:" ~ _key, s) || !allowed(res, page, s.node))
+      return;
+    foreach (t; s.tenants)
+      if (t.key == _tenant) {
+        auto form = TenantForm(_key, true, TenantRequest(t.key, t.name, t.description, t.isDefault));
+        return render!("landscape_tenant_dialog.dt", page, form);
+      }
+    res.writeBody("There is no tenant " ~ _tenant, 404, "text/plain; charset=utf-8");
+  }
+
+  @auth(Role.landscapeRead) @path("/landscape/subaccounts/:key/tenants")
+  void postTenants(PageContext page, HTTPServerRequest req, HTTPServerResponse res, string _key) {
+    saveTenant(page, req, res, _key, false, req.form.get("key", ""));
+  }
+
+  @auth(Role.landscapeRead) @path("/landscape/subaccounts/:key/tenants/:tenant")
+  void postTenant(PageContext page, HTTPServerRequest req, HTTPServerResponse res, string _key, string _tenant) {
+    saveTenant(page, req, res, _key, true, _tenant);
+  }
+
+  @auth(Role.landscapeRead) @path("/landscape/subaccounts/:key/tenants/:tenant/delete")
+  void postDeleteTenant(PageContext page, HTTPServerResponse res, string _key, string _tenant) {
+    if (!allowed(res, page, "subaccount:" ~ _key))
+      return;
+    try {
+      landscape.removeTenant(_key, _tenant, page.user.userName);
+      refresh(res, page, "subaccount:" ~ _key, "Tenant " ~ _tenant ~ " removed", false);
+    } catch (PlatformException e)
+      refresh(res, page, "subaccount:" ~ _key, e.msg, true);
+  }
+
+  @noRoute void saveTenant(PageContext page, HTTPServerRequest req, HTTPServerResponse res, string subaccount,
+      bool existing, string key) {
+    if (!allowed(res, page, "subaccount:" ~ subaccount))
+      return;
+    auto form = TenantForm(subaccount, existing, TenantRequest(key, req.form.get("name", ""),
+      req.form.get("description", ""), req.form.get("isDefault", "") == "on"));
+    try {
+      landscape.saveTenant(subaccount, form.values, !existing, page.user.userName);
+      refresh(res, page, "subaccount:" ~ subaccount, "Tenant " ~ key.strip ~ " saved", false);
+    } catch (PlatformException e) {
+      form.error = e.msg;
+      render!("landscape_tenant_dialog.dt", page, form);
+    }
+  }
+
+  // ── spaces ──────────────────────────────────────────────────────────────
+
+  @auth(Role.landscapeRead) @path("/landscape/subaccounts/:key/tenants/:tenant/spaces/new")
+  void getNewSpace(PageContext page, HTTPServerResponse res, string _key, string _tenant) {
+    if (!allowed(res, page, "subaccount:" ~ _key))
+      return;
+    SpaceForm form;
+    form.subaccount = _key;
+    form.tenant = _tenant;
+    spaceDialog(page, form);
+  }
+
+  @auth(Role.landscapeRead) @path("/landscape/subaccounts/:key/tenants/:tenant/spaces/:space/edit")
+  void getEditSpace(PageContext page, HTTPServerResponse res, string _key, string _tenant, string _space) {
+    NodeDto s;
+    if (!load(res, page, "subaccount:" ~ _key, s) || !allowed(res, page, s.node))
+      return;
+    foreach (t; s.tenants)
+      if (t.key == _tenant)
+        foreach (sp; t.spaces)
+          if (sp.key == _space) {
+            auto form = SpaceForm(_key, _tenant, true, SpaceRequest(sp.key, sp.name, sp.description, sp.sites.dup));
+            return spaceDialog(page, form);
+          }
+    res.writeBody("There is no space " ~ _tenant ~ "/" ~ _space, 404, "text/plain; charset=utf-8");
+  }
+
+  @auth(Role.landscapeRead) @path("/landscape/subaccounts/:key/tenants/:tenant/spaces")
+  void postSpaces(PageContext page, HTTPServerRequest req, HTTPServerResponse res, string _key, string _tenant) {
+    saveSpace(page, req, res, _key, _tenant, false, req.form.get("key", ""));
+  }
+
+  @auth(Role.landscapeRead) @path("/landscape/subaccounts/:key/tenants/:tenant/spaces/:space")
+  void postSpace(PageContext page, HTTPServerRequest req, HTTPServerResponse res, string _key, string _tenant,
+      string _space) {
+    saveSpace(page, req, res, _key, _tenant, true, _space);
+  }
+
+  @auth(Role.landscapeRead) @path("/landscape/subaccounts/:key/tenants/:tenant/spaces/:space/delete")
+  void postDeleteSpace(PageContext page, HTTPServerResponse res, string _key, string _tenant, string _space) {
+    if (!allowed(res, page, "subaccount:" ~ _key))
+      return;
+    try {
+      landscape.removeSpace(_key, _tenant, _space, page.user.userName);
+      refresh(res, page, "subaccount:" ~ _key, "Space " ~ _tenant ~ "/" ~ _space ~ " removed", false);
+    } catch (PlatformException e)
+      refresh(res, page, "subaccount:" ~ _key, e.msg, true);
+  }
+
+  @noRoute void saveSpace(PageContext page, HTTPServerRequest req, HTTPServerResponse res, string subaccount,
+      string tenant, bool existing, string key) {
+    if (!allowed(res, page, "subaccount:" ~ subaccount))
+      return;
+    auto form = SpaceForm(subaccount, tenant, existing, SpaceRequest(key, req.form.get("name", ""),
+      req.form.get("description", ""), req.form.getAll("sites").dup));
+    try {
+      landscape.saveSpace(subaccount, tenant, form.values, !existing, page.user.userName);
+      refresh(res, page, "subaccount:" ~ subaccount, "Space " ~ tenant ~ "/" ~ key.strip ~ " saved", false);
+    } catch (PlatformException e) {
+      form.error = e.msg;
+      spaceDialog(page, form);
+    }
+  }
+
+  @noRoute void spaceDialog(PageContext page, SpaceForm form) {
+    auto siteList = sites.list("system");
+    // sites that run elsewhere are shown, but marked
+    string[string] placedIn;
+    foreach (s; landscape.landscape().subaccounts)
+      foreach (t; s.tenants)
+        foreach (sp; t.spaces)
+          foreach (site; sp.sites)
+            placedIn[site] = s.key ~ "/" ~ t.key ~ "/" ~ sp.key;
+    auto here = form.subaccount ~ "/" ~ form.tenant ~ "/" ~ form.values.key;
+    render!("landscape_space_dialog.dt", page, form, siteList, placedIn, here);
   }
 
   // ── entitlements ────────────────────────────────────────────────────────
@@ -307,10 +504,10 @@ class LandscapeWeb {
 
   // ── role collections ────────────────────────────────────────────────────
 
-  @auth(Role.landscapeManage) @path("/landscape/rolecollection")
+  @auth(Role.landscapeRead) @path("/landscape/rolecollection")
   void getRoleCollection(PageContext page, HTTPServerResponse res, string node, string name = "") {
     NodeDto n;
-    if (!load(res, page, node, n))
+    if (!load(res, page, node, n) || !allowed(res, page, node))
       return;
     auto form = RoleCollectionForm(node, label(n));
     foreach (rc; n.roleCollections)
@@ -321,8 +518,10 @@ class LandscapeWeb {
     roleCollectionDialog(page, form);
   }
 
-  @auth(Role.landscapeManage) @path("/landscape/rolecollection")
+  @auth(Role.landscapeRead) @path("/landscape/rolecollection")
   void postRoleCollection(PageContext page, HTTPServerRequest req, HTTPServerResponse res) {
+    if (!allowed(res, page, req.form.get("node", "")))
+      return;
     auto form = RoleCollectionForm(req.form.get("node", ""), "", req.form.get("existing", "") == "1",
       RoleCollectionRequest(req.form.get("name", ""), req.form.get("description", ""), req.form.getAll("rights").dup,
       words(req.form.get("members", ""))));
@@ -338,9 +537,11 @@ class LandscapeWeb {
     roleCollectionDialog(page, form);
   }
 
-  @auth(Role.landscapeManage) @path("/landscape/rolecollection/delete")
+  @auth(Role.landscapeRead) @path("/landscape/rolecollection/delete")
   void postDeleteRoleCollection(PageContext page, HTTPServerRequest req, HTTPServerResponse res) {
     auto node = req.form.get("node", ""), name = req.form.get("name", "");
+    if (!allowed(res, page, node))
+      return;
     try {
       landscape.removeRoleCollection(node, name, page.user.userName);
       refresh(res, page, node, "Role collection " ~ name ~ " removed", false);
@@ -443,7 +644,25 @@ class LandscapeWeb {
       selected = landscape.node(node);
     catch (PlatformException)
       selected = landscape.node("global");
+    page.mayAdministerNode = mayAdminister(page, selected.node);
     render!("landscape_body.dt", page, view, selected);
+  }
+
+  /// landscape.manage, or an administrator of the subaccount `node`.
+  @noRoute bool mayAdminister(const PageContext page, string node) {
+    if (page.isLandscapeManage)
+      return true;
+    return node.length > 11 && node[0 .. 11] == "subaccount:" && landscape.mayAdminister(node[11 .. $],
+      page.user.userName);
+  }
+
+  /// `mayAdminister`, else answers 403.
+  @noRoute bool allowed(HTTPServerResponse res, const PageContext page, string node) {
+    if (mayAdminister(page, node))
+      return true;
+    res.writeBody("Only global account administrators (landscape.manage) and the administrators of this subaccount "
+        ~ "may change it", 403, "text/plain; charset=utf-8");
+    return false;
   }
 
   @noRoute bool load(HTTPServerResponse res, PageContext page, string node, out NodeDto n) {

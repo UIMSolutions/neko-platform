@@ -9,7 +9,7 @@ module neko.platform.ports.usecases.manage.landscape;
 
 import neko.platform.application.dtos;
 import neko.platform.domain.entities.iprule : NetworkDecision, RequestArea;
-import neko.platform.domain.entities.landscape : Landscape, RoleCollection, ServicePlan;
+import neko.platform.domain.entities.landscape : CallContext, CallRequest, Landscape, RoleCollection, ServicePlan;
 
 @safe:
 
@@ -38,9 +38,30 @@ interface IManageLandscapeUseCase {
   ServicePlan savePlan(ServicePlanRequest request, string actor);
   /// Only plans no node is entitled to.
   void removePlan(string key, string actor);
-  /// Start-up: the global account, the default plans, and a subaccount for
-  /// the default site if there is none.
-  void ensureDefaults(string serviceName, string environment, string defaultSite);
+  /// Subaccount administrators, user group and selected services. Refused
+  /// if a role collection of the subaccount would then name someone outside
+  /// the user group, or grant a right of a service no longer selected.
+  NodeDto setSubaccountAccess(string subaccount, SubaccountAccessRequest request, string actor);
+  /// A new tenant starts with the space "default".
+  NodeDto saveTenant(string subaccount, TenantRequest request, bool create, string actor);
+  /// Not the default tenant, not one whose spaces run sites.
+  NodeDto removeTenant(string subaccount, string tenant, string actor);
+  /// Sites run in exactly one space of the landscape.
+  NodeDto saveSpace(string subaccount, string tenant, SpaceRequest request, bool create, string actor);
+  /// Not the default space, not one that runs sites.
+  NodeDto removeSpace(string subaccount, string tenant, string space, string actor);
+  /// The tenant and space a service call runs in (Landscape.resolveCall;
+  /// `globalAccount` is left empty). Throws NotFoundException.
+  CallContext resolveCall(CallRequest request);
+  bool isGlobalAdmin(string user);
+  /// Global account administrators and the subaccount's administrators.
+  bool mayAdminister(string subaccount, string user);
+  /// Access rights `user` holds through the account model: global account
+  /// administrators administer the landscape, subaccount users see it.
+  string[] grantedRights(string user);
+  /// Start-up: the global account (with `admins` as its administrators), the
+  /// default plans, and a subaccount for the default site if there is none.
+  void ensureDefaults(string serviceName, string environment, string defaultSite, string[] admins = null);
   /// The raw landscape (exports).
   Landscape landscape();
 }

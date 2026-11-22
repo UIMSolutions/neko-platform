@@ -10,8 +10,9 @@ import std.array : join, replicate;
 import std.conv : to;
 import std.format : format;
 import vibe.data.json : serializeToJson;
-import neko.platform.domain : ValidationException;
+import neko.platform.domain : CallRequest, ValidationException;
 import neko.platform.domain.entities.landscape : unlimited;
+import neko.platform.presentation.cli.users : list;
 import neko.platform.application.dtos;
 import neko.platform.infrastructure.container : PlatformContainer;
 import neko.platform.presentation.cli.args;
@@ -50,7 +51,15 @@ int landscapeCommand(PlatformContainer c, CliArgs a, string actor, CliOutput out
     string[][] rows = [["Kind", n.kind], ["Name", n.name]];
     if (n.kind == "subaccount")
       rows ~= [["Region", n.region ~ " (" ~ n.regionLabel ~ ")"], ["Subdomain", n.subdomain],
-        ["Purpose / stage", n.purpose ~ " / " ~ n.stage], ["Domain", n.domain], ["Sites", n.sites.join(", ")]];
+        ["Purpose / stage", n.purpose ~ " / " ~ n.stage], ["Domain", n.domain], ["Sites", n.sites.join(", ")],
+        ["Administrators", n.admins.join(", ")], ["User group", n.members.join(", ")],
+        ["Services", n.services.length ? n.services.join(", ") : "all"]];
+    if (n.kind == "global")
+      rows ~= ["Administrators", n.admins.join(", ")];
+    foreach (t; n.tenants)
+      foreach (sp; t.spaces)
+        rows ~= ["Tenant / space", t.key ~ (t.isDefault ? " (default)" : "") ~ " / " ~ sp.key
+            ~ (sp.sites.length ? ": " ~ sp.sites.join(", ") : "")];
     if (n.kind == "directory")
       rows ~= [["Parent", n.parent.length ? n.parent : "global"], ["Entitlements", n.manageEntitlements ? "own" : "inherited"],
         ["Authorizations", n.manageAuthorizations ? "own" : "inherited"], ["Owner", n.owner]];
@@ -103,6 +112,46 @@ int landscapeCommand(PlatformContainer c, CliArgs a, string actor, CliOutput out
         format("%.2f", r.total)];
     output.table(["NODE", "COST CENTER", "REQUESTS", "TOTAL " ~ bill.currency], rows);
     output.message(format("Total %s: %.2f %s", bill.month, bill.total, bill.currency));
+    return 0;
+  case "access":
+    auto key = a.word(2, "subaccount");
+    auto n = c.landscape.node("subaccount:" ~ key);
+    auto r = SubaccountAccessRequest(a.has("admins") ? list(a.opt("admins")) : n.admins, a.has("members")
+        ? list(a.opt("members")) : n.members, a.has("services") ? list(a.opt("services")) : n.services);
+    auto after = c.landscape.setSubaccountAccess(key, r, actor);
+    output.message("Administrators: " ~ after.admins.join(", ") ~ "; user group: " ~ after.members.join(", ")
+        ~ "; services: " ~ (after.services.length ? after.services.join(", ") : "all"));
+    return 0;
+  case "tenant":
+    auto op = a.word(2, "add|update|remove");
+    auto key = a.word(3, "subaccount"), tenant = a.word(4, "tenant");
+    if (op == "remove")
+      c.landscape.removeTenant(key, tenant, actor);
+    else
+      c.landscape.saveTenant(key, TenantRequest(tenant, a.opt("name"), a.opt("description"), a.flag("default")),
+        op == "add", actor);
+    output.message((op == "remove" ? "Removed" : "Saved") ~ " tenant " ~ key ~ "/" ~ tenant);
+    return 0;
+  case "space":
+    auto op = a.word(2, "add|update|remove");
+    auto key = a.word(3, "subaccount"), tenant = a.word(4, "tenant"), space = a.word(5, "space");
+    if (op == "remove")
+      c.landscape.removeSpace(key, tenant, space, actor);
+    else
+      c.landscape.saveSpace(key, tenant, SpaceRequest(space, a.opt("name"), a.opt("description"),
+        list(a.opt("sites"))), op == "add", actor);
+    output.message((op == "remove" ? "Removed" : "Saved") ~ " space " ~ key ~ "/" ~ tenant ~ "/" ~ space);
+    return 0;
+  case "resolve":
+    auto call = c.landscape.resolveCall(CallRequest(a.opt("host"), a.opt("subaccount"), a.opt("tenant"),
+      a.opt("space"), a.opt("site")));
+    call.globalAccount = c.account.key;
+    if (output.json) {
+      output.value(serializeToJson(call));
+      return 0;
+    }
+    output.table(["GLOBAL ACCOUNT", "SUBACCOUNT", "TENANT", "SPACE", "BY"], [[call.globalAccount, call.subaccount,
+      call.tenant, call.space, call.source]]);
     return 0;
   default:
     throw new ValidationException("Unknown landscape command '" ~ sub ~ "'");

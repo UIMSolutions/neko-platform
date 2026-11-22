@@ -11,7 +11,7 @@ import core.time : MonoTime;
 import std.algorithm : startsWith;
 import std.array : appender;
 import std.conv : to;
-import std.datetime.systime : Clock;
+import std.datetime.systime : Clock, SysTime;
 import std.datetime.timezone : UTC;
 import std.format : format, formattedWrite;
 import vibe.core.log : logDebug, logInfo, logWarn;
@@ -37,11 +37,18 @@ class RequestMonitor : HTTPServerRequestHandler {
   private TrafficMonitor traffic;
   private SiteAttribution attribution;
   private UsageMeter meter;
+  private UsageCounter counter;
 
   /// Count public-site requests per site for billing (both may be null).
   void meterUsage(SiteAttribution attribution, UsageMeter meter) {
     this.attribution = attribution;
     this.meter = meter;
+  }
+
+  /// Count public-site requests per global account (instances with several:
+  /// each global account bills its own sites).
+  void meterUsage(UsageCounter counter) {
+    this.counter = counter;
   }
 
   /// `accessFile` may be null (no access log file).
@@ -87,8 +94,12 @@ class RequestMonitor : HTTPServerRequestHandler {
       metrics.finish(sample);
       auto sent = responseBytes(req, res, status);
       traffic.record(client, sample.at, requestBytes(req), sent, status, req.headers.get("User-Agent", ""), path);
-      if (meter !is null && attribution !is null && (area == "site" || area == "media") && status < 400)
-        meter.count(attribution.siteOf(path, req.host), sample.at, sent);
+      if ((area == "site" || area == "media") && status < 400) {
+        if (meter !is null && attribution !is null)
+          meter.count(attribution.siteOf(path, req.host), sample.at, sent);
+        if (counter !is null)
+          counter(contextText(req, "neko.globalAccount"), path, req.host, sample.at, sent);
+      }
       if (!accessLog)
         return;
       // Assets and probes only at debug level: they would drown the log.
@@ -108,11 +119,29 @@ class RequestMonitor : HTTPServerRequestHandler {
         j["area"] = area;
         j["client"] = client;
         j["host"] = req.host;
+        auto account = contextText(req, "neko.globalAccount"), tenant = contextText(req, "neko.tenant");
+        if (account.length)
+          j["globalAccount"] = account;
+        if (tenant.length)
+          j["tenant"] = contextText(req, "neko.subaccount") ~ "/" ~ tenant ~ "/" ~ contextText(req, "neko.space");
         accessFile.writeLine(j.toString, sample.at);
       }
     } catch (Exception) {
     }
   }
+}
+
+/// Counts a public-site request of a global account (key, path, host, time, bytes sent).
+alias UsageCounter = void delegate(string globalAccount, string path, string host, SysTime at, long bytes) @safe;
+
+private string contextText(scope HTTPServerRequest req, string key) @trusted nothrow {
+  try
+    if (auto v = key in req.context)
+      if (v.convertsTo!string)
+        return v.get!string;
+  catch (Exception) {
+  }
+  return "";
 }
 
 /// Which site a public request belongs to: /media/<site>/… by its path,

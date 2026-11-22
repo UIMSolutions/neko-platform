@@ -32,6 +32,8 @@ struct NavItem {
   string href;
   string icon;
   AccessRight right;
+  /// Only in the default global account (the operator's).
+  bool operatorOnly;
 }
 
 /// Pages a user may see, in menu order (the account page is always there).
@@ -44,6 +46,7 @@ immutable NavItem[] navigation = [
   NavItem("security", "Security", "/security", "shield-check", AccessRight.securityRead),
   NavItem("users", "Users", "/users", "users", AccessRight.usersRead),
   NavItem("roles", "Roles", "/roles", "shield-lock", AccessRight.rolesRead),
+  NavItem("accounts", "Global accounts", "/accounts", "apps", AccessRight.accountsManage, true),
 ];
 
 /// Data for layout.dt (header, navigation, CSRF token) and the vibe.web.auth
@@ -56,6 +59,11 @@ struct PageContext {
   string active;
   UserDto user;
   string csrf;
+  /// The global account the page belongs to; "" = the default one.
+  string globalAccount;
+  /// Set by a page: the user administers the subaccount shown (global
+  /// account or subaccount administrator).
+  bool mayAdministerNode;
 
   /// For hx-headers on <body>: every htmx request carries the CSRF token.
   string htmxHeaders() const {
@@ -78,7 +86,7 @@ struct PageContext {
   immutable(NavItem)[] menu() const pure nothrow {
     immutable(NavItem)[] items;
     foreach (ref item; navigation)
-      if (can(item.right))
+      if (can(item.right) && (!item.operatorOnly || globalAccount.length == 0))
         items ~= item;
     return items;
   }
@@ -100,6 +108,14 @@ struct PageContext {
     mixin("bool is" ~ upperFirst(name) ~ "() const pure nothrow { return can(AccessRight." ~ name ~ "); }");
 }
 
+/// "acme.eu" → "acme_eu" (cookie names allow no dots in every browser).
+private string cookieSafe(string s) pure {
+  string r;
+  foreach (char c; s)
+    r ~= (c == '.' || c == '-') ? '_' : c;
+  return r;
+}
+
 private string upperFirst(string s) pure {
   return s.length ? toUpper(s[0]) ~ s[1 .. $] : s;
 }
@@ -118,21 +134,32 @@ class WebGuard {
   private IAuthenticateUseCase authentication;
   private string serviceName;
   private string domain;
+  private string accountKey;
+  /// Rights a user holds besides those of the roles: from the account model
+  /// (global account and subaccount administrators). May be null.
+  string[] delegate(string userName) @safe grants;
   /// One cookie per domain: the four platform binaries often run on one host,
   /// and browsers do not separate cookies by port.
   immutable string cookieName;
 
-  this(WebSessions sessions, IAuthenticateUseCase authentication, string serviceName, string domain) {
+  /// `globalAccount`: key of the global account the pages belong to; ""
+  /// for the default one. Global accounts are physically separate: each has
+  /// its own sessions and cookie.
+  this(WebSessions sessions, IAuthenticateUseCase authentication, string serviceName, string domain,
+      string globalAccount = "") {
     this.sessions = sessions;
     this.authentication = authentication;
     this.serviceName = serviceName;
     this.domain = domain;
-    this.cookieName = "neko_session_" ~ domain;
+    this.accountKey = globalAccount;
+    this.cookieName = "neko_session_" ~ domain ~ (globalAccount.length ? "_" ~ cookieSafe(globalAccount) : "");
   }
 
   /// Page context for an anonymous page (sign-in, error pages).
   PageContext anonymous(string title) const {
-    return PageContext(serviceName, domain, title);
+    auto p = PageContext(serviceName, domain, title);
+    p.globalAccount = accountKey;
+    return p;
   }
 
   /// The signed-in user of the request, without writing a response.
@@ -146,7 +173,11 @@ class WebGuard {
       sessions.destroy(token); // account removed or deactivated
       return false;
     }
-    page = PageContext(serviceName, domain, "", "", user, session.csrf);
+    if (grants !is null)
+      foreach (r; grants(user.userName))
+        if (!user.can(r))
+          user.rights ~= r;
+    page = PageContext(serviceName, domain, "", "", user, session.csrf, accountKey);
     return true;
   }
 

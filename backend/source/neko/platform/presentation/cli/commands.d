@@ -11,7 +11,8 @@ import std.process : environment;
 import std.stdio : File, stderr, stdout;
 import vibe.data.json : Json;
 import neko.platform.domain : PlatformException;
-import neko.platform.infrastructure.container : PlatformContainer;
+import neko.platform.infrastructure.container : PlatformContainer, PlatformInstance;
+import neko.platform.presentation.cli.globals : globalsCommand;
 import neko.platform.presentation.cli.args;
 import neko.platform.presentation.cli.output;
 import neko.platform.presentation.cli.services : servicesCommand;
@@ -27,6 +28,7 @@ enum usage = `Usage: platform-<domain> [command] [arguments] [--option=value …
 Global options:
   --json                              machine readable JSON output (REST field names)
   --actor=<name>                      actor recorded in the audit trail (default: cli:$USER)
+  --global=<key>                      the global account to work in (default: the default one)
 
 Commands:
   serve                               start the HTTP server (default)
@@ -76,9 +78,40 @@ Commands:
   landscape show <node>               global | directory:<key> | subaccount:<key>
   landscape check                     problems and recommendations (exit 1 on errors)
   landscape billing [--month=] [--csv]
+  landscape access <subaccount> [--admins=a,b] [--members=a,b] [--services=sites,files]
+  landscape tenant add|update|remove <subaccount> <tenant> [--name=] [--description=] [--default]
+  landscape space add|update|remove <subaccount> <tenant> <space> [--name=] [--sites=a,b]
+  landscape resolve [--host=] [--subaccount=] [--tenant=] [--space=] [--site=]
+                                      the tenant and space a service call runs in
+  globals [list]                      the global accounts of this instance (physically separate)
+  globals show <key>
+  globals add --key= [--name=] [--hosts=a,b] [--description=]   with its own data and administrator
+  globals update <key> [--name=] [--hosts=…] [--description=]
+  globals remove <key>                unregister (its data directory is kept)
   help
 
 Exit codes: 0 ok, 1 error (business errors print their HTTP-style code), 2 usage error`;
+
+/// Run a command in the global account `--global` (default: the default
+/// one); `globals …` works on the instance. Returns the process exit code.
+int runCli(PlatformInstance instance, string[] args, File output = stdout, File errors = stderr) {
+  auto a = CliArgs.parse(args);
+  auto out_ = new CliOutput(output, a.flag("json"));
+  auto actor = a.opt("actor", "cli:" ~ environment.get("USER", "unknown"));
+  PlatformContainer c;
+  try {
+    if (a.wordOr(0, "") == "globals")
+      return globalsCommand(instance, a, actor, out_);
+    c = a.opt("global").length ? instance.container(a.opt("global")) : instance.defaultContainer();
+  } catch (PlatformException e) {
+    errors.writefln("Error (%d): %s", e.code, e.msg);
+    return 1;
+  } catch (Exception e) {
+    errors.writeln("Error: ", e.msg);
+    return 1;
+  }
+  return runCli(c, args, output, errors);
+}
 
 /// Run a command; returns the process exit code.
 int runCli(PlatformContainer c, string[] args, File output = stdout, File errors = stderr) {

@@ -8,6 +8,7 @@ module neko.platform.ports.repositories;
 
 public:
   import neko.platform.ports.repositories.file;
+  import neko.platform.ports.repositories.globalaccount;
   import neko.platform.ports.repositories.iprule;
   import neko.platform.ports.repositories.landscape;
   import neko.platform.ports.repositories.role;

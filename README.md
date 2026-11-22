@@ -41,7 +41,9 @@ dub build --config=open            # → backend/build/platform-open
 | `/status` | status page (vibe.d web interface, Tabler + htmx, all assets embedded — works in isolated domains) |
 | `/monitoring` | request figures, failures, slow requests, recent log, storage |
 | `/security` | firewall events, network traffic per client, IP allow/deny lists, bans |
-| `/landscape` | account hierarchy: global account → directories → subaccounts, entitlements, role collections, recommendations |
+| `/landscape` | account hierarchy: global account → directories → subaccounts → tenants → spaces, administrators, user groups, services, entitlements, role collections, recommendations |
+| `/accounts` | the global accounts of the instance (operator, default global account only) |
+| `/rest/v1/context` | the global account, subaccount, tenant and space a request runs in |
 | `/landscape/billing` | usage and costs per subaccount, directory and global account; CSV export |
 | `/sites` | sites (tenants): host names, languages, home page content per language |
 | `/files` | file library per site: documents, images, audio, video |
@@ -70,7 +72,7 @@ rights: `status.read`, `events.read`, `monitoring.read`, `sites.read`,
 `sites.manage`, `files.read`, `files.manage`, `security.read`,
 `security.manage`, `landscape.read`, `landscape.manage`, `billing.read`,
 `users.read`, `users.manage`,
-`roles.read`, `roles.manage`. Roles bundle rights and are managed at runtime
+`roles.read`, `roles.manage`, `accounts.manage`. Roles bundle rights and are managed at runtime
 (page `/roles` or `roles …` on the CLI). A user holds one or more roles, and
 holds the union of their rights. Every domain starts with four built-in roles:
 
@@ -147,14 +149,58 @@ site and the recent log with a level filter; it refreshes every 10 seconds.
 `/metrics` exposes the same figures in the Prometheus format. Without
 `metricsToken` it only answers local clients (and the unix socket).
 
-**Landscape: global account, directories, subaccounts.** `/landscape` models
-the account hierarchy of the operator (after SAP BTP):
+**Global accounts.** An instance (one security domain) manages one or more
+global accounts, and they are **physically separate**: each has its own data
+directory with its own users, roles, sessions, sites, files, landscape and
+usage. The default global account keeps the instance's data directory
+(`data/<domain>/`, so single-account setups stay as they were); every other
+one lives in `data/<domain>/global-accounts/<key>/`. The registry
+(`globalaccounts.json`) only records which exist and which host names select
+them. A request belongs to the global account whose host names match its
+host (a parent domain also matches: `acme.example` takes `shop.acme.example`),
+else to the one named in `X-Neko-Global-Account`, else to the default one.
+Only network security (firewall, IP lists of the default global account) and
+the logs are shared. The operator manages them under `/accounts`
+(`accounts.manage`, default global account only) or with the CLI:
+
+```bash
+./build/platform-open globals add --key=acme --name="ACME" --hosts=acme.example   # own data + administrator
+./build/platform-open globals
+./build/platform-open --global=acme landscape          # any command, in that global account
+./build/platform-open globals remove acme             # unregister; the data directory is kept
+```
+
+**Landscape: global account, directories, subaccounts, tenants, spaces.**
+`/landscape` models the account hierarchy inside a global account (after the
+[SAP BTP account model](https://help.sap.com/docs/btp/sap-business-technology-platform/account-model)):
 
 | Level | Holds |
 | --- | --- |
-| Global account | governance: contract (CPEA, PAYG, subscription), currency, cost center, contacts; the purchased entitlements; global role collections; the subdomain scheme |
+| Global account | governance: contract (CPEA, PAYG, subscription), currency, cost center; its **administrators**; the purchased entitlements; global role collections; the subdomain scheme |
 | Directories (nested up to 5 levels) | a group of subaccounts with owner and cost center; optionally **own entitlements** (a budget its subaccounts draw from) and **own role collections** (valid for every subaccount below) |
-| Subaccounts | region (`eu10`, `eu11` EU Access, `eu20`, `us10`, …, `onprem`), subdomain, purpose, stage (`sandbox`, `dev`, `test`, `qa`, `prod`), security domain, the sites (tenants) of this instance, entitlements, role collections |
+| Subaccounts | logically separate: region (`eu10`, `eu11` EU Access, `eu20`, `us10`, …, `onprem`), subdomain, purpose, stage (`sandbox`, `dev`, `test`, `qa`, `prod`), security domain; its **administrators**, its **user group** and its **selected services**; entitlements, role collections |
+| Tenants (≥ 1 per subaccount) | logically separated from each other; exactly one is the default tenant |
+| Spaces (≥ 1 per tenant) | separated within their tenant; every tenant has the space `default`. Sites run in a space (each in exactly one) |
+
+Global account administrators administer everything in their global account
+(they hold `landscape.read`, `landscape.manage` and `billing.read` without a
+role). Subaccount administrators manage the tenants, spaces, user group,
+services and role collections of their subaccount; members of a user group
+see the landscape. Role collections of a subaccount can only be given to its
+user group (and administrators), and only grant access rights of the services
+selected for it (`sites` for `sites.read`/`sites.manage`, …; none selected =
+every service).
+
+**Service calls run in a tenant and a space.** Every request is resolved to
+one subaccount, tenant and space, in this order: the headers
+`X-Neko-Subaccount` (key or subdomain), `X-Neko-Tenant`, `X-Neko-Space`; the
+host name (`<subdomain>.…` → default tenant, `<tenant>.<subdomain>.…`); the
+site the request is for; else the default tenant of the first subaccount. The
+space is the one named, else the site's, else `default`. The result is echoed
+as response headers (`X-Neko-Global-Account`, `X-Neko-Subaccount`,
+`X-Neko-Tenant`, `X-Neko-Space`), written to the access log and returned by
+`GET /rest/v1/context`; a tenant or space that was asked for and does not
+exist is answered with 404.
 
 The subdomain follows the scheme of the global account (default
 `{global}-{purpose}-{stage}`, also `{directory}` and `{region}`), e.g.
@@ -163,7 +209,9 @@ subaccount exists. Entitlements flow down: a subaccount draws from the nearest
 directory above it that manages entitlements, else from the global account;
 quotas may be unlimited (pay per use). Every change is refused if it would
 introduce an error: over-assigned quotas, plans the source is not entitled
-to, duplicate subdomains, a site in two subaccounts, more sites than the
+to, duplicate subdomains, a site in two spaces, a subaccount without a
+(default) tenant or a tenant without its default space, role collections
+naming users outside the user group or rights of unselected services, more sites than the
 `sites.site` entitlement, cycles or more than five directory levels.
 
 **Where directory entitlements and role collections make sense.** The page
@@ -185,8 +233,8 @@ explains it, and a built-in advisor checks the landscape:
   subaccounts, small global role collections, few production administrators.
 
 Role collections here describe the authorizations of the landscape
-(governance); the platform's own pages are still protected by the roles under
-`/roles`.
+(governance); the platform's own pages are protected by the roles under
+`/roles` plus the rights the account model grants to administrators.
 
 **Billing.** The platform measures, per site and month, the requests and
 bytes of its public pages (`/` by host name, `/media/…`) and the peak size of
@@ -204,6 +252,10 @@ viewed again.
 ./build/platform-open landscape show subaccount:shop-prod
 ./build/platform-open landscape check                # problems and advice; exit 1 on errors
 ./build/platform-open landscape billing --month=2026-11 --csv > billing.csv
+./build/platform-open landscape access shop-prod --admins=jane --members=bob,ann --services=sites,files
+./build/platform-open landscape tenant add shop-prod eu --name=Europe
+./build/platform-open landscape space add shop-prod eu staging --sites=shop-staging
+./build/platform-open landscape resolve --host=eu.acme-shop-prod.example --space=staging
 ```
 
 **Firewall, network traffic, IP lists.** Every request passes, in this order:

@@ -177,9 +177,34 @@ struct SubaccountRequest {
   @optional string stage = "dev";
   /// Security domain label; "" = this instance's domain
   @optional string domain;
-  @optional string[] sites;
   @optional string costCenter;
   @optional bool betaFeatures;
+}
+
+/// Who works in a subaccount and which services its role collections can grant.
+struct SubaccountAccessRequest {
+  /// Subaccount administrators (user names).
+  @optional string[] admins;
+  /// The user group (user names).
+  @optional string[] members;
+  /// Service keys (see serviceCatalogue); empty = every service.
+  @optional string[] services;
+}
+
+struct TenantRequest {
+  string key;
+  @optional string name;
+  @optional string description;
+  /// Make it the default tenant of the subaccount.
+  @optional bool isDefault;
+}
+
+struct SpaceRequest {
+  string key;
+  @optional string name;
+  @optional string description;
+  /// Keys of the sites of this instance that run in the space.
+  @optional string[] sites;
 }
 
 struct RoleCollectionRequest {
@@ -199,4 +224,13 @@ struct ServicePlanRequest {
   double price = 0;
   /// "none" | "requests" | "egressBytes" | "storageBytes" | "sites"
   @optional string meter = "none";
+}
+
+/// A global account of the instance (registry entry).
+struct GlobalAccountEntryRequest {
+  string key;
+  @optional string name;
+  /// Host names that select the global account.
+  @optional string[] hosts;
+  @optional string description;
 }

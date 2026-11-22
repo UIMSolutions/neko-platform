@@ -7,6 +7,7 @@
 /// info endpoints, error rendering.
 module neko.platform.presentation.http;
 
+public import neko.platform.presentation.http.accounts;
 public import neko.platform.presentation.http.monitor;
 public import neko.platform.presentation.http.firewall;
 

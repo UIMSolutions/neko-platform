@@ -15,7 +15,8 @@
 ///   roles      /roles                                                 (RolesWeb, roles.read / roles.manage)
 ///   sites      /sites                                                 (SitesWeb, sites.read / sites.manage)
 ///   files      /files                                                 (FilesWeb, files.read / files.manage)
-///   landscape  /landscape: global account, directories, subaccounts, billing  (LandscapeWeb)
+///   landscape  /landscape: global account, directories, subaccounts, tenants, spaces, billing  (LandscapeWeb)
+///   accounts   /accounts: the global accounts of the instance, default one only  (GlobalAccountsWeb, accounts.manage)
 ///   security   /security: firewall, traffic, IP lists, bans            (SecurityWeb, security.read / security.manage)
 ///   monitoring /monitoring                                            (MonitoringWeb, monitoring.read)
 ///   site       /, /media/*: the public site of the request's host      (PublicSiteController, no sign-in)
@@ -27,6 +28,7 @@
 module neko.platform.presentation.web;
 
 public:
+  import neko.platform.presentation.web.accounts;
   import neko.platform.presentation.web.assets;
   import neko.platform.presentation.web.auth;
   import neko.platform.presentation.web.errors;
@@ -57,6 +59,7 @@ import neko.platform.presentation.web.security : SecurityWeb;
 import neko.platform.presentation.web.landscape : LandscapeWeb;
 import neko.platform.presentation.web.site : PublicSiteController;
 import neko.platform.presentation.web.sites : SitesWeb;
+import neko.platform.presentation.web.accounts : GlobalAccountsWeb;
 
 /// The page controllers.
 struct WebPages {
@@ -70,6 +73,8 @@ struct WebPages {
   UsersWeb users;
   RolesWeb roles;
   PublicSiteController site;
+  /// Only in the default global account; may be null.
+  GlobalAccountsWeb accounts;
 }
 
 /// Registers the public site, the page web interfaces and the embedded assets on `router`.
@@ -85,4 +90,6 @@ void registerWebPages(URLRouter router, WebPages pages) @safe {
   router.registerWebInterface(pages.files);
   router.registerWebInterface(pages.users);
   router.registerWebInterface(pages.roles);
+  if (pages.accounts !is null)
+    router.registerWebInterface(pages.accounts);
 }

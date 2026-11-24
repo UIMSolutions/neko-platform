@@ -23,8 +23,6 @@ block content
               .datagrid-title E-mail
               .datagrid-content= row(u.email)
             .datagrid-item
-              .datagrid-title Sites
-              .datagrid-content= u.allSites ? "every site" : u.sites.join(", ")
             .datagrid-item
               .datagrid-title Last sign-in (UTC)
               .datagrid-content= shortTime(u.lastLoginAt)

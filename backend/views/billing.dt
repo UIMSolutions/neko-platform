@@ -26,9 +26,9 @@ block content
           - foreach (m; bill.months)
             option(value=m, selected=(m == bill.month))= m
         button.btn(type="submit") Show
-    p.text-secondary.mb-0.flex-fill Measured usage of the sites (requests, bytes sent, peak file storage, number of sites) is priced with the service plans; plans without a meter cost their entitled quota. Usage is stored every minute.
+    p.text-secondary.mb-0.flex-fill Measured usage of the subaccounts (service calls that name their subaccount, public file downloads, bytes sent, peak file storage) is priced with the service plans; plans without a meter cost their entitled quota. Usage is stored every minute.
   .row.row-deck.row-cards.mb-3
-    - foreach (t; [["Total " ~ bill.month, money(bill.total, bill.currency), "chart-line", "primary"], ["Subaccounts", bill.rows.count!(r => r.kind == "subaccount").to!string, "server", "azure"], ["Unassigned sites", bill.unassigned.length.to!string, "alert-triangle", bill.unassigned.length ? "yellow" : "secondary"]])
+    - foreach (t; [["Total " ~ bill.month, money(bill.total, bill.currency), "chart-line", "primary"], ["Subaccounts", bill.rows.count!(r => r.kind == "subaccount").to!string, "server", "azure"], ["Removed subaccounts", bill.unassigned.length.to!string, "alert-triangle", bill.unassigned.length ? "yellow" : "secondary"]])
       .col-md-4
         .card.card-sm
           .card-body
@@ -51,7 +51,6 @@ block content
             th.text-end Requests
             th.text-end Sent
             th.text-end Storage (peak)
-            th.text-end Sites
             th.text-end Total
         tbody
           - foreach (r; bill.rows)
@@ -65,13 +64,12 @@ block content
                 td.text-end= r.requests.to!string
                 td.text-end= byteSize(r.bytesOut)
                 td.text-end= byteSize(r.storageBytes)
-                td.text-end= r.sites.to!string
               - else
-                td(colspan="4")
+                td(colspan="3")
               td.text-end.text-nowrap= money(r.total, bill.currency)
             - foreach (l; r.lines)
               tr.small.text-secondary
-                td(colspan="5", style="padding-left: " ~ (2 + r.level * 1.25).to!string ~ "rem")
+                td(colspan="4", style="padding-left: " ~ (2 + r.level * 1.25).to!string ~ "rem")
                   code= l.plan
                   |  #{format("%.3f", l.quantity)} #{l.unit} × #{format("%.4g", l.price)}
                   - if (l.overQuota)
@@ -98,15 +96,15 @@ block content
       - if (bill.unassigned.length)
         .card.mt-3
           .card-header
-            h3.card-title Usage of sites without a subaccount
+            h3.card-title Usage of removed subaccounts
           table.table.table-sm.card-table
             tbody
               - foreach (u; bill.unassigned)
                 tr
                   td
-                    code= u.site
+                    code= u.subaccount
                   td.text-end #{u.requests.to!string} requests
                   td.text-end= byteSize(u.bytesOut)
-          .card-footer.small.text-secondary Assign these sites to a subaccount (Landscape) to bill them.
+          .card-footer.small.text-secondary Recorded before the subaccounts were removed; not billed.
     .col-lg-6
       include billing_plans

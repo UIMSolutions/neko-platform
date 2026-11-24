@@ -31,7 +31,7 @@
                     | deny
               td
                 code= r.network
-              td= r.scope_ == "all" ? "everything (also the public site)" : r.scope_ == "admin" ? "management pages" : "APIs (REST, OData, /api, /metrics)"
+              td= r.scope_ == "all" ? "everything (also public files)" : r.scope_ == "admin" ? "management pages" : "APIs (REST, OData, /api, /metrics)"
               td.text-secondary= r.note
               td.text-nowrap.text-secondary
                 div= shortTime(r.createdAt)

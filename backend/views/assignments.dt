@@ -1,0 +1,14 @@
+extends layout
+//- Service assignments of the global account. Needs page, view (ServiceAssignmentsDto).
+block actions
+  - import neko.platform.presentation.web.icons : icon;
+  .btn-list
+    a.btn(href="/landscape")
+      | !{icon("hexagons")}
+      | Landscape
+    a.btn(href="/landscape/recovery")
+      | !{icon("arrows-exchange")}
+      | Disaster recovery
+block content
+  p.text-secondary Which services each subaccount may use: the role collections of a subaccount can only grant rights of its assigned services, and files can only be uploaded to subaccounts with the service “files”. A subaccount with every service also gets services added later. A service stays assigned while a role collection of the subaccount grants its rights. Below each service: the subaccount's entitlements to its plans.
+  include assignments_table

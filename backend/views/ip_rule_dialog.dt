@@ -33,9 +33,9 @@
           .mb-3
             label.form-label(for="ip-scope") Applies to
             select#ip-scope.form-select(name="scope")
-              option(value="admin", selected=(form.scope_ == "admin")) Management pages (sign-in, /status, /sites, …)
+              option(value="admin", selected=(form.scope_ == "admin")) Management pages (sign-in, /status, /landscape, …)
               option(value="api", selected=(form.scope_ == "api")) APIs (REST, OData, /api, /metrics)
-              option(value="all", selected=(form.scope_ == "all")) Everything, also the public site
+              option(value="all", selected=(form.scope_ == "all")) Everything, also public files
             .form-hint As soon as one allow rule exists for an area, only listed networks reach it.
           .mb-3
             label.form-label(for="ip-note") Note

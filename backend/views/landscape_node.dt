@@ -5,7 +5,8 @@
 - import std.format : format;
 - import vibe.data.json : Json;
 - import neko.platform.presentation.web.icons : icon;
-- import neko.platform.presentation.web.landscape : money, quotaText, stageColor;
+- import neko.platform.application.dtos : byteSize;
+- import neko.platform.presentation.web.landscape : money, quotaText, recoveryBadge, stageColor;
 - import neko.platform.presentation.web.support : shortTime;
 - auto n = selected;
 - auto manage = page.isLandscapeManage;
@@ -120,12 +121,23 @@
             .datagrid-title Cost center
             .datagrid-content #{n.effectiveCostCenter.length ? n.effectiveCostCenter : "–"}#{n.costCenter.length ? "" : " (inherited)"}
           .datagrid-item
-            .datagrid-title Sites
+            .datagrid-title Disaster recovery
             .datagrid-content
-              - if (n.sites.length == 0)
-                span.text-secondary none
-              - foreach (s; n.sites)
-                a.badge.bg-azure-lt.me-1(href="/?site=" ~ s, target="_blank", rel="noopener")= s
+              a.badge(href="/landscape/recovery#dr-" ~ n.key, class=recoveryBadge(n.recoveryStatus))= n.recoveryStatus
+              - if (n.secondaryRegion.length)
+                .small.text-secondary
+                  | to 
+                  code= n.secondaryRegion
+                  - if (n.activeRegion != n.region)
+                    |  · now running in 
+                    code= n.activeRegion
+          .datagrid-item
+            .datagrid-title Files
+            .datagrid-content
+              - if (page.isFilesRead)
+                a(href="/files?subaccount=" ~ n.key) #{n.files} · #{byteSize(n.fileBytes)}
+              - else
+                | #{n.files} · #{byteSize(n.fileBytes)}
           .datagrid-item
             .datagrid-title Subaccount administrators
             .datagrid-content= n.admins.length ? n.admins.join(", ") : "– (global account administrators)"
@@ -140,6 +152,7 @@
           .datagrid-item
             .datagrid-title Services
             .datagrid-content
+              a.small.d-block(href="/landscape/assignments") assignments
               - if (n.services.length == 0)
                 span.text-secondary every service
               - foreach (svc; n.services)
@@ -225,11 +238,6 @@
                         | #{sp.name}
                         - if (sp.description.length)
                           .small.text-secondary= sp.description
-                      td
-                        - if (sp.sites.length == 0)
-                          span.small.text-secondary no sites
-                        - foreach (site; sp.sites)
-                          a.badge.bg-azure-lt.me-1(href="/?site=" ~ site, target="_blank", rel="noopener")= site
                       - if (administer)
                         td.w-1.text-nowrap
                           .d-flex.gap-1.justify-content-end

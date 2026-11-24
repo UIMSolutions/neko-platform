@@ -1,0 +1,60 @@
+//- The disaster recovery plan of a subaccount. Needs page, form (RecoveryPlanForm), view (RecoveryOverviewDto).
+- import neko.platform.presentation.web.icons : icon;
+- auto c = form.current;
+- auto v = form.values;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered.modal-lg
+    .modal-content
+      form(hx-post="/landscape/recovery/" ~ c.subaccount ~ "/plan", hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title Disaster recovery of #{c.subaccount}
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          - if (c.failedOver)
+            .alert.alert-warning(role="alert") #{c.subaccount} runs in its secondary region #{c.secondaryRegion}: fail back before you change the region or disable the plan.
+          label.form-check.form-switch.mb-3
+            input.form-check-input(type="checkbox", name="enabled", checked=v.enabled)
+            span.form-check-label Protect #{c.subaccount} (#{c.stage}, #{c.domain}) with a secondary region
+          .row
+            .col-md-6.mb-3
+              label.form-label Primary region
+              input.form-control(type="text", value=c.primaryRegion ~ " — " ~ c.primaryLabel, disabled=true)
+            .col-md-6.mb-3
+              label.form-label.required(for="dr-region") Secondary region
+              select#dr-region.form-select(name="secondaryRegion")
+                option(value="", selected=(v.secondaryRegion.length == 0)) – choose –
+                - foreach (r; view.regions)
+                  - if (r.id != c.primaryRegion)
+                    option(value=r.id, selected=(r.id == v.secondaryRegion)) #{r.id} — #{r.provider} · #{r.location}
+          .mb-3
+            .form-label Strategy
+            .form-selectgroup.form-selectgroup-boxes.d-flex.flex-column
+              - foreach (st; view.strategies)
+                label.form-selectgroup-item.flex-fill
+                  input.form-selectgroup-input(type="radio", name="strategy", value=st.key, checked=(st.key == v.strategy))
+                  .form-selectgroup-label.d-flex.align-items-center.p-2
+                    .me-2
+                      span.form-selectgroup-check
+                    div
+                      .fw-medium= st.label
+                      .small.text-secondary RPO from #{st.minRpoMinutes} min, RTO from #{st.minRtoMinutes} min
+          .row
+            .col-md-6.mb-3
+              label.form-label(for="dr-rpo") RPO (minutes)
+              input#dr-rpo.form-control(type="number", name="rpoMinutes", value=v.rpoMinutes, min="0", max="10080", required=true)
+              .form-hint Data that may be lost.
+            .col-md-6.mb-3
+              label.form-label(for="dr-rto") RTO (minutes)
+              input#dr-rto.form-control(type="number", name="rtoMinutes", value=v.rtoMinutes, min="0", max="10080", required=true)
+              .form-hint Time to restore the service; drills are measured against it.
+          .form-hint Confidential and secret subaccounts in an EU Access region fail over only to another EU Access (or a self-hosted) region. Targets the strategy cannot reach, the same location and data leaving its geography are warned about.
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn.btn-primary(type="submit")
+            | !{icon("check")}
+            | Save

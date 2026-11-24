@@ -36,7 +36,7 @@
           .mb-3
             label.form-label(for="p-meter") Measured by
             select#p-meter.form-select(name="meter")
-              - foreach (m; [["none", "Nothing — billed by the entitled quota"], ["requests", "Requests to the sites"], ["egressBytes", "Bytes sent by the sites"], ["storageBytes", "Peak file storage of the sites"], ["sites", "Number of sites"]])
+              - foreach (m; [["none", "Nothing — billed by the entitled quota"], ["requests", "Requests of the subaccount"], ["egressBytes", "Bytes sent for the subaccount"], ["storageBytes", "Peak file storage of the subaccount"]])
                 option(value=m[0], selected=(v.meter == m[0]))= m[1]
           .row
             .col-4.mb-3

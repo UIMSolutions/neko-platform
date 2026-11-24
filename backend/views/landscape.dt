@@ -3,6 +3,12 @@ extends layout
 block actions
   - import neko.platform.presentation.web.icons : icon;
   .btn-list
+    a.btn(href="/landscape/assignments")
+      | !{icon("apps")}
+      | Service assignments
+    a.btn(href="/landscape/recovery")
+      | !{icon("arrows-exchange")}
+      | Disaster recovery
     - if (page.isBillingRead)
       a.btn(href="/landscape/billing")
         | !{icon("chart-line")}
@@ -15,5 +21,5 @@ block actions
         | !{icon("plus")}
         | Subaccount
 block content
-  p.text-secondary The global account holds the contract, the purchased entitlements and global role collections. Directories group subaccounts and may take over a budget (entitlements) and role collections; subaccounts are where sites run — with region, subdomain, purpose, stage and security domain.
+  p.text-secondary The global account holds the contract, the purchased entitlements, its administrators and global role collections. Directories group subaccounts and may take over a budget (entitlements) and role collections. Subaccounts are logically separate, each with its own administrators, user group and selected services; each has one or more tenants, and each tenant one or more spaces (always “default”). Every subaccount lives in a region and can fail over to a secondary one (disaster recovery).
   include landscape_body

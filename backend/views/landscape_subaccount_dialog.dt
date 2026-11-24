@@ -66,7 +66,7 @@
             label.form-label(for="s-desc") Description
             input#s-desc.form-control(type="text", name="description", value=v.description, maxlength="256")
           - if (!form.existing)
-            .form-hint.mb-3 A new subaccount starts with the tenant “default” and its space “default”. Sites, tenants, spaces, administrators and the user group are set on the subaccount afterwards.
+            .form-hint.mb-3 A new subaccount starts with the tenant “default” and its space “default”. Tenants, spaces, administrators, the user group, services and disaster recovery are set on the subaccount afterwards.
           .row
             .col-md-6.mb-3
               label.form-label(for="s-cc") Cost center

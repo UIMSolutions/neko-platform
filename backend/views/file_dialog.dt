@@ -25,7 +25,7 @@
             input#f-desc.form-control(type="text", name="description", value=form.description, maxlength="500")
           label.form-check.form-switch
             input.form-check-input(type="checkbox", name="isPublic", checked=form.isPublic)
-            span.form-check-label Public: shown on the site #{form.file.site} and downloadable without signing in
+            span.form-check-label Public: downloadable by anyone with the link, without signing in (subaccount #{form.file.subaccount})
           .datagrid.mt-3
             .datagrid-item
               .datagrid-title Size

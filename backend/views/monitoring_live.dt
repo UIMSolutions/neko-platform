@@ -121,14 +121,14 @@
           table.table.table-sm.card-table
             thead
               tr
-                th Site
+                th Subaccount
                 th.text-end Files
                 th.text-end Size
             tbody
-              - foreach (u; storage.sites)
+              - foreach (u; storage.subaccounts)
                 tr
                   td #{u.name} 
-                    code.small= u.site
+                    code.small= u.subaccount
                   td.text-end= u.files.to!string
                   td.text-end= byteSize(u.bytes)
               tr.fw-bold

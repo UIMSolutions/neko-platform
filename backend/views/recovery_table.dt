@@ -1,0 +1,126 @@
+//- Recovery of every subaccount; swapped after every change. Needs page, view (RecoveryOverviewDto), adminOf (bool[string]).
+- import std.conv : to;
+- import neko.platform.presentation.web.icons : icon;
+- import neko.platform.presentation.web.landscape : minutesText, recoveryBadge, stageColor;
+- import neko.platform.presentation.web.support : shortTime;
+#recovery
+  .row.row-deck.row-cards.mb-3
+    - auto unprotected = view.unprotectedProduction ? " (" ~ view.unprotectedProduction.to!string ~ " in production)" : "";
+    - foreach (t; [["Protected", view.protectedCount.to!string, "shield-check", "green"], ["Failed over", view.failedOverCount.to!string, "arrows-exchange", view.failedOverCount ? "orange" : "secondary"], ["Misconfigured", view.misconfiguredCount.to!string, "alert-circle", view.misconfiguredCount ? "red" : "secondary"], ["Unprotected" ~ unprotected, view.unprotectedCount.to!string, "alert-triangle", view.unprotectedProduction ? "yellow" : "secondary"]])
+      .col-sm-6.col-lg-3
+        .card.card-sm
+          .card-body
+            .row.align-items-center
+              .col-auto
+                span.avatar(class="bg-" ~ t[3] ~ "-lt")
+                  | !{icon(t[2])}
+              .col
+                .h2.mb-0= t[1]
+                .text-secondary= t[0]
+  - if (view.subaccounts.length == 0)
+    .empty
+      p.empty-title No subaccounts
+      p.empty-subtitle.text-secondary Create a subaccount in the landscape first.
+  - foreach (d; view.subaccounts)
+    - auto admin = adminOf.get(d.subaccount, false);
+    - auto base = "/landscape/recovery/" ~ d.subaccount ~ "/";
+    .card.mb-3(id="dr-" ~ d.subaccount)
+      .card-header
+        .d-flex.flex-wrap.align-items-center.gap-2.flex-fill
+          span.text-secondary
+            | !{icon("server")}
+          a.fw-bold(href="/landscape?node=subaccount:" ~ d.subaccount)= d.name
+          code.small= d.subaccount
+          span.badge(class="bg-" ~ stageColor(d.stage) ~ "-lt")= d.stage
+          span.badge.bg-secondary-lt= d.domain
+          span.badge(class=recoveryBadge(d.status))= d.status
+        - if (admin)
+          .card-actions.btn-list
+            button.btn.btn-sm(hx-get=base ~ "plan", hx-target="#dialog-host")
+              | !{icon("settings")}
+              | Plan
+            - if (d.canDrill)
+              button.btn.btn-sm(hx-get=base ~ "drill", hx-target="#dialog-host")
+                | !{icon("player-play")}
+                | Drill
+            - if (d.canFailover)
+              button.btn.btn-sm.btn-warning(hx-get=base ~ "failover", hx-target="#dialog-host")
+                | !{icon("arrows-exchange")}
+                | Failover
+            - if (d.canFailback)
+              button.btn.btn-sm.btn-primary(hx-get=base ~ "failback", hx-target="#dialog-host")
+                | !{icon("refresh")}
+                | Failback
+      .card-body
+        .datagrid
+          .datagrid-item
+            .datagrid-title Primary region
+            .datagrid-content
+              code= d.primaryRegion
+              - if (d.activeRegion == d.primaryRegion)
+                span.badge.bg-green-lt.ms-1 active
+              .small.text-secondary= d.primaryLabel
+          .datagrid-item
+            .datagrid-title Secondary region
+            .datagrid-content
+              - if (d.secondaryRegion.length)
+                code= d.secondaryRegion
+                - if (d.failedOver)
+                  span.badge.bg-orange-lt.ms-1 active
+                .small.text-secondary= d.secondaryLabel
+              - else
+                span.text-secondary none
+          .datagrid-item
+            .datagrid-title Strategy
+            .datagrid-content= d.enabled ? d.strategyLabel : "–"
+          .datagrid-item
+            .datagrid-title RPO · RTO
+            .datagrid-content= d.enabled ? minutesText(d.rpoMinutes) ~ " · " ~ minutesText(d.rtoMinutes) : "–"
+          .datagrid-item
+            .datagrid-title Last drill
+            .datagrid-content= shortTime(d.lastDrillAt, "never")
+          .datagrid-item
+            .datagrid-title Last failover
+            .datagrid-content= shortTime(d.lastFailoverAt, "never")
+      - foreach (i; d.issues)
+        .card-footer.d-flex.gap-2(class=(i.error ? "text-red" : "text-yellow"))
+          | !{icon(i.error ? "alert-circle" : "alert-triangle")}
+          div= i.message
+      - foreach (a; d.advice)
+        .card-footer.d-flex.gap-2
+          span.text-primary
+            | !{icon("info-circle")}
+          div
+            .fw-medium= a.recommendation
+            .small.text-secondary= a.reason
+      - if (d.history.length)
+        .card-footer
+          details
+            summary.text-secondary History (#{d.history.length})
+            .table-responsive.mt-2
+              table.table.table-sm.mb-0
+                thead
+                  tr
+                    th When (UTC)
+                    th What
+                    th Regions
+                    th.text-end Duration
+                    th By
+                    th Note
+                tbody
+                  - foreach (e; d.history)
+                    tr
+                      td.text-nowrap= shortTime(e.at)
+                      td
+                        - if (e.kind == "drill")
+                          span.badge(class=(e.success ? "bg-green-lt" : "bg-red-lt"))= e.success ? "drill passed" : "drill failed"
+                        - else
+                          span.badge(class=(e.kind == "failover" ? "bg-orange-lt" : e.kind == "failback" ? "bg-blue-lt" : "bg-secondary-lt"))= e.kind
+                      td.text-nowrap
+                        - if (e.from != e.to)
+                          code= e.from
+                          |  → 
+                        code= e.to
+                      td.text-end.text-nowrap= e.minutes ? minutesText(e.minutes) : "–"
+                      td= e.actor
+                      td.text-secondary= e.reason

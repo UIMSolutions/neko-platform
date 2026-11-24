@@ -1,0 +1,86 @@
+//- The assignment matrix; swapped after every change. Needs page, view (ServiceAssignmentsDto).
+- import std.algorithm : map;
+- import std.array : join;
+- import std.conv : to;
+- import std.format : format;
+- import vibe.data.json : Json;
+- import neko.platform.presentation.web.icons : icon;
+- import neko.platform.presentation.web.landscape : quotaText, stageColor;
+- auto manage = page.isLandscapeManage;
+- auto everyone = view.subaccounts.map!(s => s.key).join(",");
+- string vals(string service, string subaccounts, bool assign) { auto j = Json.emptyObject; j["service"] = service; j["subaccount"] = subaccounts; j["assign"] = assign ? "1" : "0"; return j.toString; }
+#assignments
+  - if (view.subaccounts.length == 0)
+    .empty
+      p.empty-title No subaccounts
+      p.empty-subtitle.text-secondary Create a subaccount in the landscape first.
+  - else
+    .card
+      .card-header
+        h3.card-title Services × subaccounts
+        .card-subtitle.ms-2.text-secondary #{view.services.length} services, #{view.subaccounts.length} subaccounts
+      .table-responsive
+        table.table.table-vcenter.card-table.table-sm
+          thead
+            tr
+              th Service
+              - foreach (s; view.subaccounts)
+                th.text-center
+                  a(href="/landscape?node=subaccount:" ~ s.key, title=s.name ~ (s.directory.length ? " · directory " ~ s.directory : ""))= s.key
+                  .small.fw-normal
+                    span.badge(class="bg-" ~ stageColor(s.stage) ~ "-lt")= s.stage
+                    |  #{s.region}
+                  .small.fw-normal.text-secondary= s.allServices ? "every service" : s.assignedServices.to!string ~ " assigned"
+              - if (manage)
+                th.w-1.text-nowrap All
+          tbody
+            - foreach (row; view.services)
+              tr
+                td
+                  .fw-medium= row.service.label
+                  code.small= row.service.key
+                  .small.text-secondary= row.service.rights.join(", ")
+                - foreach (cell; row.cells)
+                  td.text-center
+                    - auto title = cell.assigned ? (cell.usedBy.length ? "Used by " ~ cell.usedBy.join(", ") : "Assigned" ~ (cell.explicit ? "" : " (every service)")) : "Not assigned";
+                    - if (manage)
+                      button.btn.btn-icon.btn-sm(hx-post="/landscape/assignments", hx-vals=vals(row.service.key, cell.subaccount, !cell.assigned), hx-target="#assignments", hx-swap="outerHTML", class=(cell.assigned ? (cell.explicit ? "btn-success" : "btn-outline-success") : "btn-ghost-secondary"), title=title, aria-label=(cell.assigned ? "Unassign " : "Assign ") ~ row.service.key ~ (cell.assigned ? " from " : " to ") ~ cell.subaccount, disabled=(cell.assigned && cell.usedBy.length > 0))
+                        | !{icon(cell.assigned ? "check" : "x")}
+                    - else
+                      span(class=(cell.assigned ? "text-green" : "text-secondary"), title=title)
+                        | !{icon(cell.assigned ? "check" : "x")}
+                    - foreach (e; cell.entitlements)
+                      .small.text-secondary(title=e.plan) #{e.plan[row.service.key.length + 1 .. $]}: #{quotaText(e.quota)}
+                - if (manage)
+                  td.text-nowrap
+                    .btn-group
+                      button.btn.btn-sm(hx-post="/landscape/assignments", hx-vals=vals(row.service.key, everyone, true), hx-target="#assignments", hx-swap="outerHTML", disabled=(row.assigned == row.cells.length), title="Assign to every subaccount") all
+                      button.btn.btn-sm(hx-post="/landscape/assignments", hx-vals=vals(row.service.key, everyone, false), hx-target="#assignments", hx-swap="outerHTML", hx-confirm="Unassign " ~ row.service.key ~ " from every subaccount? Subaccounts whose role collections use it are refused, and then nothing changes.", disabled=(row.assigned == 0), title="Unassign from every subaccount") none
+      .card-footer.small.text-secondary
+        | Filled tick: assigned explicitly · outlined tick: assigned because the subaccount has every service · a disabled tick is in use by a role collection of the subaccount · click a cell to change it.
+    .card.mt-3
+      .card-header
+        h3.card-title Entitlements per subaccount
+        .card-subtitle.ms-2.text-secondary quotas in plan units; ∞ = pay per use
+      .table-responsive
+        table.table.table-vcenter.card-table.table-sm
+          thead
+            tr
+              th Plan
+              - foreach (s; view.subaccounts)
+                th.text-end= s.key
+          tbody
+            - foreach (p; view.plans)
+              tr
+                td
+                  code= p.plan.key
+                  .small.text-secondary #{p.plan.service} · #{p.plan.plan} · #{p.plan.unit}
+                - foreach (i, q; p.quotas)
+                  td.text-end
+                    - if (!p.entitled[i])
+                      span.text-secondary –
+                    - else if (manage)
+                      a(href="#", hx-get="/landscape/entitlement?node=subaccount:" ~ view.subaccounts[i].key ~ "&plan=" ~ p.plan.key, hx-target="#dialog-host")= quotaText(q)
+                    - else
+                      | #{quotaText(q)}
+      .card-footer.small.text-secondary Change an entitlement by its quota, or add one on the subaccount in the landscape (it draws from its directory or the global account).

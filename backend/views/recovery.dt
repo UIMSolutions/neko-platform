@@ -1,0 +1,14 @@
+extends layout
+//- Multi-region disaster recovery. Needs page, view (RecoveryOverviewDto), adminOf (bool[string]).
+block actions
+  - import neko.platform.presentation.web.icons : icon;
+  .btn-list
+    a.btn(href="/landscape")
+      | !{icon("hexagons")}
+      | Landscape
+    a.btn(href="/landscape/assignments")
+      | !{icon("apps")}
+      | Service assignments
+block content
+  p.text-secondary Every subaccount runs in its primary region. A recovery plan names a secondary region, a strategy and the objectives it must meet — RPO (how much data may be lost) and RTO (how long restoring may take). A failover moves the subaccount to its secondary region: service calls then report that region (X-Neko-Region). Drills rehearse a failover and are measured against the RTO. Global account administrators and the subaccount's administrators run them.
+  include recovery_table

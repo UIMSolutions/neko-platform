@@ -1,0 +1,50 @@
+//- A failover, failback or drill. Needs page, form (RecoveryActionForm).
+- import neko.platform.presentation.web.icons : icon;
+- import neko.platform.presentation.web.landscape : minutesText;
+- auto c = form.current;
+- auto drill = form.action == "drill";
+- auto title = form.action == "failover" ? "Fail over " ~ c.subaccount : form.action == "failback" ? "Fail back " ~ c.subaccount : "Drill for " ~ c.subaccount;
+.modal.modal-blur.fade(tabindex="-1", aria-labelledby="dialog-title", aria-modal="true", role="dialog")
+  .modal-dialog.modal-dialog-centered
+    .modal-content
+      form(hx-post="/landscape/recovery/" ~ c.subaccount ~ "/" ~ form.action, hx-target="closest .modal-content", hx-select=".modal-content", hx-swap="outerHTML")
+        .modal-header
+          h5#dialog-title.modal-title= title
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          - if (form.error.length)
+            .alert.alert-danger(role="alert")
+              .d-flex.gap-2
+                | !{icon("alert-circle")}
+                div= form.error
+          - if (form.action == "failover")
+            .alert.alert-warning(role="alert")
+              | Moves #{c.subaccount} from 
+              code= c.primaryRegion
+              |  to 
+              code= c.secondaryRegion
+              | . Service calls report the new region at once; it runs without a standby until you fail back.
+          - else if (form.action == "failback")
+            .alert.alert-info(role="alert")
+              | Returns #{c.subaccount} from 
+              code= c.secondaryRegion
+              |  to its primary region 
+              code= c.primaryRegion
+              | .
+          - else
+            p.text-secondary Record a rehearsed failover from #{c.primaryRegion} to #{c.secondaryRegion}. It passes when the service worked within the RTO of #{minutesText(c.rtoMinutes)}.
+          - if (drill)
+            label.form-check.form-switch.mb-3
+              input.form-check-input(type="checkbox", name="worked", checked=form.worked)
+              span.form-check-label The service worked in the secondary region
+          .mb-3
+            label.form-label(for="dr-minutes")= drill ? "Time to fail over (minutes)" : "Duration (minutes, optional)"
+            input#dr-minutes.form-control(type="number", name="minutes", value=form.minutes, min="0", required=drill)
+          .mb-3
+            label.form-label(for="dr-reason", class=(drill ? "" : "required"))= drill ? "Notes" : "Reason"
+            textarea#dr-reason.form-control(name="reason", rows="2", maxlength="500", required=!drill, placeholder=(drill ? "What was tested, what went wrong" : "Incident, maintenance, …"))= form.reason
+        .modal-footer
+          button.btn.me-auto(type="button", data-bs-dismiss="modal") Cancel
+          button.btn(type="submit", class=(form.action == "failover" ? "btn-warning" : "btn-primary"))
+            | !{icon(form.action == "failover" ? "arrows-exchange" : form.action == "failback" ? "refresh" : "player-play")}
+            | #{form.action == "failover" ? "Fail over" : form.action == "failback" ? "Fail back" : "Record drill"}

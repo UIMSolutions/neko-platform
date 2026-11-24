@@ -10,7 +10,7 @@ import neko.platform.domain;
 
 @safe:
 
-/// Measured usage per month and site.
+/// Measured usage per month and subaccount.
 interface IUsageRepository {
   UsageRecord[] ofMonth(string month);
   /// Months with usage, newest first ("2026-11").

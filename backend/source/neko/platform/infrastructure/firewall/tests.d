@@ -7,6 +7,12 @@ import std.datetime.systime : SysTime;
 import std.regex : Regex, matchFirst, regex;
 import std.string : indexOf, strip, toLower;
 import std.uni : isWhite;
+import neko.platform.infrastructure.firewall.ban;
+import neko.platform.infrastructure.firewall.banlist;
+import neko.platform.infrastructure.firewall.ratelimiter;
+import neko.platform.infrastructure.firewall.waffinding;
+import neko.platform.infrastructure.firewall.wafinspector;
+import neko.platform.infrastructure.firewall.wafrequest;
 
 @safe:
 

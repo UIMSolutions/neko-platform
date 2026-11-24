@@ -117,12 +117,11 @@ Role[] builtInRoles(SysTime now) {
   return [
     make(adminRole, "Administrator", "Every access right, including users and roles", allAccessRights),
     make(auditorRole, "Auditor", "Reads everything, including events, monitoring, users and roles; changes nothing",
-      [AccessRight.statusRead, AccessRight.eventsRead, AccessRight.monitoringRead, AccessRight.sitesRead,
+      [AccessRight.statusRead, AccessRight.eventsRead, AccessRight.monitoringRead,
         AccessRight.filesRead, AccessRight.securityRead, AccessRight.landscapeRead, AccessRight.billingRead,
         AccessRight.usersRead, AccessRight.rolesRead]),
-    make(editorRole, "Editor", "Site content and files",
-      [AccessRight.statusRead, AccessRight.sitesRead, AccessRight.sitesManage, AccessRight.filesRead,
-        AccessRight.filesManage]),
+    make(editorRole, "Editor", "Files of the subaccounts",
+      [AccessRight.statusRead, AccessRight.filesRead, AccessRight.filesManage]),
     make(viewerRole, "Viewer", "Status page", [AccessRight.statusRead]),
   ];
 }

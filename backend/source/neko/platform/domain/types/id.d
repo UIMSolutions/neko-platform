@@ -40,5 +40,5 @@ unittest {
   tid.value = "transfer-456";
   assert(!tid.isEmpty());
 }
-/// A file of a site's library.
+/// A file of a subaccount's library.
 alias FileId = Id!"file";

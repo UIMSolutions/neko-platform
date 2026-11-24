@@ -19,7 +19,7 @@ public:
   import neko.platform.presentation.cli.commands;
   import neko.platform.presentation.cli.output;
   import neko.platform.presentation.cli.roles;
-  import neko.platform.presentation.cli.sites;
+  import neko.platform.presentation.cli.files;
   import neko.platform.presentation.cli.firewall;
   import neko.platform.presentation.cli.landscape;
   import neko.platform.presentation.cli.services;

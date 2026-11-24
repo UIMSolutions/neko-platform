@@ -41,7 +41,6 @@ immutable NavItem[] navigation = [
   NavItem("status", "Status", "/status", "activity-heartbeat", AccessRight.statusRead),
   NavItem("monitoring", "Monitoring", "/monitoring", "chart-line", AccessRight.monitoringRead),
   NavItem("landscape", "Landscape", "/landscape", "hexagons", AccessRight.landscapeRead),
-  NavItem("sites", "Sites", "/sites", "world", AccessRight.sitesRead),
   NavItem("files", "Files", "/files", "files", AccessRight.filesRead),
   NavItem("security", "Security", "/security", "shield-check", AccessRight.securityRead),
   NavItem("users", "Users", "/users", "users", AccessRight.usersRead),
@@ -55,7 +54,7 @@ struct PageContext {
   string serviceName;
   string domain;
   string title;
-  /// Key of the highlighted navigation entry ("status", "sites", "files", "users", …).
+  /// Key of the highlighted navigation entry ("status", "landscape", "files", "users", …).
   string active;
   UserDto user;
   string csrf;

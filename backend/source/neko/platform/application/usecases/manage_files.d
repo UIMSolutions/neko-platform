@@ -3,54 +3,56 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// The file library of the sites: metadata in a repository, content in a
-/// blob store (one folder per site).
+/// The file library of each subaccount: metadata in a repository, content
+/// in a blob store (one folder per subaccount). Who reaches a library:
+/// see access.mayAccessSubaccount. Uploads need the service "files" to be
+/// assigned to the subaccount.
 module neko.platform.application.usecases.manage_files;
 
-import std.algorithm : filter, map, sort;
+import std.algorithm : canFind, map, sort;
 import std.array : array;
-import std.string : strip;
+import std.string : strip, toLower;
 import neko.platform.domain;
 import neko.platform.application.dtos;
 import neko.platform.application.usecases.access;
-import neko.platform.application.usecases.manage_sites : countText;
 import neko.platform.ports;
 
 @safe:
+
+/// Key of the service whose rights cover the libraries.
+enum filesService = "files";
 
 /// Upload limits (configuration).
 struct FileLimits {
   /// Per file.
   long maxFileBytes = 50 * 1024 * 1024;
-  /// Per site; 0 = no quota.
-  long siteQuotaBytes = 0;
+  /// Per subaccount; 0 = no quota.
+  long subaccountQuotaBytes = 0;
 }
 
 class ManageFilesUseCase : IManageFilesUseCase {
   private IFileRepository files;
-  private ISiteRepository sites;
+  private ILandscapeRepository landscape;
   private IBlobStore blobs;
-  private IUserRepository users;
   private IEventPublisher events;
   private IClock clock;
   private IIdGenerator ids;
   private FileLimits limits;
 
-  this(IFileRepository files, ISiteRepository sites, IBlobStore blobs, IUserRepository users, IEventPublisher events,
-      IClock clock, IIdGenerator ids, FileLimits limits = FileLimits.init) {
+  this(IFileRepository files, ILandscapeRepository landscape, IBlobStore blobs, IEventPublisher events, IClock clock,
+      IIdGenerator ids, FileLimits limits = FileLimits.init) {
     this.files = files;
-    this.sites = sites;
+    this.landscape = landscape;
     this.blobs = blobs;
-    this.users = users;
     this.events = events;
     this.clock = clock;
     this.ids = ids;
     this.limits = limits;
   }
 
-  FileDto[] list(string site, string actor) {
-    auto key = requireExistingSite(site, actor);
-    auto list = files.ofSite(key);
+  FileDto[] list(string subaccount, string actor) {
+    auto s = requireSubaccount(subaccount, actor);
+    auto list = files.ofSubaccount(s.key);
     list.sort!((a, b) => a.createdAt > b.createdAt || (a.createdAt == b.createdAt && a.name < b.name));
     return list.map!(f => f.toDto).array;
   }
@@ -60,11 +62,15 @@ class ManageFilesUseCase : IManageFilesUseCase {
   }
 
   FileDto upload(UploadFileRequest request, string actor) {
-    auto key = requireExistingSite(request.site, actor);
+    auto s = requireSubaccount(request.subaccount, actor);
+    if (!s.allowsService(filesService))
+      throw new PolicyViolationException("The service " ~ filesService ~ " is not assigned to the subaccount " ~ s.key
+          ~ "; assign it under Service assignments first");
+    auto key = s.key;
     auto now = clock.now;
     StoredFile file;
     file.id = FileId(ids.newId);
-    file.site = SiteKey(key);
+    file.subaccount = key;
     file.rename(request.name, now);
     file.describe(request.description, now);
     file.isPublic = request.isPublic;
@@ -80,19 +86,19 @@ class ManageFilesUseCase : IManageFilesUseCase {
     if (info.size > limits.maxFileBytes)
       throw new ValidationException("The file '" ~ file.name ~ "' has " ~ byteSize(info.size)
           ~ "; at most " ~ byteSize(limits.maxFileBytes) ~ " are allowed");
-    if (limits.siteQuotaBytes > 0) {
+    if (limits.subaccountQuotaBytes > 0) {
       long used;
-      foreach (f; files.ofSite(key))
+      foreach (f; files.ofSubaccount(key))
         used += f.size;
-      if (used + info.size > limits.siteQuotaBytes)
-        throw new PolicyViolationException("The site " ~ key ~ " would exceed its quota of "
-            ~ byteSize(limits.siteQuotaBytes) ~ " (" ~ byteSize(used) ~ " used)");
+      if (used + info.size > limits.subaccountQuotaBytes)
+        throw new PolicyViolationException("The subaccount " ~ key ~ " would exceed its quota of "
+            ~ byteSize(limits.subaccountQuotaBytes) ~ " (" ~ byteSize(used) ~ " used)");
     }
     file.size = info.size;
     file.sha256 = info.sha256;
     files.save(file);
-    emit("file.uploaded", file.id.value, actor, "Uploaded " ~ file.name ~ " (" ~ byteSize(file.size) ~ ") to site "
-        ~ key ~ (file.isPublic ? ", public" : ""));
+    emit("file.uploaded", file.id.value, actor, "Uploaded " ~ file.name ~ " (" ~ byteSize(file.size)
+        ~ ") to subaccount " ~ key ~ (file.isPublic ? ", public" : ""));
     return file.toDto;
   }
 
@@ -108,28 +114,28 @@ class ManageFilesUseCase : IManageFilesUseCase {
       file.publish(request.isPublic.get, now);
     files.save(file);
     emit(published ? (file.isPublic ? "file.published" : "file.withdrawn") : "file.changed", file.id.value, actor,
-      (published ? (file.isPublic ? "Published " : "Withdrew ") : "Changed ") ~ file.name ~ " of site "
-        ~ file.site.value);
+      (published ? (file.isPublic ? "Published " : "Withdrew ") : "Changed ") ~ file.name ~ " of subaccount "
+        ~ file.subaccount);
     return file.toDto;
   }
 
   void remove(string id, string actor) {
     auto file = load(id, actor);
     files.remove(file.id);
-    blobs.remove(file.site.value, file.id.value);
-    emit("file.removed", file.id.value, actor, "Removed " ~ file.name ~ " from site " ~ file.site.value);
+    blobs.remove(file.subaccount, file.id.value);
+    emit("file.removed", file.id.value, actor, "Removed " ~ file.name ~ " from subaccount " ~ file.subaccount);
   }
 
   FileContent open(string id, string actor) {
     return content(load(id, actor));
   }
 
-  bool tryOpenPublic(string site, string id, out FileContent result) {
+  bool tryOpenPublic(string subaccount, string id, out FileContent result) {
     StoredFile file;
-    if (!files.tryGet(FileId(id.strip), file) || !file.isPublic || file.site.value != site)
+    if (!files.tryGet(FileId(id.strip), file) || !file.isPublic || file.subaccount != subaccount)
       return false;
-    Site s;
-    if (!sites.tryGet(site, s))
+    Subaccount s;
+    if (!landscape.load().trySubaccount(subaccount, s))
       return false;
     result = content(file);
     return true;
@@ -138,45 +144,70 @@ class ManageFilesUseCase : IManageFilesUseCase {
   StorageDto storage() {
     StorageDto d;
     auto all = files.all;
-    auto list = sites.all;
-    list.sort!((a, b) => a.key.value < b.key.value);
-    foreach (s; list) {
-      SiteUsageDto u = SiteUsageDto(s.key.value, s.name);
-      foreach (f; all)
-        if (f.site == s.key) {
-          u.files++;
-          u.bytes += f.size;
-        }
+    auto l = landscape.load();
+    string[] known;
+    foreach (s; l.subaccounts) {
+      known ~= s.key;
+      d.subaccounts ~= usageOf(all, s.key, s.name);
+    }
+    string[] orphans;
+    foreach (f; all)
+      if (!known.canFind(f.subaccount) && !orphans.canFind(f.subaccount))
+        orphans ~= f.subaccount;
+    foreach (o; orphans.sort.array)
+      d.subaccounts ~= usageOf(all, o, o ~ " (removed)");
+    foreach (u; d.subaccounts) {
       d.files += u.files;
       d.bytes += u.bytes;
-      d.sites ~= u;
     }
     d.available = blobs.available;
     d.location = blobs.describe;
     return d;
   }
 
+  SubaccountStorageDto[] libraries(string actor) {
+    auto all = files.all;
+    auto l = landscape.load();
+    SubaccountStorageDto[] list;
+    foreach (s; l.subaccounts)
+      if (mayAccessSubaccount(l, actor, s.key))
+        list ~= usageOf(all, s.key, s.name);
+    return list;
+  }
+
+  private static SubaccountStorageDto usageOf(const(StoredFile)[] all, string key, string name) {
+    auto u = SubaccountStorageDto(key, name);
+    foreach (f; all)
+      if (f.subaccount == key) {
+        u.files++;
+        u.bytes += f.size;
+      }
+    return u;
+  }
+
   private FileContent content(const StoredFile file) {
     FileContent c;
     c.file = file.toDto;
-    c.localPath = blobs.localPath(file.site.value, file.id.value);
+    c.localPath = blobs.localPath(file.subaccount, file.id.value);
     if (c.localPath.length == 0)
-      c.data = blobs.get(file.site.value, file.id.value).idup;
+      c.data = blobs.get(file.subaccount, file.id.value).idup;
     return c;
   }
 
-  private string requireExistingSite(string site, string actor) {
-    auto key = SiteKey(site).value;
-    Site s;
-    if (!sites.tryGet(key, s))
-      throw new NotFoundException("Site", site);
-    requireSite(users, actor, key);
-    return key;
+  /// The subaccount, if it exists and `actor` reaches it; libraries outside
+  /// its reach do not exist for it.
+  private Subaccount requireSubaccount(string key, string actor) {
+    auto k = key.strip.toLower;
+    auto l = landscape.load();
+    Subaccount s;
+    if (k.length == 0 || !l.trySubaccount(k, s) || !mayAccessSubaccount(l, actor, k))
+      throw new NotFoundException("Subaccount", key.strip);
+    return s;
   }
 
   private StoredFile load(string id, string actor) {
     StoredFile file;
-    if (!files.tryGet(FileId(id.strip), file) || !mayAccessSite(users, actor, file.site.value))
+    if (!files.tryGet(FileId(id.strip), file) || !mayAccessSubaccount(landscape.load(), actor, file.subaccount))
       throw new NotFoundException("File", id);
     return file;
   }
@@ -189,35 +220,11 @@ class ManageFilesUseCase : IManageFilesUseCase {
 version (unittest) {
   import std.typecons : nullable;
   import neko.platform.application.services : FixedClock, SequentialIds;
-  import neko.platform.application.usecases.manage_sites : ManageSitesUseCase;
-  import neko.platform.application.usecases.manage_users : FakeUsers, fails, NoEvents;
+  import neko.platform.application.usecases.manage_landscape : FakeLandscape;
+  import neko.platform.application.usecases.manage_users : fails, NoEvents;
   import std.datetime.date : DateTime;
   import std.datetime.systime : SysTime;
   import std.datetime.timezone : UTC;
-
-  class FakeSites : ISiteRepository {
-    Site[string] items;
-
-    Site[] all() {
-      return items.values;
-    }
-
-    bool tryGet(string key, out Site s) {
-      if (auto p = key in items) {
-        s = *p;
-        return true;
-      }
-      return false;
-    }
-
-    void save(Site s) {
-      items[s.key.value] = s;
-    }
-
-    bool remove(string key) {
-      return items.remove(key);
-    }
-  }
 
   class FakeFiles : IFileRepository {
     StoredFile[string] items;
@@ -226,10 +233,10 @@ version (unittest) {
       return items.values;
     }
 
-    StoredFile[] ofSite(string site) {
+    StoredFile[] ofSubaccount(string subaccount) {
       StoredFile[] r;
       foreach (f; items)
-        if (f.site.value == site)
+        if (f.subaccount == subaccount)
           r ~= f;
       return r;
     }
@@ -290,41 +297,38 @@ version (unittest) {
     }
   }
 
-  struct SiteFixture {
-    FakeUsers users;
-    FakeSites siteRepo;
+  struct FileFixture {
+    FakeLandscape landscape;
     FakeFiles fileRepo;
     FakeBlobs blobs;
-    ManageSitesUseCase sites;
     ManageFilesUseCase files;
   }
 
-  SiteFixture siteFixture(long quota = 0) {
-    SiteFixture f;
-    f.users = new FakeUsers;
-    f.siteRepo = new FakeSites;
+  /// Subaccounts "main" (bob in its user group) and "blog" (ann administers
+  /// it); "root" administers the global account.
+  FileFixture fileFixture(long quota = 0) {
+    FileFixture f;
+    f.landscape = new FakeLandscape;
+    f.landscape.data.global.admins = ["root"];
+    Subaccount main, blog;
+    main.key = "main";
+    main.name = "Main";
+    main.members = ["bob"];
+    blog.key = "blog";
+    blog.name = "Blog";
+    blog.admins = ["ann"];
+    f.landscape.data.subaccounts = [main, blog];
     f.fileRepo = new FakeFiles;
     f.blobs = new FakeBlobs;
     auto clock = new FixedClock(SysTime(DateTime(2026, 11, 20, 8, 0, 0), UTC()));
-    auto events = new NoEvents;
-    f.sites = new ManageSitesUseCase(f.siteRepo, f.fileRepo, f.users, events, clock);
-    f.files = new ManageFilesUseCase(f.fileRepo, f.siteRepo, f.blobs, f.users, events, clock, new SequentialIds("f"),
+    f.files = new ManageFilesUseCase(f.fileRepo, f.landscape, f.blobs, new NoEvents, clock, new SequentialIds("f"),
       FileLimits(100, quota));
     return f;
   }
 
-  void addAccount(FakeUsers users, string name, string[] sites) {
-    UserAccount a;
-    a.id = AccountId(name);
-    a.userName = UserName(name);
-    a.roles = [adminRole];
-    a.sites = sites;
-    users.save(a);
-  }
-
-  UploadFileRequest upload(string site, string name, string content, bool isPublic = false) {
+  UploadFileRequest upload(string subaccount, string name, string content, bool isPublic = false) {
     UploadFileRequest r;
-    r.site = site;
+    r.subaccount = subaccount;
     r.name = name;
     r.data = cast(immutable(ubyte)[]) content;
     r.isPublic = isPublic;
@@ -332,90 +336,24 @@ version (unittest) {
   }
 }
 
-/// Sites: default site, host names, languages, public page.
+/// Files: upload limits, subaccount scope, public delivery, assigned service.
 unittest {
-  auto f = siteFixture();
-  assert(f.sites.ensureDefaultSite("Neko", "de") == "main");
-  assert(f.sites.ensureDefaultSite("Other", "en") == "main"); // only once
-  auto main = f.sites.get("main", "system");
-  assert(main.isDefault && main.languages == ["de"] && main.contentFor("de").title == "Neko");
+  auto f = fileFixture(60);
 
-  CreateSiteRequest shop;
-  shop.key = "Shop";
-  shop.name = "Shop";
-  shop.hosts = ["shop.example.org:8080"];
-  shop.defaultLanguage = "en";
-  shop.languages = ["de-CH", "fr"];
-  auto s = f.sites.create(shop, "admin");
-  assert(s.key == "shop" && !s.isDefault && s.languages == ["en", "de-CH", "fr"] && s.hosts == ["shop.example.org"]);
-  assert(fails!ConflictException(() { f.sites.create(shop, "admin"); }));
-  CreateSiteRequest clash;
-  clash.key = "other";
-  clash.hosts = ["SHOP.example.org"];
-  assert(fails!ConflictException(() { f.sites.create(clash, "admin"); }));
-
-  f.sites.updateContent("shop", UpdateSiteContentRequest("de-ch", "Willkommen", "", "Eins\n\nZwei"), "admin");
-  f.sites.updateContent("shop", UpdateSiteContentRequest("en", "Welcome"), "admin");
-  assert(fails!ValidationException(() {
-      f.sites.updateContent("shop", UpdateSiteContentRequest("it", "Benvenuti"), "admin");
-    }));
-
-  // the public page: by host name, else the default site; language by ?lang=, Accept-Language, default
-  auto p = f.sites.page("shop.example.org:8080", "", "de-DE,de;q=0.9");
-  assert(p.site.key == "shop" && p.language == "de-CH" && p.content.paragraphs == ["Eins", "Zwei"]);
-  assert(f.sites.page("SHOP.example.org", "fr", "de").language == "fr");
-  assert(f.sites.page("shop.example.org", "fr", "").content.title == "Welcome"); // no French text yet
-  assert(f.sites.page("unknown.example.org", "", "").site.key == "main");
-
-  // default site
-  assert(fails!InvalidStateTransitionException(() { f.sites.remove("main", "admin"); }));
-  f.sites.makeDefault("shop", "admin");
-  assert(f.sites.page("localhost", "", "").site.key == "shop");
-  assert(f.sites.list("admin")[0].key == "shop" && !f.sites.get("main", "admin").isDefault);
-
-  UpdateSiteRequest langs;
-  langs.defaultLanguage = nullable("fr");
-  assert(fails!ValidationException(() { f.sites.update("shop", langs, "admin"); })); // both or neither
-  langs.languages = nullable(["en"]);
-  assert(f.sites.update("shop", langs, "admin").languages == ["fr", "en"]);
-  assert(f.sites.get("shop", "admin").content.length == 1); // de-CH text kept, but not shown
-
-  // tenants: an account limited to sites sees only those
-  addAccount(f.users, "sam", ["shop"]);
-  assert(f.sites.list("sam").length == 1);
-  assert(fails!NotFoundException(() { f.sites.get("main", "sam"); }));
-  assert(fails!PolicyViolationException(() { f.sites.create(clash, "sam"); }));
-  assert(fails!PolicyViolationException(() { f.sites.makeDefault("shop", "sam"); }));
-  f.sites.updateContent("shop", UpdateSiteContentRequest("en", "Hello"), "sam");
-
-  // removal: not while an account works on it
-  f.sites.makeDefault("main", "admin");
-  assert(fails!ConflictException(() { f.sites.remove("shop", "admin"); }));
-  f.users.items.remove("sam");
-  f.sites.remove("shop", "admin");
-  assert(f.sites.list("admin").length == 1);
-}
-
-/// Files: upload limits, tenants, public delivery.
-unittest {
-  auto f = siteFixture(60);
-  f.sites.ensureDefaultSite("Neko", "en");
-  CreateSiteRequest blog;
-  blog.key = "blog";
-  f.sites.create(blog, "admin");
-
-  auto logo = f.files.upload(upload("main", "../Logo.PNG", "png-bytes", true), "admin");
+  auto logo = f.files.upload(upload("Main", "../Logo.PNG", "png-bytes", true), "admin");
   assert(logo.name == "Logo.PNG" && logo.kind == "image" && logo.inline && logo.size == 9 && logo.isPublic);
-  assert(logo.publicUrl == "/media/main/f-1/Logo.PNG");
+  assert(logo.subaccount == "main" && logo.publicUrl == "/media/main/f-1/Logo.PNG");
   auto doc = f.files.upload(upload("main", "Price list.pdf", "pdf"), "admin");
   assert(f.files.list("main", "admin").length == 2);
   assert(fails!ValidationException(() { f.files.upload(upload("main", "big.bin", "x".replicate(101)), "admin"); }));
   assert(fails!ValidationException(() { f.files.upload(upload("main", "empty.txt", ""), "admin"); }));
-  assert(fails!PolicyViolationException(() { f.files.upload(upload("main", "more.txt", "x".replicate(99)), "admin"); }));
+  assert(fails!PolicyViolationException(() {
+      f.files.upload(upload("main", "more.txt", "x".replicate(99)), "admin");
+    }));
   assert(fails!NotFoundException(() { f.files.upload(upload("nope", "a.txt", "a"), "admin"); }));
-  assert(f.blobs.data.length == 2); // refused uploads leave nothing behind
+  assert(f.blobs.data.length == 2 && ("main/" ~ logo.id) in f.blobs.data); // refused uploads leave nothing behind
 
-  // public delivery only for public files of the right site
+  // public delivery only for public files of the right subaccount
   FileContent c;
   assert(f.files.tryOpenPublic("main", logo.id, c) && cast(string) c.data == "png-bytes");
   assert(!f.files.tryOpenPublic("main", doc.id, c) && !f.files.tryOpenPublic("blog", logo.id, c));
@@ -424,20 +362,28 @@ unittest {
   pub.name = nullable("Prices 2026.pdf");
   auto changed = f.files.update(doc.id, pub, "admin");
   assert(changed.name == "Prices 2026.pdf" && f.files.tryOpenPublic("main", doc.id, c));
-  auto page = f.sites.page("", "", "");
-  assert(page.images.length == 1 && page.documents.length == 1 && page.site.files == 2 && page.site.bytes == 12);
 
-  // tenants
-  addAccount(f.users, "bea", ["blog"]);
-  assert(fails!NotFoundException(() { f.files.list("main", "bea"); }));
-  assert(fails!NotFoundException(() { f.files.get(logo.id, "bea"); }));
-  assert(fails!NotFoundException(() { f.files.remove(logo.id, "bea"); }));
-  f.files.upload(upload("blog", "post.md", "# Hi"), "bea");
+  // subaccount scope: members and administrators see their own libraries only
+  assert(f.files.list("main", "bob").length == 2 && f.files.list("main", "root").length == 2);
+  assert(fails!NotFoundException(() { f.files.list("main", "ann"); }));
+  assert(fails!NotFoundException(() { f.files.get(logo.id, "ann"); }));
+  assert(fails!NotFoundException(() { f.files.remove(logo.id, "ann"); }));
+  f.files.upload(upload("blog", "post.md", "# Hi"), "ann");
+  assert(f.files.libraries("ann").map!(x => x.subaccount).array == ["blog"]);
+  assert(f.files.libraries("root").length == 2 && f.files.libraries("operator").length == 2);
   auto usage = f.files.storage();
-  assert(usage.files == 3 && usage.sites.length == 2);
+  assert(usage.files == 3 && usage.subaccounts.length == 2 && usage.subaccounts[0].bytes == 12);
 
-  // a site with files cannot be removed
-  assert(fails!ConflictException(() { f.sites.remove("blog", "admin"); }));
+  // uploads need the service "files"
+  f.landscape.data.subaccounts[1].services = ["landscape"];
+  assert(fails!PolicyViolationException(() { f.files.upload(upload("blog", "x.txt", "x"), "ann"); }));
+  assert(f.files.list("blog", "ann").length == 1); // existing files stay reachable
+
+  // files of a removed subaccount are listed apart
+  f.landscape.data.subaccounts = f.landscape.data.subaccounts[0 .. 1];
+  usage = f.files.storage();
+  assert(usage.subaccounts.length == 2 && usage.subaccounts[1].name == "blog (removed)");
+
   f.files.remove(logo.id, "admin");
   assert(f.blobs.get("main", logo.id) is null && f.files.list("main", "admin").length == 1);
 }

@@ -7,5 +7,4 @@ public:
     import neko.platform.ports.usecases.manage.network;
     import neko.platform.ports.usecases.manage.roles;
     import neko.platform.ports.usecases.manage.services;
-    import neko.platform.ports.usecases.manage.sites;
     import neko.platform.ports.usecases.manage.users;

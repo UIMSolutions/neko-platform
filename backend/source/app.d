@@ -47,13 +47,12 @@ int main(string[] args) {
 }
 
 /// What one global account serves: its own router (pages, REST, OData,
-/// public sites) on its own container, sessions and usage meter.
-final class AccountSite {
+/// public files) on its own container, sessions and usage meter.
+final class AccountApp {
   PlatformContainer c;
   URLRouter router;
   WebGuard guard;
   UsageMeter meter;
-  SiteAttribution attribution;
   HealthCheckWorker worker;
 }
 
@@ -96,17 +95,17 @@ int serve(PlatformInstance instance) {
   // Global accounts are physically separate: each gets its own router on its
   // own container, built on its first request. The dispatcher picks the
   // global account of a request (host name, X-Neko-Global-Account, default).
-  AccountSite[string] sites;
-  AccountSite siteOf(string key) @safe {
-    if (auto s = key in sites)
+  AccountApp[string] apps;
+  AccountApp appOf(string key) @safe {
+    if (auto s = key in apps)
       return *s;
-    auto site = buildAccountSite(parts, instance.container(key));
-    sites[key] = site;
-    return site;
+    auto app = buildAccountApp(parts, instance.container(key));
+    apps[key] = app;
+    return app;
   }
 
   auto dispatcher = new GlobalAccountDispatcher(instance.accounts, (string key) @safe => cast(HTTPServerRequestHandler)
-    siteOf(key).router);
+    appOf(key).router);
 
   // Network security: client addresses (trusted proxies), traffic per
   // client, IP lists (of the default global account: the operator's), bans,
@@ -121,15 +120,16 @@ int serve(PlatformInstance instance) {
   auto handler = new RequestMonitor(firewall, parts.metrics, config.accessLog, accessFile, config.restPath,
     config.odataPath, addresses, parts.traffic);
 
-  // Billing: requests and bytes per site of each global account, written
-  // every minute with the storage peak of each site (and once more at
-  // shutdown) into that global account's own usage records.
-  handler.meterUsage((string account, string path, string host, SysTime at, long bytes) @safe {
-    if (auto s = account in sites)
-      s.meter.count(s.attribution.siteOf(path, host), at, bytes);
+  // Billing: requests and bytes per subaccount of each global account
+  // (billedSubaccount), written every minute with the storage peak of each
+  // subaccount (and once more at shutdown) into that global account's own
+  // usage records.
+  handler.meterUsage((string account, string subaccount, SysTime at, long bytes) @safe {
+    if (auto s = account in apps)
+      s.meter.count(subaccount, at, bytes);
   });
   void flushUsage() nothrow {
-    foreach (key, s; sites)
+    foreach (key, s; apps)
       try
         s.c.usageRepository.add(s.meter.drain() ~ storagePeaks(s.c));
       catch (Exception e)
@@ -144,10 +144,10 @@ int serve(PlatformInstance instance) {
 
   // The default global account answers from the start (and its error pages
   // serve everyone); the others on their first request.
-  auto main = siteOf(def.account.key);
+  auto main = appOf(def.account.key);
   foreach (e; instance.accounts.list())
     if (!e.isDefault)
-      siteOf(e.key);
+      appOf(e.key);
   auto errorPages = webErrorPages(main.guard, (string path) @safe => parts.security.isApi(path));
 
   logInfo("%s — domain %s (export=%s, import=%s), %s global account(s), storage %s, files %s, logs %s, config from %s",
@@ -181,21 +181,19 @@ int serve(PlatformInstance instance) {
 }
 
 /// The router of one global account on its container.
-AccountSite buildAccountSite(ref InstanceParts parts, PlatformContainer c) @safe {
+AccountApp buildAccountApp(ref InstanceParts parts, PlatformContainer c) @safe {
   auto config = c.config;
-  auto site = new AccountSite;
-  site.c = c;
-  site.router = new URLRouter;
-  auto router = site.router;
-  site.meter = new UsageMeter;
-  site.attribution = new SiteAttribution(c.sites);
+  auto app = new AccountApp;
+  app.c = c;
+  app.router = new URLRouter;
+  auto router = app.router;
+  app.meter = new UsageMeter;
   auto key = c.account.isDefault ? "" : c.account.key;
 
   // Order matters: middleware first, the static catch-all last.
   parts.security.registerRoutes(router);
-  // The tenant and space of every service call (headers, host name, site).
-  new CallContextMiddleware(c.landscape, site.attribution, c.account.key, config.restPath, config.odataPath)
-    .registerRoutes(router);
+  // The tenant, space and region of every service call (headers, host name).
+  new CallContextMiddleware(c.landscape, c.account.key, config.restPath, config.odataPath).registerRoutes(router);
   (new Health_Controller(config, selfDomain)).registerRoutes(router);
   router.get("/metrics", &(new MetricsController(parts.metrics, parts.logBuffer, c.events, c.files, config.metricsToken,
     selfDomain.label, parts.traffic, parts.bans)).handle);
@@ -204,8 +202,8 @@ AccountSite buildAccountSite(ref InstanceParts parts, PlatformContainer c) @safe
   router.registerPlatformRestApi(c.services, c.health, c.transfers, c.overview, config.restPath);
   new PlatformODataController(c.services, c.health, c.transfers, c.overview, config.odataPath).registerRoutes(router);
 
-  // The public site at "/" (by host name, else the default site) and the
-  // server-rendered pages with sign-in: vibe.d web interfaces with access
+  // "/" (to the pages), public files at /media/* and the server-rendered
+  // pages with sign-in: vibe.d web interfaces with access
   // rights from roles and from the account model (global account and
   // subaccount administrators); Tabler + htmx, assets embedded.
   bootstrapAdministrator(c);
@@ -214,7 +212,7 @@ AccountSite buildAccountSite(ref InstanceParts parts, PlatformContainer c) @safe
     : c.account.name ~ " · " ~ config.serviceName, selfDomain.label, key);
   auto landscape = c.landscape;
   guard.grants = (string user) @safe => landscape.grantedRights(user);
-  site.guard = guard;
+  app.guard = guard;
   WebPages pages;
   pages.auth = new AuthWeb(guard, c.authentication, c.users, c.roles, new LoginThrottle(c.clock));
   pages.status = new StatusWeb(guard, c.overview, c.services, c.events);
@@ -222,12 +220,11 @@ AccountSite buildAccountSite(ref InstanceParts parts, PlatformContainer c) @safe
     config.accessLog);
   pages.security = new SecurityWeb(guard, c.network, parts.traffic, parts.bans, FirewallInfo(config.firewallMode,
     config.rateLimitPerMinute, config.banAfterViolations, config.banMinutes, config.trustedProxies), c.events);
-  pages.landscape = new LandscapeWeb(guard, c.landscape, c.billing, c.sites);
-  pages.sites = new SitesWeb(guard, c.sites);
-  pages.files = new FilesWeb(guard, c.files, c.sites, config.maxUploadBytes);
-  pages.users = new UsersWeb(guard, c.users, c.roles, c.sites);
+  pages.landscape = new LandscapeWeb(guard, c.landscape, c.billing);
+  pages.files = new FilesWeb(guard, c.files, config.maxUploadBytes);
+  pages.users = new UsersWeb(guard, c.users, c.roles);
   pages.roles = new RolesWeb(guard, c.roles);
-  pages.site = new PublicSiteController(guard, c.sites, c.files);
+  pages.home = new HomeController(guard, c.files);
   if (c.account.isDefault) {
     auto instance = parts.instance;
     pages.accounts = new GlobalAccountsWeb(guard, instance.accounts, (GlobalAccountEntry e) @safe =>
@@ -238,9 +235,9 @@ AccountSite buildAccountSite(ref InstanceParts parts, PlatformContainer c) @safe
   // The Fiori app (/index.html, …): static catch-all, registered last.
   new FrontendController(config.frontendDir).registerRoutes(router);
 
-  site.worker = new HealthCheckWorker(c.health, config.healthCheckIntervalSeconds);
-  site.worker.start();
-  return site;
+  app.worker = new HealthCheckWorker(c.health, config.healthCheckIntervalSeconds);
+  app.worker.start();
+  return app;
 }
 
 /// A new global account: its first administrator. Returns a note for the operator.
@@ -254,15 +251,16 @@ string setUpAccount(PlatformContainer c) @safe {
   return "Administrator '" ~ result.userName ~ "' of " ~ c.account.key ~ " uses the configured adminPassword.";
 }
 
-/// The current file storage of each site, as usage records (the repository
-/// keeps the peak of the month).
+/// The current file storage of each subaccount, as usage records (the
+/// repository keeps the peak of the month).
 UsageRecord[] storagePeaks(PlatformContainer c) {
   import std.datetime.systime : Clock;
 
   auto month = monthOf(Clock.currTime);
   UsageRecord[] list;
-  foreach (u; c.files.storage().sites)
-    list ~= UsageRecord(month, u.site, 0, 0, u.bytes);
+  foreach (u; c.files.storage().subaccounts)
+    if (u.bytes > 0)
+      list ~= UsageRecord(month, u.subaccount, 0, 0, u.bytes);
   return list;
 }
 
@@ -283,9 +281,11 @@ void bootstrapAdministrator(PlatformContainer c) @safe {
 void logEndpoints(PlatformConfig config, FrontendController frontend) {
   logInfo("  REST   %s{overview,services,transfers}", config.restPath);
   logInfo("  OData  %s/$metadata", config.odataPath);
-  logInfo("  Site   / (default site, or the site claiming the host name), /media/* (public files)");
-  logInfo("  Web    /login, /status, /monitoring, /security, /landscape, /sites, /files, /users, /roles, /accounts, /account");
-  logInfo("  Calls  %scontext; X-Neko-Global-Account, X-Neko-Subaccount, X-Neko-Tenant, X-Neko-Space", config.restPath);
+  logInfo("  Home   / (to /login or /start), /media/<subaccount>/<id> (public files)");
+  logInfo("  Web    /login, /status, /monitoring, /security, /landscape (…/assignments, …/recovery, …/billing), "
+      ~ "/files, /users, /roles, /accounts, /account");
+  logInfo("  Calls  %scontext; X-Neko-Global-Account, X-Neko-Subaccount, X-Neko-Tenant, X-Neko-Space → X-Neko-Region",
+    config.restPath);
   logInfo("  Guard  firewall %s, rate limit %s/min, IP rules in %s", config.firewallMode,
     config.rateLimitPerMinute, config.storage == "file" ? "iprules.json" : "memory");
   logInfo("  Ops    /health, /metrics (Prometheus), /api/v1/info%s", config.transport == "unix" ? ", /api/v1/socket" : "");

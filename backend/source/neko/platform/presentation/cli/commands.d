@@ -18,7 +18,7 @@ import neko.platform.presentation.cli.output;
 import neko.platform.presentation.cli.services : servicesCommand;
 import neko.platform.presentation.cli.transfers : transfersCommand;
 import neko.platform.presentation.cli.roles : rolesCommand;
-import neko.platform.presentation.cli.sites : filesCommand, sitesCommand;
+import neko.platform.presentation.cli.files : filesCommand;
 import neko.platform.presentation.cli.firewall : firewallCommand;
 import neko.platform.presentation.cli.landscape : landscapeCommand;
 import neko.platform.presentation.cli.users : usersCommand;
@@ -46,10 +46,9 @@ Commands:
   transfers document <id> [--out=]    write the transfer document of an outbound package
   transfers import <file>
   users [list]                        web user accounts of this domain
-  users add --name= [--roles=viewer,…] [--sites=all|a,b] [--display=] [--email=] [--password=]
+  users add --name= [--roles=viewer,…] [--display=] [--email=] [--password=]
   users passwd <name> [--password=]   reset a password (without --password: read from stdin)
   users roles <name> <role>[,<role>…] replace the roles of a user
-  users sites <name> all|<site>[,…]   limit a user to sites (all = every site)
   users activate|deactivate|remove <name>
   roles [list]                        roles and the access rights they grant
   roles show <name>
@@ -57,19 +56,12 @@ Commands:
   roles add --name= [--label=] [--description=] [--rights=status.read,…]
   roles update <name> [--label=] [--description=] [--rights=…]
   roles remove <name>                 only custom roles that no user holds
-  sites [list]                        sites (tenants): host names, languages
-  sites show <key>
-  sites add --key= [--name=] [--hosts=a,b] [--language=en] [--languages=de,fr]
-  sites update <key> [--name=] [--hosts=…] [--language= --languages=…]
-  sites content <key> --lang= [--title=] [--tagline=] [--body= | --file=]
-  sites default <key>                 show this site at / for unknown host names
-  sites remove <key>                  only without files and accounts limited to it
-  files [list] <site>                 the file library of a site
-  files add <site> <path>… [--public] [--description=]
+  files [list] <subaccount>           the file library of a subaccount
+  files add <subaccount> <path>… [--public] [--description=]
   files get <id> [--out=]             write the content (default: the file name)
   files publish|unpublish <id>
   files remove <id>
-  files usage                         files and bytes per site, free space
+  files usage                         files and bytes per subaccount, free space
   firewall [rules]                    the IP allow and deny lists
   firewall allow|deny <cidr> [--scope=admin|api|all] [--note=]
   firewall remove <id>
@@ -78,11 +70,20 @@ Commands:
   landscape show <node>               global | directory:<key> | subaccount:<key>
   landscape check                     problems and recommendations (exit 1 on errors)
   landscape billing [--month=] [--csv]
-  landscape access <subaccount> [--admins=a,b] [--members=a,b] [--services=sites,files]
+  landscape access <subaccount> [--admins=a,b] [--members=a,b] [--services=files,landscape]
   landscape tenant add|update|remove <subaccount> <tenant> [--name=] [--description=] [--default]
-  landscape space add|update|remove <subaccount> <tenant> <space> [--name=] [--sites=a,b]
-  landscape resolve [--host=] [--subaccount=] [--tenant=] [--space=] [--site=]
-                                      the tenant and space a service call runs in
+  landscape space add|update|remove <subaccount> <tenant> <space> [--name=] [--description=]
+  landscape resolve [--host=] [--subaccount=] [--tenant=] [--space=]
+                                      the tenant, space and region a service call runs in
+  landscape assignments               services × subaccounts with their entitlements
+  landscape assign|unassign <service> <subaccount>[,…]|all
+                                      (un)assign a service, all or nothing
+  landscape recovery [list]           disaster recovery of every subaccount
+  landscape recovery show <subaccount>
+  landscape recovery plan <subaccount> --secondary=<region> [--strategy=warm-standby] [--rpo=15] [--rto=60]
+  landscape recovery plan <subaccount> --disable
+  landscape recovery failover|failback <subaccount> --reason= [--minutes=]
+  landscape recovery drill <subaccount> --minutes= [--failed] [--notes=]
   globals [list]                      the global accounts of this instance (physically separate)
   globals show <key>
   globals add --key= [--name=] [--hosts=a,b] [--description=]   with its own data and administrator
@@ -145,8 +146,6 @@ int runCli(PlatformContainer c, string[] args, File output = stdout, File errors
       return usersCommand(c, a, actor, out_);
     case "roles":
       return rolesCommand(c, a, actor, out_);
-    case "sites":
-      return sitesCommand(c, a, actor, out_);
     case "files":
       return filesCommand(c, a, actor, out_);
     case "firewall":

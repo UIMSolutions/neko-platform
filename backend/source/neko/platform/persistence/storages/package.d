@@ -126,7 +126,7 @@ class MemoryBlobStore : IBlobStore {
   }
 }
 
-/// `<directory>/<folder>/<id>`: one directory per site, one file per blob
+/// `<directory>/<folder>/<id>`: one directory per subaccount, one file per blob
 /// (named by its generated id, so client names never reach the file system).
 /// Written via a temporary file and rename.
 class FileSystemBlobStore : IBlobStore {
@@ -221,12 +221,15 @@ class FileSystemBlobStore : IBlobStore {
   }
 }
 
-/// Folder and blob names are platform-generated; refuse anything else.
+/// Folder and blob names are platform-generated (subaccount keys, ids);
+/// refuse anything else. A '.' is fine after the first character, so "." and
+/// ".." can never be named.
 private string checked(string name) pure {
   import std.algorithm : all;
   import std.ascii : isAlphaNum;
 
-  if (name.length == 0 || name.length > 64 || name[0] == '.' || !name.all!(c => (c.isAlphaNum && c < 0x80) || c == '-' || c == '_'))
+  if (name.length == 0 || name.length > 64 || name[0] == '.'
+      || !name.all!(c => (c.isAlphaNum && c < 0x80) || c == '-' || c == '_' || c == '.'))
     throw new Exception("Invalid blob name '" ~ name ~ "'");
   return name;
 }
@@ -281,12 +284,15 @@ unittest {
   auto moved = fs.putFile("shop", "b2", source);
   assert(moved.size == 5 && fs.localPath("shop", "b2").length > 0 && !(() @trusted => source.exists)());
   assert(fs.available != 0);
-  bool refused;
-  try
-    fs.put("..", "x", null);
-  catch (Exception)
-    refused = true;
-  assert(refused);
+  assert(fs.put("shop.eu", "c3", cast(const(ubyte)[]) "x").size == 1); // subaccount keys may hold '.'
+  foreach (bad; ["..", ".", "../x", "a/b", ".hidden"]) {
+    bool refused;
+    try
+      fs.put(bad, "x", null);
+    catch (Exception)
+      refused = true;
+    assert(refused, bad);
+  }
 }
 
 ///

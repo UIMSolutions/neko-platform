@@ -21,11 +21,7 @@ enum AccessRight {
   eventsRead,
   /// Monitoring: request metrics, errors, log, storage.
   monitoringRead,
-  /// List sites (tenants), their languages and content.
-  sitesRead,
-  /// Create, configure and remove sites; edit their content.
-  sitesManage,
-  /// Browse and download the files of the sites.
+  /// Browse and download the files of the subaccounts.
   filesRead,
   /// Upload, change and remove files.
   filesManage,
@@ -36,7 +32,8 @@ enum AccessRight {
   /// The account hierarchy: global account, directories, subaccounts,
   /// entitlements, role collections, recommendations.
   landscapeRead,
-  /// Change the hierarchy, entitlements, role collections and service plans.
+  /// Change the hierarchy, entitlements, role collections, service plans,
+  /// service assignments and disaster recovery (plans, failover, drills).
   landscapeManage,
   /// Usage and costs per subaccount, directory and global account.
   billingRead,
@@ -72,12 +69,8 @@ immutable AccessRightInfo[] accessRights = [
     "Recent platform events (audit trail), incl. sign-ins", "Status"),
   AccessRightInfo(AccessRight.monitoringRead, "monitoring.read", "View monitoring",
     "Request metrics, errors, the recent log and storage usage", "Status"),
-  AccessRightInfo(AccessRight.sitesRead, "sites.read", "View sites",
-    "List sites, their host names, languages and content", "Sites"),
-  AccessRightInfo(AccessRight.sitesManage, "sites.manage", "Manage sites",
-    "Edit site content; with access to all sites also create, configure and remove sites", "Sites"),
   AccessRightInfo(AccessRight.filesRead, "files.read", "View files",
-    "Browse and download documents, images and media of the sites", "Files"),
+    "Browse and download documents, images and media of the subaccounts", "Files"),
   AccessRightInfo(AccessRight.filesManage, "files.manage", "Manage files",
     "Upload, rename, publish and remove files", "Files"),
   AccessRightInfo(AccessRight.securityRead, "security.read", "View security",
@@ -87,7 +80,7 @@ immutable AccessRightInfo[] accessRights = [
   AccessRightInfo(AccessRight.landscapeRead, "landscape.read", "View landscape",
     "Global account, directories, subaccounts, entitlements and role collections", "Landscape"),
   AccessRightInfo(AccessRight.landscapeManage, "landscape.manage", "Manage landscape",
-    "Change the hierarchy, entitlements, role collections and service plans; assign sites", "Landscape"),
+    "Change the hierarchy, entitlements, role collections, service plans, service assignments and disaster recovery", "Landscape"),
   AccessRightInfo(AccessRight.billingRead, "billing.read", "View billing",
     "Usage and costs per subaccount, directory and global account; CSV export", "Landscape"),
   AccessRightInfo(AccessRight.usersRead, "users.read", "View users",

@@ -62,12 +62,11 @@ struct PlatformConfig {
   string adminPassword = "";
   /// Web sessions end after this many minutes without a request.
   int sessionIdleMinutes = 60;
-  /// Largest file that can be uploaded to a site's library.
+  /// Largest file that can be uploaded to a subaccount's library.
   long maxUploadBytes = 50 * 1024 * 1024;
-  /// Bytes per site; 0 = no quota.
-  long siteQuotaBytes = 0;
-  /// Language of the default site created on the first start.
-  string defaultLanguage = "en";
+  /// Bytes of files per subaccount; 0 = no quota. Also read from the
+  /// earlier key "siteQuotaBytes".
+  long subaccountQuotaBytes = 0;
   /// Log files (application log, access log): "" = <dataDir>/<domain>/logs
   /// with storage "file" (none with "memory"); "none" = no log files.
   string logDir = "";
@@ -115,7 +114,6 @@ struct PlatformConfig {
     str("adminScope", adminScope);
     str("adminUser", adminUser);
     str("adminPassword", adminPassword);
-    str("defaultLanguage", defaultLanguage);
     str("logDir", logDir);
     str("metricsToken", metricsToken);
     str("firewallMode", firewallMode);
@@ -128,8 +126,10 @@ struct PlatformConfig {
       banMinutes = asNumber!int(values["banMinutes"], "banMinutes");
     if ("maxUploadBytes" in values)
       maxUploadBytes = asNumber!long(values["maxUploadBytes"], "maxUploadBytes");
-    if ("siteQuotaBytes" in values)
-      siteQuotaBytes = asNumber!long(values["siteQuotaBytes"], "siteQuotaBytes");
+    if ("siteQuotaBytes" in values) // earlier versions
+      subaccountQuotaBytes = asNumber!long(values["siteQuotaBytes"], "siteQuotaBytes");
+    if ("subaccountQuotaBytes" in values)
+      subaccountQuotaBytes = asNumber!long(values["subaccountQuotaBytes"], "subaccountQuotaBytes");
     if ("logRetentionDays" in values)
       logRetentionDays = asNumber!int(values["logRetentionDays"], "logRetentionDays");
     if ("accessLog" in values)
@@ -171,8 +171,8 @@ struct PlatformConfig {
       throw new Exception("maxPayloadBytes must be positive");
     if (sessionIdleMinutes <= 0)
       throw new Exception("sessionIdleMinutes must be positive");
-    if (maxUploadBytes <= 0 || siteQuotaBytes < 0)
-      throw new Exception("maxUploadBytes must be positive and siteQuotaBytes >= 0");
+    if (maxUploadBytes <= 0 || subaccountQuotaBytes < 0)
+      throw new Exception("maxUploadBytes must be positive and subaccountQuotaBytes >= 0");
     if (logRetentionDays < 0)
       throw new Exception("logRetentionDays must be >= 0");
     if (firewallMode != "block" && firewallMode != "detect" && firewallMode != "off")
@@ -186,12 +186,6 @@ struct PlatformConfig {
         IpNetwork(p);
       } catch (Exception e)
         throw new Exception("trustedProxies: " ~ e.msg);
-    try {
-      import neko.platform.domain.types.language : LanguageTag;
-
-      LanguageTag(defaultLanguage);
-    } catch (Exception e)
-      throw new Exception("defaultLanguage: " ~ e.msg);
   }
 
   /// The entries of `trustedProxies`.
@@ -264,8 +258,7 @@ struct PlatformConfig {
     j["adminUser"] = adminUser; // the password is never shown
     j["sessionIdleMinutes"] = sessionIdleMinutes;
     j["maxUploadBytes"] = maxUploadBytes;
-    j["siteQuotaBytes"] = siteQuotaBytes;
-    j["defaultLanguage"] = defaultLanguage;
+    j["subaccountQuotaBytes"] = subaccountQuotaBytes;
     j["logDir"] = effectiveLogDir(domain);
     j["logRetentionDays"] = logRetentionDays;
     j["accessLog"] = accessLog;
@@ -305,7 +298,7 @@ PlatformConfig loadConfig(SecurityDomain domain) {
     ["NEKO_HEALTH_TIMEOUT", "healthTimeoutSeconds"], ["NEKO_MAX_PAYLOAD", "maxPayloadBytes"],
     ["NEKO_ADMIN_USER", "adminUser"], ["NEKO_ADMIN_PASSWORD", "adminPassword"],
     ["NEKO_SESSION_IDLE_MINUTES", "sessionIdleMinutes"], ["NEKO_MAX_UPLOAD", "maxUploadBytes"],
-    ["NEKO_SITE_QUOTA", "siteQuotaBytes"], ["NEKO_DEFAULT_LANGUAGE", "defaultLanguage"],
+    ["NEKO_SITE_QUOTA", "siteQuotaBytes"], ["NEKO_SUBACCOUNT_QUOTA", "subaccountQuotaBytes"],
     ["NEKO_LOG_DIR", "logDir"], ["NEKO_LOG_RETENTION_DAYS", "logRetentionDays"],
     ["NEKO_ACCESS_LOG", "accessLog"], ["NEKO_METRICS_TOKEN", "metricsToken"],
     ["NEKO_FIREWALL_MODE", "firewallMode"], ["NEKO_RATE_LIMIT", "rateLimitPerMinute"],

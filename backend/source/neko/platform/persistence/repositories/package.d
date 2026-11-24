@@ -21,7 +21,6 @@ public:
   import neko.platform.persistence.repositories.documentlandscape;
   import neko.platform.persistence.repositories.documentrole;
   import neko.platform.persistence.repositories.documentservice;
-  import neko.platform.persistence.repositories.documentsite;
   import neko.platform.persistence.repositories.documenttransfer;
   import neko.platform.persistence.repositories.documentusage;
   import neko.platform.persistence.repositories.documentuser;
@@ -36,7 +35,7 @@ unittest {
   auto repo = new DocumentLandscapeRepository(store);
   auto g = GlobalAccount();
   g.name = "ACME";
-  g.entitlements = [Entitlement("sites.site", 4)];
+  g.entitlements = [Entitlement("files.storage", 4)];
   repo.saveGlobal(g);
   Subaccount s;
   s.key = "shop-prod";
@@ -44,7 +43,7 @@ unittest {
   s.subdomain = "acme-shop-prod";
   s.stage = Stage.prod;
   s.domain = SecurityDomain.confidential;
-  s.roleCollections = [RoleCollection("Admins", "", ["sites.manage"], ["jane"])];
+  s.roleCollections = [RoleCollection("Admins", "", ["files.manage"], ["jane"])];
   repo.saveSubaccount(s);
   foreach (p; defaultPlans())
     repo.savePlan(p);
@@ -55,8 +54,8 @@ unittest {
   assert(repo.removeSubaccount("shop-prod") && repo.load().subaccounts.length == 0);
 
   auto usage = new DocumentUsageRepository(store);
-  usage.add([UsageRecord("2026-11", "shop", 10, 100, 7)]);
-  usage.add([UsageRecord("2026-11", "shop", 5, 50, 3), UsageRecord("2026-10", "shop", 1, 1, 1)]);
+  usage.add([UsageRecord("2026-11", "shop-prod", 10, 100, 7)]);
+  usage.add([UsageRecord("2026-11", "shop-prod", 5, 50, 3), UsageRecord("2026-10", "shop-prod", 1, 1, 1)]);
   auto nov = usage.ofMonth("2026-11");
   assert(nov.length == 1 && nov[0].requests == 15 && nov[0].bytesOut == 150 && nov[0].peakStorageBytes == 7);
   assert(usage.months == ["2026-11", "2026-10"]);

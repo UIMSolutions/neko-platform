@@ -3,7 +3,8 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// The account hierarchy and billing (web interface; htmx fragments).
+/// The account hierarchy, billing, service assignments and disaster
+/// recovery (web interface; htmx fragments).
 ///
 ///   GET  /landscape?node=&month=               tree, node details, recommendations   landscape.read
 ///   GET  /landscape/global/edit, POST /landscape/global                              landscape.manage
@@ -21,6 +22,12 @@
 ///   (*) landscape.manage, or administrator of the subaccount (landscape.read)
 ///   GET  /landscape/billing?month=, GET /landscape/billing.csv?month=                billing.read
 ///   GET  /landscape/plans/new, /landscape/plans/:key/edit, POST /landscape/plans[/:key/delete]  landscape.manage
+///   GET  /landscape/assignments                    services × subaccounts, entitlements   landscape.read
+///   POST /landscape/assignments                    (un)assign a service: service=, subaccount=…, assign=1|0
+///                                                                                          landscape.manage
+///   GET  /landscape/recovery                       disaster recovery of every subaccount  landscape.read
+///   GET  /landscape/recovery/:key/plan, POST       recovery plan                          (*)
+///   GET  /landscape/recovery/:key/failover|failback|drill, POST                           (*)
 module neko.platform.presentation.web.landscape;
 
 import std.algorithm : canFind, map, splitter;
@@ -33,8 +40,7 @@ import vibe.web.web : noRoute, path, render;
 import neko.platform.application.dtos;
 import neko.platform.domain : PlatformException;
 import neko.platform.domain.entities.landscape : RegionInfo, regions, RoleCollection, ServicePlan, unlimited;
-import neko.platform.ports.usecases : IBillingUseCase, IManageLandscapeUseCase, IManageRolesUseCase,
-  IManageSitesUseCase;
+import neko.platform.ports.usecases : IBillingUseCase, IManageLandscapeUseCase, IManageRolesUseCase;
 import neko.platform.presentation.web.guard;
 import neko.platform.presentation.web.support;
 
@@ -104,20 +110,35 @@ struct PlanForm {
   string error;
 }
 
+struct RecoveryPlanForm {
+  RecoveryDto current;
+  RecoveryPlanRequest values;
+  string error;
+}
+
+/// A failover, failback or drill.
+struct RecoveryActionForm {
+  RecoveryDto current;
+  /// "failover" | "failback" | "drill"
+  string action;
+  string reason;
+  long minutes;
+  bool worked = true;
+  string error;
+}
+
 @requiresAuth
 class LandscapeWeb {
   private WebGuard guard;
   private IManageLandscapeUseCase landscape;
   private IBillingUseCase billing;
-  private IManageSitesUseCase sites;
 
   mixin PageAuthentication;
 
-  this(WebGuard guard, IManageLandscapeUseCase landscape, IBillingUseCase billing, IManageSitesUseCase sites) {
+  this(WebGuard guard, IManageLandscapeUseCase landscape, IBillingUseCase billing) {
     this.guard = guard;
     this.landscape = landscape;
     this.billing = billing;
-    this.sites = sites;
   }
 
   @auth(Role.landscapeRead) @path("/landscape")
@@ -391,7 +412,7 @@ class LandscapeWeb {
       if (t.key == _tenant)
         foreach (sp; t.spaces)
           if (sp.key == _space) {
-            auto form = SpaceForm(_key, _tenant, true, SpaceRequest(sp.key, sp.name, sp.description, sp.sites.dup));
+            auto form = SpaceForm(_key, _tenant, true, SpaceRequest(sp.key, sp.name, sp.description));
             return spaceDialog(page, form);
           }
     res.writeBody("There is no space " ~ _tenant ~ "/" ~ _space, 404, "text/plain; charset=utf-8");
@@ -424,7 +445,7 @@ class LandscapeWeb {
     if (!allowed(res, page, "subaccount:" ~ subaccount))
       return;
     auto form = SpaceForm(subaccount, tenant, existing, SpaceRequest(key, req.form.get("name", ""),
-      req.form.get("description", ""), req.form.getAll("sites").dup));
+      req.form.get("description", "")));
     try {
       landscape.saveSpace(subaccount, tenant, form.values, !existing, page.user.userName);
       refresh(res, page, "subaccount:" ~ subaccount, "Space " ~ tenant ~ "/" ~ key.strip ~ " saved", false);
@@ -435,16 +456,7 @@ class LandscapeWeb {
   }
 
   @noRoute void spaceDialog(PageContext page, SpaceForm form) {
-    auto siteList = sites.list("system");
-    // sites that run elsewhere are shown, but marked
-    string[string] placedIn;
-    foreach (s; landscape.landscape().subaccounts)
-      foreach (t; s.tenants)
-        foreach (sp; t.spaces)
-          foreach (site; sp.sites)
-            placedIn[site] = s.key ~ "/" ~ t.key ~ "/" ~ sp.key;
-    auto here = form.subaccount ~ "/" ~ form.tenant ~ "/" ~ form.values.key;
-    render!("landscape_space_dialog.dt", page, form, siteList, placedIn, here);
+    render!("landscape_space_dialog.dt", page, form);
   }
 
   // ── entitlements ────────────────────────────────────────────────────────
@@ -633,6 +645,169 @@ class LandscapeWeb {
     render!("billing_plans.dt", page, bill);
   }
 
+  // ── service assignments ─────────────────────────────────────────────────
+
+  @auth(Role.landscapeRead) @path("/landscape/assignments")
+  void getAssignments(PageContext page) {
+    page = page.at("Service assignments", "landscape");
+    auto view = landscape.serviceAssignments();
+    render!("assignments.dt", page, view);
+  }
+
+  /// One cell (subaccount=<key>) or a whole row (subaccount=<key>,<key>,…).
+  @auth(Role.landscapeManage) @path("/landscape/assignments")
+  void postAssignments(PageContext page, HTTPServerRequest req, HTTPServerResponse res) {
+    string[] keys;
+    foreach (field; req.form.getAll("subaccount"))
+      keys ~= words(field);
+    auto r = ServiceAssignmentRequest(req.form.get("service", ""), keys, req.form.get("assign", "1") == "1");
+    string message;
+    bool error;
+    try {
+      landscape.assignService(r, page.user.userName);
+      message = (r.assign ? "Assigned " : "Unassigned ") ~ r.service ~ (r.assign ? " to " : " from ")
+        ~ (r.subaccounts.length == 1 ? r.subaccounts[0] : r.subaccounts.length.to!string ~ " subaccounts");
+    } catch (PlatformException e) {
+      message = e.msg;
+      error = true;
+    }
+    swapTable(res, "assignments", message, error);
+    auto view = landscape.serviceAssignments();
+    render!("assignments_table.dt", page, view);
+  }
+
+  // ── disaster recovery ───────────────────────────────────────────────────
+
+  @auth(Role.landscapeRead) @path("/landscape/recovery")
+  void getRecovery(PageContext page) {
+    page = page.at("Disaster recovery", "landscape");
+    auto view = landscape.recoveryOverview();
+    auto adminOf = administered(page, view);
+    render!("recovery.dt", page, view, adminOf);
+  }
+
+  @auth(Role.landscapeRead) @path("/landscape/recovery/:key/plan")
+  void getRecoveryPlan(PageContext page, HTTPServerResponse res, string _key) {
+    RecoveryDto current;
+    if (!loadRecovery(res, page, _key, current))
+      return;
+    auto form = RecoveryPlanForm(current, RecoveryPlanRequest(current.enabled || current.secondaryRegion.length == 0,
+      current.secondaryRegion, current.strategy, current.rpoMinutes, current.rtoMinutes));
+    recoveryPlanDialog(page, form);
+  }
+
+  @auth(Role.landscapeRead) @path("/landscape/recovery/:key/plan")
+  void postRecoveryPlan(PageContext page, HTTPServerRequest req, HTTPServerResponse res, string _key) {
+    RecoveryDto current;
+    if (!loadRecovery(res, page, _key, current))
+      return;
+    auto form = RecoveryPlanForm(current, RecoveryPlanRequest(req.form.get("enabled", "") == "on",
+      req.form.get("secondaryRegion", ""), req.form.get("strategy", "")));
+    try {
+      form.values.rpoMinutes = req.form.get("rpoMinutes", "0").strip.to!long;
+      form.values.rtoMinutes = req.form.get("rtoMinutes", "0").strip.to!long;
+    } catch (Exception) {
+      form.error = "RPO and RTO must be whole numbers of minutes";
+      return recoveryPlanDialog(page, form);
+    }
+    try {
+      auto d = landscape.configureRecovery(_key, form.values, page.user.userName);
+      recoveryTable(res, page, "Disaster recovery of " ~ d.subaccount ~ (d.enabled ? " saved (" ~ d.status ~ ")"
+          : " disabled"), false);
+    } catch (PlatformException e) {
+      form.error = e.msg;
+      recoveryPlanDialog(page, form);
+    }
+  }
+
+  @auth(Role.landscapeRead) @path("/landscape/recovery/:key/:action")
+  void getRecoveryAction(PageContext page, HTTPServerResponse res, string _key, string _action) {
+    RecoveryDto current;
+    if (!knownAction(res, _action) || !loadRecovery(res, page, _key, current))
+      return;
+    auto form = RecoveryActionForm(current, _action);
+    if (_action == "drill")
+      form.minutes = current.rtoMinutes;
+    render!("recovery_action_dialog.dt", page, form);
+  }
+
+  @auth(Role.landscapeRead) @path("/landscape/recovery/:key/:action")
+  void postRecoveryAction(PageContext page, HTTPServerRequest req, HTTPServerResponse res, string _key,
+      string _action) {
+    RecoveryDto current;
+    if (!knownAction(res, _action) || !loadRecovery(res, page, _key, current))
+      return;
+    auto form = RecoveryActionForm(current, _action, req.form.get("reason", ""), 0,
+      req.form.get("worked", "") == "on");
+    try
+      form.minutes = req.form.get("minutes", "0").strip.length ? req.form.get("minutes", "0").strip.to!long : 0;
+    catch (Exception) {
+      form.error = "The duration must be a whole number of minutes";
+      return render!("recovery_action_dialog.dt", page, form);
+    }
+    try {
+      RecoveryDto d;
+      string message;
+      switch (_action) {
+      case "failover":
+        d = landscape.failover(_key, RecoveryActionRequest(form.reason, form.minutes), page.user.userName);
+        message = d.subaccount ~ " now runs in " ~ d.activeRegion;
+        break;
+      case "failback":
+        d = landscape.failback(_key, RecoveryActionRequest(form.reason, form.minutes), page.user.userName);
+        message = d.subaccount ~ " is back in " ~ d.activeRegion;
+        break;
+      default:
+        d = landscape.recordDrill(_key, RecoveryDrillRequest(form.minutes, form.worked, form.reason),
+          page.user.userName);
+        message = "Drill of " ~ d.subaccount ~ (d.history[0].success ? " passed" : " failed");
+      }
+      recoveryTable(res, page, message, d.history.length && !d.history[0].success);
+    } catch (PlatformException e) {
+      form.error = e.msg;
+      render!("recovery_action_dialog.dt", page, form);
+    }
+  }
+
+  @noRoute void recoveryPlanDialog(PageContext page, RecoveryPlanForm form) {
+    auto view = landscape.recoveryOverview();
+    render!("recovery_plan_dialog.dt", page, form, view);
+  }
+
+  /// The refreshed recovery table, a toast and "close dialog".
+  @noRoute void recoveryTable(HTTPServerResponse res, PageContext page, string message, bool error) {
+    swapTable(res, "recovery", message, error);
+    auto view = landscape.recoveryOverview();
+    auto adminOf = administered(page, view);
+    render!("recovery_table.dt", page, view, adminOf);
+  }
+
+  /// The subaccounts whose recovery `page.user` may change.
+  @noRoute bool[string] administered(const PageContext page, const RecoveryOverviewDto view) {
+    bool[string] map;
+    foreach (s; view.subaccounts)
+      map[s.subaccount] = mayAdminister(page, "subaccount:" ~ s.subaccount);
+    return map;
+  }
+
+  /// The recovery of `key` if the user may change it (else answers 404 or 403).
+  @noRoute bool loadRecovery(HTTPServerResponse res, PageContext page, string key, out RecoveryDto d) {
+    try
+      d = landscape.recovery(key);
+    catch (PlatformException e) {
+      res.writeBody(e.msg, 404, "text/plain; charset=utf-8");
+      return false;
+    }
+    return allowed(res, page, "subaccount:" ~ d.subaccount);
+  }
+
+  @noRoute static bool knownAction(HTTPServerResponse res, string action) {
+    if (action == "failover" || action == "failback" || action == "drill")
+      return true;
+    res.writeBody("Unknown action " ~ action, 404, "text/plain; charset=utf-8");
+    return false;
+  }
+
   // ── helpers ─────────────────────────────────────────────────────────────
 
   /// The refreshed hierarchy with `node` selected, a toast, "close dialog".
@@ -702,6 +877,34 @@ string money(double amount, string currency) pure {
   import std.format : format;
 
   return format("%.2f %s", amount, currency);
+}
+
+/// Badge classes of a disaster recovery status.
+string recoveryBadge(string status) pure nothrow {
+  switch (status) {
+  case "protected":
+    return "bg-green-lt";
+  case "failed-over":
+    return "bg-orange-lt";
+  case "misconfigured":
+    return "bg-red-lt";
+  default:
+    return "bg-secondary-lt";
+  }
+}
+
+/// "45 min", "4 h", "1 h 30 min"
+string minutesText(long minutes) pure {
+  if (minutes < 60)
+    return minutes.to!string ~ " min";
+  auto h = minutes / 60, m = minutes % 60;
+  return h.to!string ~ " h" ~ (m ? " " ~ m.to!string ~ " min" : "");
+}
+
+///
+unittest {
+  assert(minutesText(45) == "45 min" && minutesText(240) == "4 h" && minutesText(90) == "1 h 30 min");
+  assert(recoveryBadge("protected") == "bg-green-lt" && recoveryBadge("x") == "bg-secondary-lt");
 }
 
 /// Colour of a stage badge.

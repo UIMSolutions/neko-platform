@@ -11,8 +11,10 @@
 ///                             global account's own router
 ///   CallContextMiddleware     resolves the tenant and space of a service
 ///                             call (X-Neko-Subaccount, X-Neko-Tenant,
-///                             X-Neko-Space, the host name, the site) and
-///                             echoes them as response headers
+///                             X-Neko-Space, the host name) and echoes them
+///                             as response headers, with the region the
+///                             subaccount runs in (X-Neko-Region: the
+///                             secondary one after a failover)
 ///   GET <restPath>context     the call context of the request
 module neko.platform.presentation.http.accounts;
 
@@ -21,9 +23,8 @@ import vibe.data.json : Json, serializeToJson;
 import vibe.http.router : URLRouter;
 import vibe.http.server : HTTPServerRequest, HTTPServerRequestHandler, HTTPServerResponse;
 import neko.platform.domain : CallContext, CallRequest, NotFoundException, PlatformException;
-import neko.platform.domain.entities.site : normalizeHost;
+import neko.platform.domain.types.host : normalizeHost;
 import neko.platform.ports.usecases : IManageGlobalAccountsUseCase, IManageLandscapeUseCase;
-import neko.platform.presentation.http.monitor : SiteAttribution;
 
 @safe:
 
@@ -31,6 +32,8 @@ enum globalAccountHeader = "X-Neko-Global-Account";
 enum subaccountHeader = "X-Neko-Subaccount";
 enum tenantHeader = "X-Neko-Tenant";
 enum spaceHeader = "X-Neko-Space";
+/// Response only: the region serving the subaccount.
+enum regionHeader = "X-Neko-Region";
 
 /// A string kept in the request context ("" if absent).
 string contextValue(scope HTTPServerRequest req, string key) @trusted {
@@ -52,6 +55,7 @@ CallContext callContextOf(scope HTTPServerRequest req) {
   c.subdomain = req.contextValue("neko.subdomain");
   c.tenant = req.contextValue("neko.tenant");
   c.space = req.contextValue("neko.space");
+  c.region = req.contextValue("neko.region");
   c.source = req.contextValue("neko.callSource");
   return c;
 }
@@ -82,14 +86,11 @@ class GlobalAccountDispatcher : HTTPServerRequestHandler {
 
 class CallContextMiddleware {
   private IManageLandscapeUseCase landscape;
-  private SiteAttribution sites;
   private string globalAccount;
   private string restPath, odataPath;
 
-  this(IManageLandscapeUseCase landscape, SiteAttribution sites, string globalAccount, string restPath,
-      string odataPath) {
+  this(IManageLandscapeUseCase landscape, string globalAccount, string restPath, string odataPath) {
     this.landscape = landscape;
-    this.sites = sites;
     this.globalAccount = globalAccount;
     this.restPath = restPath;
     this.odataPath = odataPath;
@@ -107,10 +108,6 @@ class CallContextMiddleware {
       return;
     auto r = CallRequest(normalizeHost(req.host), req.headers.get(subaccountHeader, ""),
       req.headers.get(tenantHeader, ""), req.headers.get(spaceHeader, ""));
-    try
-      r.site = sites.siteOf(path, req.host);
-    catch (Exception) {
-    }
     auto named = r.subaccount.length || r.tenant.length || r.space.length;
     auto api = path.startsWith(restPath) || path.startsWith(odataPath);
     try {
@@ -119,10 +116,12 @@ class CallContextMiddleware {
       req.setContextValue("neko.subdomain", c.subdomain);
       req.setContextValue("neko.tenant", c.tenant);
       req.setContextValue("neko.space", c.space);
+      req.setContextValue("neko.region", c.region);
       req.setContextValue("neko.callSource", c.source);
       res.headers[subaccountHeader] = c.subaccount;
       res.headers[tenantHeader] = c.tenant;
       res.headers[spaceHeader] = c.space;
+      res.headers[regionHeader] = c.region;
     } catch (PlatformException e) {
       // A tenant or space that was asked for and does not exist: refused.
       // Pages without such a request go on without a call context.

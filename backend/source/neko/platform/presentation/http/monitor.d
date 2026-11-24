@@ -35,18 +35,10 @@ class RequestMonitor : HTTPServerRequestHandler {
   private string restPath, odataPath;
   private ClientAddresses addresses;
   private TrafficMonitor traffic;
-  private SiteAttribution attribution;
-  private UsageMeter meter;
   private UsageCounter counter;
 
-  /// Count public-site requests per site for billing (both may be null).
-  void meterUsage(SiteAttribution attribution, UsageMeter meter) {
-    this.attribution = attribution;
-    this.meter = meter;
-  }
-
-  /// Count public-site requests per global account (instances with several:
-  /// each global account bills its own sites).
+  /// Count billable requests per global account and subaccount (see
+  /// `billedSubaccount`); each global account bills its own subaccounts.
   void meterUsage(UsageCounter counter) {
     this.counter = counter;
   }
@@ -94,11 +86,11 @@ class RequestMonitor : HTTPServerRequestHandler {
       metrics.finish(sample);
       auto sent = responseBytes(req, res, status);
       traffic.record(client, sample.at, requestBytes(req), sent, status, req.headers.get("User-Agent", ""), path);
-      if ((area == "site" || area == "media") && status < 400) {
-        if (meter !is null && attribution !is null)
-          meter.count(attribution.siteOf(path, req.host), sample.at, sent);
-        if (counter !is null)
-          counter(contextText(req, "neko.globalAccount"), path, req.host, sample.at, sent);
+      if (counter !is null && status < 400) {
+        auto sub = billedSubaccount(area, path, contextText(req, "neko.subaccount"),
+          contextText(req, "neko.callSource"));
+        if (sub.length)
+          counter(contextText(req, "neko.globalAccount"), sub, sample.at, sent);
       }
       if (!accessLog)
         return;
@@ -131,8 +123,36 @@ class RequestMonitor : HTTPServerRequestHandler {
   }
 }
 
-/// Counts a public-site request of a global account (key, path, host, time, bytes sent).
-alias UsageCounter = void delegate(string globalAccount, string path, string host, SysTime at, long bytes) @safe;
+/// Counts a billable request of a global account (key, subaccount, time, bytes sent).
+alias UsageCounter = void delegate(string globalAccount, string subaccount, SysTime at, long bytes) @safe;
+
+/// The subaccount a request is billed to, "" for none:
+///   /media/<subaccount>/…   public files, by their path
+///   REST and OData          the subaccount of the call context, when the
+///                           call named it (header or subdomain); calls that
+///                           fell back to the first subaccount are not billed
+string billedSubaccount(string area, string path, string subaccount, string source) pure nothrow {
+  import std.string : indexOf;
+
+  if (area == "media" && path.length > 7) {
+    auto rest = path[7 .. $];
+    auto slash = rest.indexOf('/');
+    return slash > 0 ? rest[0 .. slash] : rest;
+  }
+  if ((area == "rest" || area == "odata") && source.length && source != "default")
+    return subaccount;
+  return "";
+}
+
+///
+unittest {
+  assert(billedSubaccount("media", "/media/shop-prod/f1/a.png", "", "") == "shop-prod");
+  assert(billedSubaccount("rest", "/rest/v1/services", "shop-prod", "header") == "shop-prod");
+  assert(billedSubaccount("odata", "/odata/v4/x", "shop-prod", "subdomain") == "shop-prod");
+  assert(billedSubaccount("rest", "/rest/v1/services", "platform-open", "default") == "");
+  assert(billedSubaccount("home", "/", "platform-open", "header") == "");
+  assert(billedSubaccount("files", "/files", "shop-prod", "header") == "");
+}
 
 private string contextText(scope HTTPServerRequest req, string key) @trusted nothrow {
   try
@@ -142,57 +162,6 @@ private string contextText(scope HTTPServerRequest req, string key) @trusted not
   catch (Exception) {
   }
   return "";
-}
-
-/// Which site a public request belongs to: /media/<site>/… by its path,
-/// "/" by the host name (else the default site). The host table is re-read
-/// every 30 seconds.
-class SiteAttribution {
-  import core.time : MonoTime, seconds;
-  import neko.platform.ports.usecases : IManageSitesUseCase;
-
-  private IManageSitesUseCase sites;
-  private string[string] byHost;
-  private string defaultSite;
-  private MonoTime loaded;
-  private bool ready;
-
-  this(IManageSitesUseCase sites) {
-    this.sites = sites;
-  }
-
-  string siteOf(string path, string host) {
-    if (path.startsWith("/media/")) {
-      import std.string : indexOf;
-
-      auto rest = path[7 .. $];
-      auto slash = rest.indexOf('/');
-      return slash > 0 ? rest[0 .. slash] : rest;
-    }
-    refresh();
-    import neko.platform.domain.entities.site : normalizeHost;
-
-    if (auto s = normalizeHost(host) in byHost)
-      return *s;
-    return defaultSite;
-  }
-
-  private void refresh() {
-    if (ready && MonoTime.currTime - loaded < 30.seconds)
-      return;
-    string[string] map;
-    string fallback;
-    foreach (s; sites.list("system")) {
-      foreach (h; s.hosts)
-        map[h] = s.key;
-      if (s.isDefault)
-        fallback = s.key;
-    }
-    byHost = map;
-    defaultSite = fallback;
-    loaded = MonoTime.currTime;
-    ready = true;
-  }
 }
 
 /// vibe.d sends the last buffered part of a streamed (chunked) body only
@@ -333,12 +302,12 @@ string prometheusText(const MetricsSnapshot s, LogBuffer log, LoggingEventPublis
     o.formattedWrite("neko_events_total{%s,type=\"%s\"} %s\n", l, type, n);
 
   auto storage = files.storage;
-  metric("neko_site_files", "gauge", "Files per site");
-  foreach (u; storage.sites)
-    o.formattedWrite("neko_site_files{%s,site=\"%s\"} %s\n", l, u.site, u.files);
-  metric("neko_site_file_bytes", "gauge", "Bytes of the files per site");
-  foreach (u; storage.sites)
-    o.formattedWrite("neko_site_file_bytes{%s,site=\"%s\"} %s\n", l, u.site, u.bytes);
+  metric("neko_subaccount_files", "gauge", "Files per subaccount");
+  foreach (u; storage.subaccounts)
+    o.formattedWrite("neko_subaccount_files{%s,subaccount=\"%s\"} %s\n", l, u.subaccount, u.files);
+  metric("neko_subaccount_file_bytes", "gauge", "Bytes of the files per subaccount");
+  foreach (u; storage.subaccounts)
+    o.formattedWrite("neko_subaccount_file_bytes{%s,subaccount=\"%s\"} %s\n", l, u.subaccount, u.bytes);
   if (storage.available >= 0) {
     metric("neko_storage_available_bytes", "gauge", "Free bytes on the storage volume");
     o.formattedWrite("neko_storage_available_bytes{%s} %s\n", l, storage.available);

@@ -23,15 +23,12 @@ class ManageUsersUseCase : IManageUsersUseCase, IAuthenticateUseCase {
   private IEventPublisher events;
   private IClock clock;
   private IIdGenerator ids;
-  /// To check site keys of site-limited accounts; null = not checked (tests).
-  private ISiteRepository sites;
   /// Verified for unknown user names, so a failed sign-in takes the same time
   /// whether or not the account exists.
   private string dummyHash;
 
   this(IUserRepository users, IRoleRepository roles, IPasswordHasher hasher, IEventPublisher events, IClock clock,
-      IIdGenerator ids, ISiteRepository sites = null) {
-    this.sites = sites;
+      IIdGenerator ids) {
     this.users = users;
     this.roles = roles;
     this.hasher = hasher;
@@ -117,13 +114,11 @@ class ManageUsersUseCase : IManageUsersUseCase, IAuthenticateUseCase {
     account.changeProfile(request.displayName, request.email, now);
     account.assignRoles(assigned, now);
     requireCovers(users, roles, actor, rightsOf(account), "assign these roles");
-    account.limitToSites(resolveSites(request.sites), now);
-    requireSiteScope(users, actor, account.sites, "create this account");
     account.setActive(request.active, now);
     account.changePasswordHash(hasher.hash(request.password), now);
     users.save(account);
     emit("user.created", account.id.value, actor, "Created user " ~ name.value ~ " (roles: "
-        ~ account.roles.join(", ") ~ scopeText(account) ~ ")");
+        ~ account.roles.join(", ") ~ ")");
     return dto(account);
   }
 
@@ -138,17 +133,13 @@ class ManageUsersUseCase : IManageUsersUseCase, IAuthenticateUseCase {
       account.assignRoles(resolveRoles(request.roles.get), now);
       requireCovers(users, roles, actor, rightsOf(account), "assign these roles");
     }
-    if (!request.sites.isNull) {
-      account.limitToSites(resolveSites(request.sites.get), now);
-      requireSiteScope(users, actor, account.sites, "give this site access");
-    }
     if (!request.active.isNull)
       account.setActive(request.active.get, now);
     if (wasActiveAdmin && !account.isActiveAdmin)
       requireAnotherActiveAdmin(account, "demote or deactivate");
     users.save(account);
     emit("user.changed", account.id.value, actor, "Changed user " ~ account.userName.value ~ " (roles: "
-        ~ account.roles.join(", ") ~ scopeText(account) ~ (account.active ? "" : ", inactive") ~ ")");
+        ~ account.roles.join(", ") ~ (account.active ? "" : ", inactive") ~ ")");
     return dto(account);
   }
 
@@ -199,20 +190,6 @@ class ManageUsersUseCase : IManageUsersUseCase, IAuthenticateUseCase {
   /// (e.g. a user manager cannot reset the password of an administrator).
   private void requireManageable(const UserAccount account, string actor) {
     requireCovers(users, roles, actor, rightsOf(account), "change the account '" ~ account.userName.value ~ "'");
-    requireSiteScope(users, actor, account.sites, "change the account '" ~ account.userName.value ~ "'");
-  }
-
-  /// Site keys → validated keys of existing sites.
-  private SiteKey[] resolveSites(const(string)[] keys) {
-    SiteKey[] result;
-    foreach (k; keys) {
-      auto key = SiteKey(k);
-      Site site;
-      if (sites !is null && !sites.tryGet(key.value, site))
-        throw new ValidationException("Unknown site '" ~ k ~ "'");
-      result ~= key;
-    }
-    return result;
   }
 
   /// Role names → validated names of existing roles.
@@ -240,10 +217,6 @@ class ManageUsersUseCase : IManageUsersUseCase, IAuthenticateUseCase {
     if (others == 0)
       throw new InvalidStateTransitionException("Cannot " ~ action ~ " '" ~ account.userName.value
           ~ "': it is the last active administrator");
-  }
-
-  private static string scopeText(const UserAccount account) {
-    return account.allSites ? "" : "; sites: " ~ account.sites.join(", ");
   }
 
   private string placeholderHash() {
@@ -495,32 +468,3 @@ unittest {
   assert(f.roles.get(auditorRole).label == "Revision");
 }
 
-/// Site scope: accounts limited to sites only manage accounts within them.
-unittest {
-  auto f = fixture();
-  f.users.ensureAdministrator("admin", "admin-password");
-  auto shopOnly = newUser("sam", [adminRole]);
-  shopOnly.sites = ["shop"];
-  auto sam = f.users.create(shopOnly, "admin");
-  assert(sam.sites == ["shop"] && !sam.allSites && sam.mayAccessSite("shop") && !sam.mayAccessSite("blog"));
-
-  auto blog = newUser("bea");
-  blog.sites = ["blog"];
-  assert(fails!PolicyViolationException(() { f.users.create(blog, "sam"); }));
-  assert(fails!PolicyViolationException(() { f.users.create(newUser("all"), "sam"); })); // every site
-  auto shop = newUser("sue");
-  shop.sites = ["SHOP"];
-  auto sue = f.users.create(shop, "sam");
-  assert(sue.sites == ["shop"]);
-
-  UpdateUserRequest widen;
-  widen.sites = nullable(cast(string[]) []);
-  assert(fails!PolicyViolationException(() { f.users.update(sue.id, widen, "sam"); }));
-  auto admin = f.users.list[0];
-  assert(fails!PolicyViolationException(() { f.users.resetPassword(admin.id, "taken-over!", "sam"); }));
-  f.users.update(sue.id, widen, "admin");
-  assert(f.users.get(sue.id).allSites);
-  auto bad = newUser("x2");
-  bad.sites = ["Not a key"];
-  assert(fails!ValidationException(() { f.users.create(bad, "admin"); }));
-}

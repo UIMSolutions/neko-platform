@@ -23,9 +23,9 @@ import std.typecons : nullable;
 import vibe.http.server : HTTPServerRequest, HTTPServerResponse;
 import vibe.web.auth;
 import vibe.web.web : noRoute, path, render;
-import neko.platform.application.dtos : CreateUserRequest, RoleDto, SiteDto, UpdateUserRequest, UserDto;
+import neko.platform.application.dtos : CreateUserRequest, RoleDto, UpdateUserRequest, UserDto;
 import neko.platform.domain : PlatformException;
-import neko.platform.ports.usecases : IManageRolesUseCase, IManageSitesUseCase, IManageUsersUseCase;
+import neko.platform.ports.usecases : IManageRolesUseCase, IManageUsersUseCase;
 import neko.platform.presentation.web.guard;
 import neko.platform.presentation.web.support;
 
@@ -39,8 +39,6 @@ struct UserForm {
   string displayName;
   string email;
   string[] roles = ["viewer"];
-  /// Site keys; empty = every site.
-  string[] sites;
   bool active = true;
   /// Editing the own account: roles and status are locked (no self-lockout).
   bool self;
@@ -55,12 +53,6 @@ struct UserForm {
 
     return roles.canFind(name);
   }
-
-  bool hasSite(string key) const {
-    import std.algorithm : canFind;
-
-    return sites.canFind(key);
-  }
 }
 
 @requiresAuth
@@ -68,15 +60,13 @@ class UsersWeb {
   private WebGuard guard;
   private IManageUsersUseCase users;
   private IManageRolesUseCase roles;
-  private IManageSitesUseCase sites;
 
   mixin PageAuthentication;
 
-  this(WebGuard guard, IManageUsersUseCase users, IManageRolesUseCase roles, IManageSitesUseCase sites) {
+  this(WebGuard guard, IManageUsersUseCase users, IManageRolesUseCase roles) {
     this.guard = guard;
     this.users = users;
     this.roles = roles;
-    this.sites = sites;
   }
 
   @auth(Role.usersRead) @path("/users")
@@ -101,7 +91,6 @@ class UsersWeb {
     r.displayName = form.displayName;
     r.email = form.email;
     r.roles = form.roles;
-    r.sites = form.sites;
     r.active = form.active;
     r.password = req.form.get("password", "");
     if (form.error.length)
@@ -124,8 +113,7 @@ class UsersWeb {
     UserDto user;
     if (!load(res, page, _id, user))
       return;
-    auto form = UserForm(user.id, user.userName, user.displayName, user.email, user.roles.dup, user.sites.dup,
-      user.active, user.id == page.user.id);
+    auto form = UserForm(user.id, user.userName, user.displayName, user.email, user.roles.dup, user.active, user.id == page.user.id);
     dialog(page, form);
   }
 
@@ -143,10 +131,8 @@ class UsersWeb {
     r.email = nullable(form.email);
     if (form.self) {
       form.roles = user.roles.dup; // shown again on errors
-      form.sites = user.sites.dup;
     } else {
       r.roles = nullable(form.roles);
-      r.sites = nullable(form.sites);
       r.active = nullable(form.active);
       if (form.error.length)
         return dialog(page, form);
@@ -207,8 +193,7 @@ class UsersWeb {
 
   @noRoute void dialog(PageContext page, UserForm form) {
     auto roleList = roles.list();
-    auto siteList = sites.list(page.user.userName);
-    render!("user_dialog.dt", page, form, roleList, siteList);
+    render!("user_dialog.dt", page, form, roleList);
   }
 
   /// Answer with the refreshed table, a toast and "close dialog".
@@ -236,10 +221,6 @@ private UserForm readForm(HTTPServerRequest req) {
   form.displayName = req.form.get("displayName", "");
   form.email = req.form.get("email", "");
   form.roles = req.form.getAll("roles").dup;
-  // "all" (radio) = every site; otherwise the checked sites
-  form.sites = req.form.get("scope", "all") == "all" ? null : req.form.getAll("sites").dup;
-  if (req.form.get("scope", "all") != "all" && form.sites.length == 0)
-    form.error = "Choose at least one site, or give access to every site";
   form.active = req.form.get("active", "") == "on";
   return form;
 }

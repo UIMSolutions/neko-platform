@@ -13,7 +13,7 @@ import neko.platform.domain;
 /// Metadata of the files; the content is in an IBlobStore.
 interface IFileRepository {
   StoredFile[] all();
-  StoredFile[] ofSite(string site);
+  StoredFile[] ofSubaccount(string subaccount);
   bool tryGet(FileId id, out StoredFile file);
   /// Insert or replace.
   void save(StoredFile file);

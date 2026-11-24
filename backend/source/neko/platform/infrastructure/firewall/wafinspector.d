@@ -20,6 +20,11 @@ import std.datetime.systime : SysTime;
 import std.regex : Regex, matchFirst, regex;
 import std.string : indexOf, strip, toLower;
 import std.uni : isWhite;
+import neko.platform.infrastructure.firewall.ban;
+import neko.platform.infrastructure.firewall.banlist;
+import neko.platform.infrastructure.firewall.ratelimiter;
+import neko.platform.infrastructure.firewall.wafrequest;
+import neko.platform.infrastructure.firewall.waffinding;
 
 @safe:
 
@@ -143,128 +148,6 @@ string normalize(string value) pure @trusted {
 
 private string short_(string s) pure nothrow {
   return s.length > 40 ? s[0 .. 40] ~ "…" : s;
-}
-
-// ── rate limit and bans ───────────────────────────────────────────────────
-
-/// At most `perMinute` requests per client and minute (fixed one-minute
-/// windows). 0 = no limit.
-class RateLimiter {
-  private struct Window {
-    long minute;
-    long count;
-  }
-
-  private Window[string] windows;
-  private long perMinute;
-
-  this(long perMinute) {
-    this.perMinute = perMinute;
-  }
-
-  long limit() const pure nothrow {
-    return perMinute;
-  }
-
-  /// Count a request; false if the client is over its limit.
-  bool allow(string client, SysTime now) nothrow {
-    if (perMinute <= 0)
-      return true;
-    auto minute = now.stdTime / 600_000_000L;
-    auto w = client in windows;
-    if (w is null || w.minute != minute) {
-      if (windows.length > 50_000)
-        prune(minute);
-      windows[client] = Window(minute, 1);
-      return true;
-    }
-    return ++w.count <= perMinute;
-  }
-
-  private void prune(long minute) nothrow {
-    string[] old;
-    foreach (k, w; windows)
-      if (w.minute != minute)
-        old ~= k;
-    foreach (k; old)
-      windows.remove(k);
-  }
-}
-
-/// A banned address.
-struct Ban {
-  string client;
-  SysTime since;
-  SysTime until;
-  string reason;
-  /// Set by an administrator (not automatic).
-  bool manual;
-}
-
-/// Bans clients that keep violating the rules: `threshold` findings within
-/// `window` ban the client for `duration`. 0 = no automatic bans.
-class BanList {
-  private SysTime[][string] strikes;
-  private Ban[string] bans;
-  private long threshold;
-  private Duration window, duration;
-
-  this(long threshold, Duration duration, Duration window = 10.minutes) {
-    this.threshold = threshold;
-    this.duration = duration;
-    this.window = window;
-  }
-
-  /// Count a violation; true if it caused a ban.
-  bool strike(string client, SysTime now, string reason) nothrow {
-    if (threshold <= 0 || client.length == 0)
-      return false;
-    SysTime[] recent;
-    auto previous = client in strikes;
-    foreach (t; previous ? *previous : null)
-      if (now - t < window)
-        recent ~= t;
-    recent ~= now;
-    if (recent.length >= threshold) {
-      strikes.remove(client);
-      bans[client] = Ban(client, now, now + duration, reason);
-      return true;
-    }
-    strikes[client] = recent;
-    return false;
-  }
-
-  void ban(string client, SysTime now, Duration length, string reason) nothrow {
-    bans[client] = Ban(client, now, now + length, reason, true);
-  }
-
-  bool unban(string client) nothrow {
-    strikes.remove(client);
-    return bans.remove(client);
-  }
-
-  bool isBanned(string client, SysTime now, out Ban ban) nothrow {
-    if (auto b = client in bans) {
-      if (now < b.until) {
-        ban = *b;
-        return true;
-      }
-      bans.remove(client);
-    }
-    return false;
-  }
-
-  /// Current bans, the newest first.
-  Ban[] active(SysTime now) {
-    import std.algorithm : sort;
-
-    Ban[] list;
-    foreach (b; bans)
-      if (now < b.until)
-        list ~= b;
-    list.sort!((a, b) => a.since > b.since);
-    return list;
-  }
 }
 
 ///

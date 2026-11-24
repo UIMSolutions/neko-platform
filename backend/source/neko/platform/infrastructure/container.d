@@ -13,6 +13,7 @@
 module neko.platform.infrastructure.container;
 
 import std.path : buildPath;
+import vibe.core.log : logInfo;
 import neko.platform.domain;
 import neko.platform.application;
 import neko.platform.ports;
@@ -37,7 +38,6 @@ class PlatformContainer {
   ITransferRepository transferRepository;
   IUserRepository userRepository;
   IRoleRepository roleRepository;
-  ISiteRepository siteRepository;
   IFileRepository fileRepository;
   IBlobStore blobs;
   IIpRuleRepository ipRuleRepository;
@@ -54,7 +54,6 @@ class PlatformContainer {
   IManageUsersUseCase users;
   IAuthenticateUseCase authentication;
   IManageRolesUseCase roles;
-  IManageSitesUseCase sites;
   IManageFilesUseCase files;
   IManageNetworkUseCase network;
   IManageLandscapeUseCase landscape;
@@ -111,27 +110,25 @@ PlatformContainer buildContainer(PlatformConfig config, SecurityDomain domain, I
   c.roles = new ManageRolesUseCase(c.roleRepository, c.userRepository, c.events, c.clock);
   // Before any account is touched (also by the CLI): user roles must exist.
   c.roles.ensureBuiltIns();
-  c.siteRepository = new DocumentSiteRepository(c.store);
   c.fileRepository = new DocumentFileRepository(c.store);
-  c.sites = new ManageSitesUseCase(c.siteRepository, c.fileRepository, c.userRepository, c.events, c.clock);
-  // Before anything is served: "/" shows the default site.
-  auto defaultSite = c.sites.ensureDefaultSite(config.serviceName, config.defaultLanguage);
-  c.files = new ManageFilesUseCase(c.fileRepository, c.siteRepository, c.blobs, c.userRepository, c.events, c.clock,
-    ids, FileLimits(config.maxUploadBytes, config.siteQuotaBytes));
   c.landscapeRepository = new DocumentLandscapeRepository(c.store);
   c.usageRepository = new DocumentUsageRepository(c.store);
-  auto landscape = new ManageLandscapeUseCase(c.landscapeRepository, c.usageRepository, c.siteRepository, c.events,
+  auto landscape = new ManageLandscapeUseCase(c.landscapeRepository, c.usageRepository, c.fileRepository, c.events,
     c.clock, domain);
   // The global account (its administrator: the first web user), the service
   // plans and a subaccount for this instance.
-  landscape.ensureDefaults(c.account.isDefault ? config.serviceName : c.account.name, config.environment, defaultSite,
+  landscape.ensureDefaults(c.account.isDefault ? config.serviceName : c.account.name, config.environment,
     config.adminUser.length ? [config.adminUser] : null);
+  // Data of earlier versions: files and usage of sites move to subaccounts.
+  foreach (note; migrateSites(c.store, c.blobs))
+    logInfo("Global account %s: %s", c.account.key, note);
+  c.files = new ManageFilesUseCase(c.fileRepository, c.landscapeRepository, c.blobs, c.events, c.clock, ids,
+    FileLimits(config.maxUploadBytes, config.subaccountQuotaBytes));
   c.landscape = landscape;
   c.billing = landscape;
   c.ipRuleRepository = new DocumentIpRuleRepository(c.store);
   c.network = new ManageNetworkUseCase(c.ipRuleRepository, c.events, c.clock, ids);
-  auto users = new ManageUsersUseCase(c.userRepository, c.roleRepository, c.passwords, c.events, c.clock, ids,
-    c.siteRepository);
+  auto users = new ManageUsersUseCase(c.userRepository, c.roleRepository, c.passwords, c.events, c.clock, ids);
   c.users = users;
   c.authentication = users;
   c.overview = new PlatformOverviewUseCase(c.serviceRepository, c.transferRepository, domain, config.environment);

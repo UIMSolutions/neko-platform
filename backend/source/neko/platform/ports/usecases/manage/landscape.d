@@ -28,7 +28,7 @@ interface IManageLandscapeUseCase {
   void removeDirectory(string key, string actor);
   /// Region and subdomain cannot change after creation.
   NodeDto saveSubaccount(SubaccountRequest request, bool create, string actor);
-  /// Only subaccounts without sites.
+  /// Only subaccounts without files.
   void removeSubaccount(string key, string actor);
   /// quota: units, `unlimited` (-1) = pay per use; `remove` drops it.
   NodeDto setEntitlement(string node, string plan, long quota, bool remove, string actor);
@@ -44,11 +44,10 @@ interface IManageLandscapeUseCase {
   NodeDto setSubaccountAccess(string subaccount, SubaccountAccessRequest request, string actor);
   /// A new tenant starts with the space "default".
   NodeDto saveTenant(string subaccount, TenantRequest request, bool create, string actor);
-  /// Not the default tenant, not one whose spaces run sites.
+  /// Not the default tenant.
   NodeDto removeTenant(string subaccount, string tenant, string actor);
-  /// Sites run in exactly one space of the landscape.
   NodeDto saveSpace(string subaccount, string tenant, SpaceRequest request, bool create, string actor);
-  /// Not the default space, not one that runs sites.
+  /// Not the default space.
   NodeDto removeSpace(string subaccount, string tenant, string space, string actor);
   /// The tenant and space a service call runs in (Landscape.resolveCall;
   /// `globalAccount` is left empty). Throws NotFoundException.
@@ -60,8 +59,29 @@ interface IManageLandscapeUseCase {
   /// administrators administer the landscape, subaccount users see it.
   string[] grantedRights(string user);
   /// Start-up: the global account (with `admins` as its administrators), the
-  /// default plans, and a subaccount for the default site if there is none.
-  void ensureDefaults(string serviceName, string environment, string defaultSite, string[] admins = null);
+  /// default plans, and a first subaccount if there is none.
+  void ensureDefaults(string serviceName, string environment, string[] admins = null);
+
+  // ── disaster recovery (domain.entities.recovery) ──────────────────────
+
+  /// Every subaccount's recovery, with counts, strategies and regions.
+  RecoveryOverviewDto recoveryOverview();
+  RecoveryDto recovery(string subaccount);
+  /// Refused if it adds an error (e.g. EU Access left), or while failed over
+  /// and the secondary region changes.
+  RecoveryDto configureRecovery(string subaccount, RecoveryPlanRequest request, string actor);
+  /// To the secondary region; service calls then report it as their region.
+  RecoveryDto failover(string subaccount, RecoveryActionRequest request, string actor);
+  RecoveryDto failback(string subaccount, RecoveryActionRequest request, string actor);
+  /// A rehearsal; it succeeds when it worked within the RTO.
+  RecoveryDto recordDrill(string subaccount, RecoveryDrillRequest request, string actor);
+
+  // ── service assignments (domain.entities.serviceassignments) ─────────
+
+  /// Services × subaccounts with the entitlements, for the global account.
+  ServiceAssignmentsDto serviceAssignments();
+  /// (Un)assigns a service to every listed subaccount, all or nothing.
+  ServiceAssignmentsDto assignService(ServiceAssignmentRequest request, string actor);
   /// The raw landscape (exports).
   Landscape landscape();
 }

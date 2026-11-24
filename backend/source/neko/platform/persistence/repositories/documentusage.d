@@ -49,8 +49,8 @@ class DocumentUsageRepository : IUsageRepository {
       return;
     auto docs = store.load(usageCollection);
     foreach (d; deltas) {
-      auto key = d.month ~ "|" ~ d.site;
-      UsageRecord current = UsageRecord(d.month, d.site);
+      auto key = d.month ~ "|" ~ d.subaccount;
+      UsageRecord current = UsageRecord(d.month, d.subaccount);
       if (auto doc = key in docs)
         current = toEntity(deserializeJson!UsageDocument(*doc));
       current.merge(d);

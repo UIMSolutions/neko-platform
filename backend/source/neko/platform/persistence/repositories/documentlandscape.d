@@ -99,20 +99,25 @@ unittest {
   Landscape l = repo.load();
   assert(l.global.name == "ACME");
 
-  // subaccounts stored before tenants: their sites move to the default space
+  // subaccounts stored by earlier versions (before tenants, with sites): they
+  // get the default tenant and space; the site fields are ignored
   auto store = new MemoryDocumentStore;
   store.store("subaccounts", ["old": parseJsonString(`{"key": "old", "name": "Old", "region": "eu10",
-    "subdomain": "old", "stage": "dev", "domain": "open", "sites": ["main"], "createdAt": "", "modifiedAt": ""}`)]);
+    "subdomain": "old", "stage": "dev", "domain": "open", "sites": ["main"], "createdAt": "", "modifiedAt": "",
+    "tenants": [{"key": "t1", "isDefault": true, "spaces": [{"key": "default", "sites": ["shop"]}]}]}`)]);
   auto old = new DocumentLandscapeRepository(store).load().subaccounts[0];
-  assert(old.tenants.length == 1 && old.tenants[0].isDefault && old.tenants[0].spaces[0].sites == ["main"]);
-  old.tenants ~= Tenant("eu", "EU", "", false, [Space("default"), Space("qa", "QA", "", ["shop"])]);
+  assert(old.tenants.length == 1 && old.tenants[0].isDefault && old.tenants[0].spaces[0].isDefault);
+  assert(!old.recovery.enabled);
+  old.tenants ~= Tenant("eu", "EU", "", false, [Space("default"), Space("qa", "QA")]);
   old.admins = ["ann"];
-  old.services = ["sites"];
+  old.services = ["files"];
+  old.recovery.enabled = true;
+  old.recovery.secondaryRegion = "eu20";
   auto repo2 = new DocumentLandscapeRepository(store);
   repo2.saveSubaccount(old);
   auto back = repo2.load().subaccounts[0];
-  assert(back.tenants.length == 2 && back.tenants[1].spaces[1].sites == ["shop"] && back.admins == ["ann"]);
-  assert(back.sites == ["main", "shop"] && back.services == ["sites"]);
+  assert(back.tenants.length == 2 && back.tenants[1].spaces[1].key == "qa" && back.admins == ["ann"]);
+  assert(back.services == ["files"] && back.recovery.enabled && back.recovery.secondaryRegion == "eu20");
   Directory d;
   d.key = "dir1";
   repo.saveDirectory(d);

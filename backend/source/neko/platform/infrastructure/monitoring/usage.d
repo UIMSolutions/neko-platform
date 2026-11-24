@@ -3,7 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// Usage metering for billing: requests and bytes per site and month,
+/// Usage metering for billing: requests and bytes per subaccount and month,
 /// collected in memory and handed to the usage repository in batches.
 module neko.platform.infrastructure.monitoring.usage;
 
@@ -15,19 +15,19 @@ import neko.platform.domain.entities.billing : UsageRecord;
 class UsageMeter {
   private UsageRecord[string] pending;
 
-  /// One request to `site`.
-  void count(string site, SysTime at, long bytesOut) nothrow {
-    if (site.length == 0)
+  /// One request billed to `subaccount`.
+  void count(string subaccount, SysTime at, long bytesOut) nothrow {
+    if (subaccount.length == 0)
       return;
     string month;
     try
       month = at.toUTC.toISOExtString[0 .. 7];
     catch (Exception)
       return;
-    auto key = month ~ "|" ~ site;
+    auto key = month ~ "|" ~ subaccount;
     auto p = key in pending;
     if (p is null) {
-      pending[key] = UsageRecord(month, site);
+      pending[key] = UsageRecord(month, subaccount);
       p = key in pending;
     }
     p.requests++;
@@ -46,9 +46,9 @@ class UsageMeter {
 unittest {
   auto m = new UsageMeter;
   auto at = SysTime.fromISOExtString("2026-11-30T23:59:59Z");
-  m.count("shop", at, 100);
-  m.count("shop", at, 50);
-  m.count("shop", SysTime.fromISOExtString("2026-12-01T00:00:01Z"), 1);
+  m.count("shop-prod", at, 100);
+  m.count("shop-prod", at, 50);
+  m.count("shop-prod", SysTime.fromISOExtString("2026-12-01T00:00:01Z"), 1);
   m.count("", at, 1);
   auto d = m.drain();
   assert(d.length == 2 && m.drain().length == 0);

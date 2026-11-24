@@ -15,7 +15,8 @@ enum servicesCollection = "services";
 enum transfersCollection = "transfers";
 enum usersCollection = "users";
 enum rolesCollection = "roles";
-enum sitesCollection = "sites";
+/// Sites of earlier versions (read once by the migration, then removed).
+enum legacySitesCollection = "sites";
 enum filesCollection = "files";
 enum ipRulesCollection = "iprules";
 enum landscapeCollection = "landscape";
@@ -69,8 +70,6 @@ struct UserRecord {
   string modifiedAt;
   @optional string lastLoginAt;
   @optional string passwordChangedAt;
-  /// Site keys the account is limited to; missing or empty = every site.
-  @optional string[] sites;
 }
 
 struct RoleRecord {
@@ -86,29 +85,12 @@ struct RoleRecord {
   @optional string[] knownRights;
 }
 
-struct SiteContentRecord {
-  string language;
-  @optional string title;
-  @optional string tagline;
-  @optional string body;
-}
-
-struct SiteRecord {
-  string key;
-  string name;
-  @optional string[] hosts;
-  /// The first one is the default language.
-  @optional string[] languages;
-  @optional SiteContentRecord[] content;
-  @optional bool isDefault;
-  string createdAt;
-  string modifiedAt;
-}
-
-/// Metadata of a file; the content is <dataDir>/<domain>/files/<site>/<id>.
+/// Metadata of a file; the content is <dataDir>/<domain>/files/<subaccount>/<id>.
 struct FileRecord {
   string id;
-  string site;
+  /// Missing in documents of earlier versions, which name a `site` instead
+  /// (see persistence.migrations).
+  @optional string subaccount;
   string name;
   long size;
   @optional string sha256;
@@ -119,6 +101,8 @@ struct FileRecord {
   string modifiedAt;
   /// Informational; the content type is derived from the name when read.
   @optional string contentType;
+  /// Earlier versions: the site whose library held the file.
+  @optional string site;
 }
 
 /// An entry of the IP allow / deny list.
@@ -181,7 +165,6 @@ struct SpaceRecord {
   string key;
   @optional string name;
   @optional string description;
-  @optional string[] sites;
   @optional string createdAt;
 }
 
@@ -205,9 +188,6 @@ struct SubaccountRecord {
   @optional string purpose;
   string stage;
   string domain;
-  /// Before tenants: the sites of the subaccount (read once, moved to the
-  /// default space of the default tenant).
-  @optional string[] sites;
   @optional string costCenter;
   @optional bool betaFeatures;
   @optional EntitlementRecord[] entitlements;
@@ -218,6 +198,32 @@ struct SubaccountRecord {
   @optional string[] members;
   @optional string[] services;
   @optional TenantRecord[] tenants;
+  @optional RecoveryRecord recovery;
+}
+
+struct RecoveryEventRecord {
+  string at;
+  string kind;
+  @optional string from;
+  @optional string to;
+  @optional string actor;
+  @optional string reason;
+  @optional long minutes;
+  @optional bool success = true;
+}
+
+/// Disaster recovery of a subaccount; missing = disabled.
+struct RecoveryRecord {
+  @optional bool enabled;
+  @optional string secondaryRegion;
+  /// "backup-restore" | "pilot-light" | "warm-standby" | "active-active"
+  @optional string strategy;
+  @optional long rpoMinutes = 15;
+  @optional long rtoMinutes = 60;
+  @optional bool failedOver;
+  @optional string lastFailoverAt;
+  @optional string lastDrillAt;
+  @optional RecoveryEventRecord[] history;
 }
 
 /// A global account of the instance (collection "globalaccounts" in the
@@ -241,14 +247,14 @@ struct ServicePlanRecord {
   string unit;
   double unitSize;
   double price;
-  /// "none" | "requests" | "egressBytes" | "storageBytes" | "sites"
+  /// "none" | "requests" | "egressBytes" | "storageBytes"
   string meter;
 }
 
-/// Usage of a site in a month (document "<month>|<site>").
+/// Usage of a subaccount in a month (document "<month>|<subaccount>").
 struct UsageDocument {
   string month;
-  string site;
+  string subaccount;
   long requests;
   long bytesOut;
   long peakStorageBytes;

@@ -3,7 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// A file of a site's library (document, image, audio, video, …). The bytes
+/// A file of a subaccount's library (document, image, audio, video, …). The bytes
 /// live in a blob store; this entity is the metadata.
 module neko.platform.domain.entities.file;
 
@@ -28,7 +28,9 @@ enum FileKind {
 
 struct StoredFile {
   FileId id;
-  SiteKey site;
+  /// Key of the subaccount whose library holds the file (and whose folder
+  /// in the blob store holds its content).
+  string subaccount;
   /// Display and download name ("Price list 2026.pdf").
   string name;
   /// Derived from the name's extension, never taken from the client.
@@ -39,7 +41,7 @@ struct StoredFile {
   string sha256;
   /// Alt text / caption.
   string description;
-  /// Shown on the public site and downloadable without signing in.
+  /// Downloadable without signing in (/media/<subaccount>/<id>/<name>).
   bool isPublic;
   string uploadedBy;
   SysTime createdAt;

@@ -87,7 +87,7 @@ UserRecord toRecord(const UserAccount a) {
   return UserRecord(a.id.value, a.userName.value, a.displayName, a.email, a.roles.dup,
     a.roles.length > 0 ? a.roles[0] : "", a.active,
     a.passwordHash, timeToText(a.createdAt), timeToText(a.modifiedAt), timeToText(a.lastLoginAt),
-    timeToText(a.passwordChangedAt), a.sites.dup);
+    timeToText(a.passwordChangedAt));
 }
 
 UserAccount toEntity(const UserRecord r) {
@@ -111,7 +111,6 @@ UserAccount toEntity(const UserRecord r) {
   a.modifiedAt = textToTime(r.modifiedAt);
   a.lastLoginAt = textToTime(r.lastLoginAt);
   a.passwordChangedAt = textToTime(r.passwordChangedAt);
-  a.sites = r.sites.dup;
   return a;
 }
 
@@ -139,49 +138,16 @@ Role toEntity(const RoleRecord r) {
   return role;
 }
 
-SiteRecord toRecord(const Site s) {
-  SiteContentRecord[] content;
-  foreach (c; s.content)
-    content ~= SiteContentRecord(c.language, c.title, c.tagline, c.body);
-  return SiteRecord(s.key.value, s.name, s.hosts.dup, s.languages.dup, content, s.isDefault,
-    timeToText(s.createdAt), timeToText(s.modifiedAt));
-}
-
-Site toEntity(const SiteRecord r) {
-  Site s;
-  s.key = SiteKey(r.key);
-  s.name = r.name.length ? r.name : r.key;
-  s.hosts = r.hosts.dup;
-  // Invalid tags (edited by hand) are dropped; a site always has a language.
-  foreach (l; r.languages)
-    try {
-      auto tag = LanguageTag(l).value;
-      if (!s.languages.canFind(tag))
-        s.languages ~= tag;
-    } catch (ValidationException) {
-    }
-  if (s.languages.length == 0)
-    s.languages = ["en"];
-  foreach (c; r.content)
-    try
-      s.content ~= SiteContent(LanguageTag(c.language).value, c.title, c.tagline, c.body);
-    catch (ValidationException) {
-    }
-  s.isDefault = r.isDefault;
-  s.createdAt = textToTime(r.createdAt);
-  s.modifiedAt = textToTime(r.modifiedAt);
-  return s;
-}
-
 FileRecord toRecord(const StoredFile f) {
-  return FileRecord(f.id.value, f.site.value, f.name, f.size, f.sha256, f.description, f.isPublic, f.uploadedBy,
+  return FileRecord(f.id.value, f.subaccount, f.name, f.size, f.sha256, f.description, f.isPublic, f.uploadedBy,
     timeToText(f.createdAt), timeToText(f.modifiedAt), f.contentType);
 }
 
 StoredFile toEntity(const FileRecord r) {
   StoredFile f;
   f.id = FileId(r.id);
-  f.site = SiteKey(r.site);
+  // until the migration ran: the site, which names the old content folder
+  f.subaccount = r.subaccount.length ? r.subaccount : r.site;
   f.name = r.name;
   f.contentType = contentTypeFor(r.name);
   f.kind = kindOf(f.contentType);
@@ -271,14 +237,14 @@ SubaccountRecord toRecord(const Subaccount s) {
   foreach (t; s.tenants) {
     SpaceRecord[] spaces;
     foreach (sp; t.spaces)
-      spaces ~= SpaceRecord(sp.key, sp.name, sp.description, sp.sites.dup, timeToText(sp.createdAt));
+      spaces ~= SpaceRecord(sp.key, sp.name, sp.description, timeToText(sp.createdAt));
     tenants ~= TenantRecord(t.key, t.name, t.description, t.isDefault, spaces, timeToText(t.createdAt),
       timeToText(t.modifiedAt));
   }
   return SubaccountRecord(s.key, s.name, s.description, s.directory, s.region, s.subdomain, s.purpose,
-    s.stage.to!string, s.domain.label, null, s.costCenter, s.betaFeatures, toRecords(s.entitlements),
+    s.stage.to!string, s.domain.label, s.costCenter, s.betaFeatures, toRecords(s.entitlements),
     toRecords(s.roleCollections), timeToText(s.createdAt), timeToText(s.modifiedAt), s.admins.dup, s.members.dup,
-    s.services.dup, tenants);
+    s.services.dup, tenants, toRecord(s.recovery));
 }
 
 Subaccount toEntity(const SubaccountRecord r) {
@@ -304,20 +270,42 @@ Subaccount toEntity(const SubaccountRecord r) {
   foreach (t; r.tenants) {
     Space[] spaces;
     foreach (sp; t.spaces)
-      spaces ~= Space(sp.key, sp.name, sp.description, sp.sites.dup, textToTime(sp.createdAt));
+      spaces ~= Space(sp.key, sp.name, sp.description, textToTime(sp.createdAt));
     s.tenants ~= Tenant(t.key, t.name, t.description, t.isDefault, spaces, textToTime(t.createdAt),
       textToTime(t.modifiedAt));
   }
-  // every subaccount has a default tenant with the default space; sites of
-  // the time before tenants run there
+  // every subaccount has a default tenant with the default space
   s.ensureTenancy(s.createdAt);
-  if (r.tenants.length == 0 && r.sites.length)
-    foreach (ref t; s.tenants)
-      if (t.isDefault)
-        foreach (ref sp; t.spaces)
-          if (sp.isDefault)
-            sp.sites = r.sites.dup;
+  s.recovery = toEntity(r.recovery);
   return s;
+}
+
+RecoveryRecord toRecord(const RecoveryPlan p) {
+  RecoveryEventRecord[] history;
+  foreach (e; p.history)
+    history ~= RecoveryEventRecord(timeToText(e.at), e.kind, e.from, e.to, e.actor, e.reason, e.minutes, e.success);
+  return RecoveryRecord(p.enabled, p.secondaryRegion, strategyKey(p.strategy), p.rpoMinutes, p.rtoMinutes,
+    p.failedOver, timeToText(p.lastFailoverAt), timeToText(p.lastDrillAt), history);
+}
+
+RecoveryPlan toEntity(const RecoveryRecord r) {
+  RecoveryPlan p;
+  p.enabled = r.enabled;
+  p.secondaryRegion = r.secondaryRegion;
+  if (r.strategy.length)
+    try
+      p.strategy = parseStrategy(r.strategy);
+    catch (ValidationException) {
+      // edited by hand: keep the default strategy; validation shows the rest
+    }
+  p.rpoMinutes = r.rpoMinutes;
+  p.rtoMinutes = r.rtoMinutes;
+  p.failedOver = r.failedOver;
+  p.lastFailoverAt = textToTime(r.lastFailoverAt);
+  p.lastDrillAt = textToTime(r.lastDrillAt);
+  foreach (e; r.history)
+    p.history ~= RecoveryEvent(textToTime(e.at), e.kind, e.from, e.to, e.actor, e.reason, e.minutes, e.success);
+  return p;
 }
 
 GlobalAccountEntryRecord toRecord(const GlobalAccountEntry e) {
@@ -340,11 +328,11 @@ ServicePlan toEntity(const ServicePlanRecord r) {
 }
 
 UsageDocument toRecord(const UsageRecord u) {
-  return UsageDocument(u.month, u.site, u.requests, u.bytesOut, u.peakStorageBytes);
+  return UsageDocument(u.month, u.subaccount, u.requests, u.bytesOut, u.peakStorageBytes);
 }
 
 UsageRecord toEntity(const UsageDocument d) {
-  return UsageRecord(d.month, d.site, d.requests, d.bytesOut, d.peakStorageBytes);
+  return UsageRecord(d.month, d.subaccount, d.requests, d.bytesOut, d.peakStorageBytes);
 }
 
 private AccessRight[] parseKnown(const(string)[] keys) {
@@ -394,19 +382,30 @@ unittest {
 
 ///
 unittest {
-  SiteRecord rec;
-  rec.key = "shop";
-  rec.languages = ["DE", "bad tag!", "en", "de"];
-  rec.content = [SiteContentRecord("de", "Willkommen"), SiteContentRecord("x_y", "lost")];
-  auto site = toEntity(rec);
-  assert(site.name == "shop" && site.languages == ["de", "en"] && site.content.length == 1);
-  assert(toRecord(site).languages == ["de", "en"]);
-
   FileRecord f;
   f.id = "1";
-  f.site = "shop";
+  f.subaccount = "shop-prod";
   f.name = "intro.mp4";
   f.contentType = "text/html"; // never trusted
   auto file = toEntity(f);
-  assert(file.contentType == "video/mp4" && file.kind == FileKind.video);
+  assert(file.contentType == "video/mp4" && file.kind == FileKind.video && file.subaccount == "shop-prod");
+  assert(toRecord(file).subaccount == "shop-prod" && toRecord(file).site.length == 0);
+  f.subaccount = "";
+  f.site = "shop"; // written by an earlier version
+  assert(toEntity(f).subaccount == "shop");
+
+  // disaster recovery survives a round trip; a subaccount without one is unprotected
+  Subaccount s;
+  s.key = "shop-prod";
+  s.region = "eu10";
+  auto t = SysTime.fromISOExtString("2026-11-24T10:00:00Z");
+  configureRecovery(s, true, "eu20", RecoveryStrategy.pilotLight, 5, 30, "ann", t);
+  failover(s, "outage", 12, "ann", t);
+  auto back = toEntity(toRecord(s));
+  assert(back.recovery == s.recovery && activeRegion(back) == "eu20");
+  SubaccountRecord bare;
+  bare.key = "x";
+  bare.stage = "dev";
+  bare.domain = "open";
+  assert(!toEntity(bare).recovery.enabled);
 }

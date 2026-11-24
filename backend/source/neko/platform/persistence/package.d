@@ -8,6 +8,7 @@ module neko.platform.persistence;
 
 public:
   import neko.platform.persistence.mappers;
+  import neko.platform.persistence.migrations;
   import neko.platform.persistence.records;
   import neko.platform.persistence.repositories;
   import neko.platform.persistence.storages;

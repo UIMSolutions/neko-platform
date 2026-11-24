@@ -13,7 +13,6 @@ public:
   import neko.platform.ports.repositories.landscape;
   import neko.platform.ports.repositories.role;
   import neko.platform.ports.repositories.service;
-  import neko.platform.ports.repositories.site;
   import neko.platform.ports.repositories.transfer;
   import neko.platform.ports.repositories.usage;
   import neko.platform.ports.repositories.user;

@@ -65,8 +65,6 @@ struct UserDto {
   string[] roles;
   /// Effective access right keys: the union of the rights of the roles.
   string[] rights;
-  /// Site keys the account is limited to; empty = every site.
-  string[] sites;
   bool active;
   string createdAt;
   string modifiedAt;
@@ -88,16 +86,6 @@ struct UserDto {
 
   string label() const pure nothrow {
     return displayName.length > 0 ? displayName : userName;
-  }
-
-  bool allSites() const pure nothrow {
-    return sites.length == 0;
-  }
-
-  bool mayAccessSite(string key) const pure nothrow {
-    import std.algorithm : canFind;
-
-    return allSites || sites.canFind(key);
   }
 }
 
@@ -131,57 +119,11 @@ struct AccessRightDto {
   string area;
 }
 
-struct SiteContentDto {
-  string language;
-  string title;
-  string tagline;
-  /// Plain text; blank lines separate paragraphs.
-  string body;
-
-  /// The paragraphs of `body`.
-  string[] paragraphs() const pure {
-    import std.algorithm : filter, map, splitter;
-    import std.array : array, replace;
-    import std.string : strip;
-
-    return body.replace("\r\n", "\n").splitter("\n\n").map!(p => p.strip).filter!(p => p.length > 0).array;
-  }
-}
-
-/// A site (tenant) with its languages and home page content.
-struct SiteDto {
-  string key;
-  string name;
-  string[] hosts;
-  /// The first one is the default language.
-  string[] languages;
-  string defaultLanguage;
-  bool isDefault;
-  /// Per language (only the site's languages).
-  SiteContentDto[] content;
-  /// Files and their bytes.
-  long files;
-  long bytes;
-  string createdAt;
-  string modifiedAt;
-
-  SiteContentDto contentFor(string language) const pure nothrow {
-    foreach (c; content)
-      if (c.language == language)
-        return c;
-    return SiteContentDto(language);
-  }
-
-  bool hasContent(string language) const pure nothrow {
-    auto c = contentFor(language);
-    return c.title.length > 0 || c.body.length > 0;
-  }
-}
-
-/// Metadata of a file in a site's library.
+/// Metadata of a file in a subaccount's library.
 struct FileDto {
   string id;
-  string site;
+  /// Key of the subaccount whose library holds it.
+  string subaccount;
   string name;
   string contentType;
   /// "document" | "image" | "audio" | "video" | "archive" | "other"
@@ -196,11 +138,11 @@ struct FileDto {
   string createdAt;
   string modifiedAt;
 
-  /// Address on the public site (only served while the file is public).
+  /// Address for downloads without signing in (only served while the file is public).
   string publicUrl() const pure {
     import std.uri : encodeComponent;
 
-    return "/media/" ~ site ~ "/" ~ id ~ "/" ~ (() @trusted => encodeComponent(name))();
+    return "/media/" ~ subaccount ~ "/" ~ id ~ "/" ~ (() @trusted => encodeComponent(name))();
   }
 }
 
@@ -212,34 +154,23 @@ struct FileContent {
   immutable(ubyte)[] data;
 }
 
-struct SiteUsageDto {
-  string site;
+/// Files of one subaccount.
+struct SubaccountStorageDto {
+  string subaccount;
   string name;
   long files;
   long bytes;
 }
 
 struct StorageDto {
-  SiteUsageDto[] sites;
+  /// Every subaccount (also those without files), by key; then libraries of
+  /// subaccounts that no longer exist.
+  SubaccountStorageDto[] subaccounts;
   long files;
   long bytes;
   /// Free bytes on the volume; -1 if unknown.
   long available;
   string location;
-}
-
-/// What the public home page of a site shows.
-struct SitePageDto {
-  SiteDto site;
-  /// Language of `content`.
-  string language;
-  SiteContentDto content;
-  /// Public files of the site, newest first.
-  FileDto[] images;
-  /// Audio and video.
-  FileDto[] media;
-  /// Everything else.
-  FileDto[] documents;
 }
 
 /// ISO 8601 in UTC with fixed millisecond precision ("2026-11-16T21:25:30.885Z"),
@@ -304,7 +235,6 @@ UserDto toDto(const UserAccount a) {
   d.displayName = a.displayName;
   d.email = a.email;
   d.roles = a.roles.dup;
-  d.sites = a.sites.dup;
   d.active = a.active;
   d.createdAt = isoTime(a.createdAt);
   d.modifiedAt = isoTime(a.modifiedAt);
@@ -344,35 +274,10 @@ AccessRightDto toDto(const AccessRightInfo i) {
   return AccessRightDto(i.key, i.label, i.description, i.area);
 }
 
-/// With file count and bytes of the site.
-SiteDto toDto(const Site s, long files, long bytes) {
-  import std.algorithm : canFind;
-
-  SiteDto d;
-  d.key = s.key.value;
-  d.name = s.name;
-  d.hosts = s.hosts.dup;
-  d.languages = s.languages.dup;
-  d.defaultLanguage = s.defaultLanguage;
-  d.isDefault = s.isDefault;
-  foreach (c; s.content)
-    if (s.languages.canFind(c.language))
-      d.content ~= SiteContentDto(c.language, c.title, c.tagline, c.body);
-  d.files = files;
-  d.bytes = bytes;
-  d.createdAt = isoTime(s.createdAt);
-  d.modifiedAt = isoTime(s.modifiedAt);
-  return d;
-}
-
-SiteContentDto toDto(const SiteContent c) {
-  return SiteContentDto(c.language, c.title, c.tagline, c.body);
-}
-
 FileDto toDto(const StoredFile f) {
   FileDto d;
   d.id = f.id.value;
-  d.site = f.site.value;
+  d.subaccount = f.subaccount;
   d.name = f.name;
   d.contentType = f.contentType;
   d.kind = f.kind.to!string;
@@ -406,7 +311,6 @@ string byteSize(long bytes) pure {
 ///
 unittest {
   assert(byteSize(0) == "0 B" && byteSize(1536) == "1.5 KB" && byteSize(50 * 1024 * 1024) == "50 MB");
-  assert(SiteContentDto("en", "", "", "One\r\n\r\n\n Two \n\n").paragraphs == ["One", "Two"]);
 }
 
 struct IpRuleDto {
@@ -478,9 +382,16 @@ struct NodeDto {
   string purpose;
   string stage;
   string domain;
-  string[] sites;
+  /// Subaccounts: disaster recovery ("protected", "unprotected",
+  /// "failed-over", "misconfigured") and the region serving now.
+  string recoveryStatus;
+  string secondaryRegion;
+  string activeRegion;
+  /// Subaccounts: files in the library and their bytes.
+  long files;
+  long fileBytes;
   bool betaFeatures;
-  /// Subaccounts: the user group and the selected services ("" = every
+  /// Subaccounts: the user group and the assigned services ([] = every
   /// service); `admins` holds the subaccount administrators.
   string[] members;
   string[] services;
@@ -523,8 +434,10 @@ struct TreeItemDto {
   size_t advice;
   /// Subaccounts in the subtree (directories).
   size_t subaccounts;
-  size_t sites;
   size_t tenants;
+  /// Subaccounts: disaster recovery status and the region serving now.
+  string recoveryStatus;
+  string activeRegion;
   double monthCost = 0;
 }
 
@@ -553,7 +466,6 @@ struct BillRowDto {
   long requests;
   long bytesOut;
   long storageBytes;
-  long sites;
 }
 
 struct BillDto {
@@ -566,4 +478,108 @@ struct BillDto {
   /// Months with usage, newest first.
   string[] months;
   ServicePlan[] plans;
+}
+
+// ── disaster recovery ────────────────────────────────────────────────────
+
+struct RecoveryEventDto {
+  string at;
+  /// "plan" | "failover" | "failback" | "drill"
+  string kind;
+  string from;
+  string to;
+  string actor;
+  string reason;
+  long minutes;
+  bool success;
+}
+
+/// A recovery strategy with the best objectives it reaches.
+struct RecoveryStrategyDto {
+  /// "warm-standby"
+  string key;
+  string label;
+  long minRpoMinutes;
+  long minRtoMinutes;
+}
+
+/// The disaster recovery of one subaccount.
+struct RecoveryDto {
+  string subaccount;
+  string name;
+  string directory;
+  string stage;
+  string domain;
+  string primaryRegion;
+  string primaryLabel;
+  string secondaryRegion;
+  string secondaryLabel;
+  /// The region serving now.
+  string activeRegion;
+  bool enabled;
+  /// RecoveryStrategyDto.key
+  string strategy;
+  string strategyLabel;
+  long rpoMinutes;
+  long rtoMinutes;
+  bool failedOver;
+  string lastFailoverAt;
+  string lastDrillAt;
+  /// "protected" | "unprotected" | "failed-over" | "misconfigured"
+  string status;
+  /// Rule violations and warnings of the plan.
+  RecoveryIssue[] issues;
+  RecoveryAdvice[] advice;
+  /// Newest first.
+  RecoveryEventDto[] history;
+  bool canFailover;
+  bool canFailback;
+  bool canDrill;
+}
+
+/// Disaster recovery of every subaccount of the global account.
+struct RecoveryOverviewDto {
+  RecoveryDto[] subaccounts;
+  long protectedCount;
+  long unprotectedCount;
+  long failedOverCount;
+  long misconfiguredCount;
+  /// Production subaccounts without a plan.
+  long unprotectedProduction;
+  RecoveryStrategyDto[] strategies;
+  RegionInfo[] regions;
+}
+
+// ── service assignments ──────────────────────────────────────────────────
+
+/// A subaccount as a column of the assignment matrix.
+struct AssignmentSubaccountDto {
+  string key;
+  string name;
+  string directory;
+  string stage;
+  string region;
+  /// Has every service (its list is empty).
+  bool allServices;
+  size_t assignedServices;
+}
+
+/// The quotas of a plan per subaccount (in column order).
+struct PlanAssignmentDto {
+  ServicePlan plan;
+  /// Per subaccount: quota, `unlimited`, or 0 when `entitled` is false.
+  long[] quotas;
+  bool[] entitled;
+  size_t entitledCount;
+}
+
+/// Services × subaccounts, with the entitlements per service.
+struct ServiceAssignmentsDto {
+  AssignmentSubaccountDto[] subaccounts;
+  /// One row per service; cells in subaccount order.
+  ServiceRow[] services;
+  /// Every plan with its quotas per subaccount; plans of services with
+  /// access rights first.
+  PlanAssignmentDto[] plans;
+  string currency;
 }

@@ -56,8 +56,6 @@ struct CreateUserRequest {
   /// Role names; empty = ["viewer"].
   @optional string[] roles;
   @optional bool active = true;
-  /// Site keys the account is limited to; empty = every site.
-  @optional string[] sites;
 }
 
 /// Partial update; null fields are left unchanged.
@@ -67,8 +65,6 @@ struct UpdateUserRequest {
   /// Replaces all roles of the account.
   @optional Nullable!(string[]) roles;
   @optional Nullable!bool active;
-  /// Replaces the site scope; empty = every site.
-  @optional Nullable!(string[]) sites;
 }
 
 struct CreateRoleRequest {
@@ -87,34 +83,9 @@ struct UpdateRoleRequest {
   @optional Nullable!(string[]) rights;
 }
 
-struct CreateSiteRequest {
-  string key;
-  string name;
-  @optional string[] hosts;
-  /// Default "en".
-  @optional string defaultLanguage;
-  /// Further languages.
-  @optional string[] languages;
-}
-
-/// Partial update; null fields are left unchanged.
-struct UpdateSiteRequest {
-  @optional Nullable!string name;
-  @optional Nullable!(string[]) hosts;
-  /// Set together with `languages` (both or neither).
-  @optional Nullable!string defaultLanguage;
-  @optional Nullable!(string[]) languages;
-}
-
-struct UpdateSiteContentRequest {
-  string language;
-  @optional string title;
-  @optional string tagline;
-  @optional string body;
-}
-
 struct UploadFileRequest {
-  string site;
+  /// Key of the subaccount whose library receives the file.
+  string subaccount;
   /// Original file name (sanitised; the content type follows its extension).
   string name;
   /// The uploaded content: a local temporary file …
@@ -203,8 +174,6 @@ struct SpaceRequest {
   string key;
   @optional string name;
   @optional string description;
-  /// Keys of the sites of this instance that run in the space.
-  @optional string[] sites;
 }
 
 struct RoleCollectionRequest {
@@ -222,7 +191,7 @@ struct ServicePlanRequest {
   string unit;
   double unitSize = 1;
   double price = 0;
-  /// "none" | "requests" | "egressBytes" | "storageBytes" | "sites"
+  /// "none" | "requests" | "egressBytes" | "storageBytes"
   @optional string meter = "none";
 }
 
@@ -233,4 +202,38 @@ struct GlobalAccountEntryRequest {
   /// Host names that select the global account.
   @optional string[] hosts;
   @optional string description;
+}
+
+/// The disaster recovery plan of a subaccount.
+struct RecoveryPlanRequest {
+  @optional bool enabled = true;
+  @optional string secondaryRegion;
+  /// "backup-restore" | "pilot-light" | "warm-standby" | "active-active"
+  @optional string strategy = "warm-standby";
+  @optional long rpoMinutes = 15;
+  @optional long rtoMinutes = 60;
+}
+
+/// A failover or failback.
+struct RecoveryActionRequest {
+  /// Required: why (incident, maintenance, …).
+  string reason;
+  /// How long it took, if known.
+  @optional long minutes;
+}
+
+/// A failover rehearsal.
+struct RecoveryDrillRequest {
+  /// How long the failover took in the drill.
+  long minutes;
+  /// Whether the service worked in the secondary region.
+  @optional bool worked = true;
+  @optional string notes;
+}
+
+/// (Un)assign one service to several subaccounts.
+struct ServiceAssignmentRequest {
+  string service;
+  string[] subaccounts;
+  @optional bool assign = true;
 }

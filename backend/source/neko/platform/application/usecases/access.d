@@ -40,53 +40,33 @@ void requireCovers(IUserRepository users, IRoleRepository roles, string actor, c
       ~ missing.join(", ") ~ ")");
 }
 
-// ── site scope (multi-tenancy) ───────────────────────────────────────────
+// ── subaccount scope (file libraries) ────────────────────────────────────
 
-/// The sites `actor` is limited to. False if it may access every site: an
-/// account without site limits, or an actor that is no account.
-bool tryActorSites(IUserRepository users, string actor, out string[] sites) {
-  UserAccount account;
-  try {
-    if (!users.tryGetByName(UserName(actor).value, account))
-      return false;
-  } catch (ValidationException)
-    return false;
-  sites = account.sites.dup;
-  return !account.allSites;
+/// Whether `actor` may reach the library of the subaccount `key`: global
+/// account administrators, the subaccount's administrators and user group,
+/// and actors that belong to no subaccount at all (operators, "system", the
+/// CLI) — like accounts without limits before subaccounts scoped them.
+bool mayAccessSubaccount(const Landscape l, string actor, string key) pure nothrow {
+  if (l.isGlobalAdmin(actor))
+    return true;
+  Subaccount s;
+  if (l.trySubaccount(key, s) && s.isUser(actor))
+    return true;
+  return l.subaccountsOf(actor).length == 0;
 }
 
-bool mayAccessSite(IUserRepository users, string actor, string site) {
-  import std.algorithm : canFind;
-
-  string[] limited;
-  return !tryActorSites(users, actor, limited) || limited.canFind(site);
-}
-
-/// Sites outside the actor's scope do not exist for it.
-void requireSite(IUserRepository users, string actor, string site) {
-  if (!mayAccessSite(users, actor, site))
-    throw new NotFoundException("Site", site);
-}
-
-/// Throws unless `actor` may access every site.
-void requireAllSites(IUserRepository users, string actor, string what) {
-  string[] limited;
-  if (tryActorSites(users, actor, limited))
-    throw new PolicyViolationException("You cannot " ~ what ~ ": it needs access to every site, and you work on "
-        ~ limited.join(", ") ~ " only");
-}
-
-/// Throws unless `actor` reaches every site of `wanted` (empty = every site).
-void requireSiteScope(IUserRepository users, string actor, const(string)[] wanted, string what) {
-  import std.algorithm : canFind;
-
-  string[] limited;
-  if (!tryActorSites(users, actor, limited))
-    return;
-  if (wanted.length == 0)
-    throw new PolicyViolationException("You cannot " ~ what ~ ": it gives access to every site, and you work on "
-        ~ limited.join(", ") ~ " only");
-  auto outside = wanted.filter!(w => !limited.canFind(w)).array;
-  if (outside.length)
-    throw new PolicyViolationException("You cannot " ~ what ~ ": you do not work on " ~ outside.join(", "));
+///
+unittest {
+  Landscape l;
+  l.global.admins = ["root"];
+  Subaccount a, b;
+  a.key = "a";
+  a.members = ["bob"];
+  b.key = "b";
+  b.admins = ["ann"];
+  l.subaccounts = [a, b];
+  assert(mayAccessSubaccount(l, "root", "a") && mayAccessSubaccount(l, "root", "b"));
+  assert(mayAccessSubaccount(l, "bob", "a") && !mayAccessSubaccount(l, "bob", "b"));
+  assert(mayAccessSubaccount(l, "ann", "b") && !mayAccessSubaccount(l, "ann", "a"));
+  assert(mayAccessSubaccount(l, "system", "a") && mayAccessSubaccount(l, "eve", "b")); // in no subaccount
 }

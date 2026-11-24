@@ -18,7 +18,10 @@
 ///   Tenants          one or more per subaccount (exactly one is the default
 ///                    tenant), logically separated from each other
 ///   Spaces           one or more per tenant, separated within the tenant;
-///                    every tenant has the space "default". Sites run in a space.
+///                    every tenant has the space "default"
+///
+/// Every subaccount can have a disaster recovery plan: a secondary region it
+/// fails over to (see domain.entities.recovery).
 ///
 /// Global accounts themselves are physically separate: each has its own
 /// data directory (see domain.entities.globalaccounts); this module models the
@@ -44,6 +47,7 @@ import std.string : split, strip, toLower;
 import neko.platform.domain.enumerations.rights : accessRights;
 import neko.platform.domain.enumerations.security : SecurityDomain;
 import neko.platform.domain.exceptions;
+import neko.platform.domain.entities.recovery : RecoveryPlan, activeRegion, recoveryAdvice, recoveryIssues;
 
 @safe:
 
@@ -117,7 +121,7 @@ struct Entitlement {
 struct RoleCollection {
   string name;
   string description;
-  /// Access right keys ("sites.manage").
+  /// Access right keys ("files.manage").
   string[] rights;
   /// User names.
   string[] members;
@@ -185,8 +189,6 @@ struct Space {
   string key;
   string name;
   string description;
-  /// Keys of the sites (of this platform instance) that run in this space.
-  string[] sites;
   SysTime createdAt;
 
   bool isDefault() const pure nothrow {
@@ -194,7 +196,7 @@ struct Space {
   }
 
   Space copy() const pure nothrow {
-    return Space(key, name, description, sites.dup, createdAt);
+    return Space(key, name, description, createdAt);
   }
 }
 
@@ -226,20 +228,12 @@ struct Tenant {
     return false;
   }
 
-  /// The sites of all spaces.
-  string[] sites() const pure nothrow {
-    string[] list;
-    foreach (sp; spaces)
-      list ~= sp.sites.dup;
-    return list;
-  }
-
   /// Adds the default space if it is missing (first, as the tenant's home).
   void ensureDefaultSpace(SysTime now) pure nothrow {
     foreach (sp; spaces)
       if (sp.isDefault)
         return;
-    spaces = Space(defaultSpaceKey, "Default", "", null, now) ~ spaces;
+    spaces = Space(defaultSpaceKey, "Default", "", now) ~ spaces;
   }
 }
 
@@ -274,6 +268,8 @@ struct Subaccount {
   string[] services;
   /// One or more, exactly one of them the default tenant.
   Tenant[] tenants;
+  /// Multi-region disaster recovery (disabled = unprotected).
+  RecoveryPlan recovery;
 
   Subaccount copy() const pure nothrow {
     Tenant[] list;
@@ -281,15 +277,7 @@ struct Subaccount {
       list ~= t.copy;
     return Subaccount(key, name, description, directory, region, subdomain, purpose, stage, domain, costCenter,
       betaFeatures, entitlements.dup, copyAll(roleCollections), createdAt, modifiedAt, admins.dup, members.dup,
-      services.dup, list);
-  }
-
-  /// Keys of the sites in all tenants and spaces.
-  string[] sites() const pure nothrow {
-    string[] list;
-    foreach (t; tenants)
-      list ~= t.sites;
-    return list;
+      services.dup, list, recovery.copy);
   }
 
   bool tryTenant(string key, out Tenant tenant) const pure nothrow {
@@ -312,18 +300,6 @@ struct Subaccount {
       return false;
     tenant = tenants[0].copy;
     return true;
-  }
-
-  /// Where a site runs: tenant and space.
-  bool tryPlacement(string site, out string tenant, out string space) const pure nothrow {
-    foreach (t; tenants)
-      foreach (sp; t.spaces)
-        if (sp.sites.canFind(site)) {
-          tenant = t.key;
-          space = sp.key;
-          return true;
-        }
-    return false;
   }
 
   bool isAdmin(string user) const pure nothrow {
@@ -353,7 +329,7 @@ struct Subaccount {
 }
 
 /// A service whose access rights a subaccount can select (the area of the
-/// rights: "sites" for sites.read and sites.manage).
+/// rights: "files" for files.read and files.manage).
 struct ServiceInfo {
   string key;
   string label;
@@ -375,7 +351,7 @@ ServiceInfo[] serviceCatalogue() pure {
   return list;
 }
 
-/// "sites.manage" → "sites"
+/// "files.manage" → "files"
 string serviceOfRight(string right) pure nothrow {
   foreach (i, c; right)
     if (c == '.')
@@ -397,7 +373,10 @@ struct CallContext {
   string subdomain;
   string tenant;
   string space;
-  /// How the tenant was found: "header", "subdomain", "site" or "default".
+  /// The region the subaccount runs in now: its primary region, or the
+  /// secondary one after a disaster recovery failover.
+  string region;
+  /// How the tenant was found: "header", "subdomain" or "default".
   string source;
 }
 
@@ -411,22 +390,18 @@ struct CallRequest {
   string tenant;
   /// X-Neko-Space
   string space;
-  /// The site the request is for (by host name), if any.
-  string site;
 }
 
 /// What a unit of a service plan is measured with.
 enum Meter {
   /// Not measured: billed by the entitled quota (a fixed monthly fee per unit).
   none,
-  /// Requests to the sites of the subaccount.
+  /// Requests that run in the subaccount (service calls, public files).
   requests,
-  /// Bytes sent by the sites of the subaccount.
+  /// Bytes sent for those requests.
   egressBytes,
-  /// Peak bytes of the files of its sites in the month.
+  /// Peak bytes of the files of the subaccount in the month.
   storageBytes,
-  /// Sites assigned to the subaccount.
-  sites,
 }
 
 struct ServicePlan {
@@ -449,14 +424,12 @@ struct ServicePlan {
 ServicePlan[] defaultPlans() pure {
   enum gib = 1024.0 * 1024 * 1024;
   return [
-    ServicePlan("platform.requests", "Platform", "requests", "Requests to the sites of a subaccount",
+    ServicePlan("platform.requests", "Platform", "requests", "Requests that run in a subaccount",
       "1,000 requests", 1000, 0.04, Meter.requests),
-    ServicePlan("network.egress", "Network", "egress", "Data sent by the sites of a subaccount", "GB", gib, 0.09,
+    ServicePlan("network.egress", "Network", "egress", "Data sent for the requests of a subaccount", "GB", gib, 0.09,
       Meter.egressBytes),
-    ServicePlan("files.storage", "Files", "standard", "Peak size of the site files in the month", "GB-month", gib,
-      0.025, Meter.storageBytes),
-    ServicePlan("sites.site", "Sites", "site", "Sites (tenants) hosted by the subaccount", "site-month", 1, 5,
-      Meter.sites),
+    ServicePlan("files.storage", "Files", "standard", "Peak size of the subaccount's files in the month", "GB-month",
+      gib, 0.025, Meter.storageBytes),
     ServicePlan("support.premium", "Support", "premium", "Premium support, per entitled unit", "unit-month", 1, 150,
       Meter.none),
   ];
@@ -527,7 +500,7 @@ struct LandscapeIssue {
 /// A recommendation.
 struct Advice {
   string node;
-  /// "entitlements" | "authorizations" | "structure" | "security"
+  /// "entitlements" | "authorizations" | "structure" | "security" | "recovery"
   string topic;
   string recommendation;
   string reason;
@@ -666,16 +639,6 @@ struct Landscape {
     return result;
   }
 
-  /// The subaccount hosting `site`, if any.
-  bool tryHost(string site, out Subaccount s) const pure nothrow {
-    foreach (x; subaccounts)
-      if (x.sites.canFind(site)) {
-        s = x.copy;
-        return true;
-      }
-    return false;
-  }
-
   /// The cost center that applies to a subaccount.
   string costCenterOf(const Subaccount s) const pure nothrow {
     if (s.costCenter.length)
@@ -723,18 +686,13 @@ struct Landscape {
       if (subdomains.canFind(s.subdomain))
         error(node, "The subdomain '" ~ s.subdomain ~ "' is used twice; subdomains are unique in the region");
       subdomains ~= s.subdomain;
-      foreach (other; subaccounts)
-        if (other.key < s.key)
-          foreach (site; s.sites)
-            if (other.sites.canFind(site))
-              error(node, "The site '" ~ site ~ "' is also assigned to " ~ other.key);
 
       // tenants and spaces
       if (s.tenants.length == 0)
         error(node, "Has no tenant; every subaccount needs at least one");
       else if (s.tenants.count!(t => t.isDefault) != 1)
         error(node, "Needs exactly one default tenant, has " ~ s.tenants.count!(t => t.isDefault).to!string);
-      string[] tenantKeys, placed;
+      string[] tenantKeys;
       foreach (t; s.tenants) {
         if (tenantKeys.canFind(t.key))
           error(node, "The tenant key '" ~ t.key ~ "' is used twice");
@@ -746,11 +704,6 @@ struct Landscape {
           if (spaceKeys.canFind(sp.key))
             error(node, "The space key '" ~ sp.key ~ "' is used twice in tenant " ~ t.key);
           spaceKeys ~= sp.key;
-          foreach (site; sp.sites) {
-            if (placed.canFind(site))
-              error(node, "The site '" ~ site ~ "' runs in more than one space");
-            placed ~= site;
-          }
         }
       }
 
@@ -766,8 +719,12 @@ struct Landscape {
         foreach (r; rc.rights)
           if (!s.allowsService(serviceOfRight(r)))
             error(node, "The role collection '" ~ rc.name ~ "' grants " ~ r ~ ", but the service "
-                ~ serviceOfRight(r) ~ " is not selected for the subaccount");
+                ~ serviceOfRight(r) ~ " is not assigned to the subaccount");
       }
+
+      // disaster recovery
+      foreach (i; recoveryIssues(s))
+        issues ~= LandscapeIssue(i.error ? "error" : "warning", node, "Disaster recovery: " ~ i.message);
     }
     if (global.admins.length == 0)
       warning("global", "No global account administrator is named");
@@ -797,14 +754,6 @@ struct Landscape {
               ~ quotaOf(source, e.plan).to!string);
     }
 
-    // sites are counted, not metered over time: the quota is a hard limit
-    foreach (s; subaccounts)
-      foreach (e; s.entitlements) {
-        ServicePlan p;
-        if (tryPlan(e.plan, p) && p.meter == Meter.sites && e.quota != unlimited && s.sites.length > e.quota)
-          error("subaccount:" ~ s.key, "Hosts " ~ s.sites.length.to!string ~ " sites, but is entitled to "
-              ~ e.quota.to!string ~ " (" ~ e.plan ~ ")");
-      }
     foreach (d; directories)
       if (d.manageEntitlements)
         checkConsumer("directory:" ~ d.key, sourceOf(d), d.entitlements);
@@ -902,6 +851,8 @@ struct Landscape {
           && rc.rights.any!(r => r.canFind(".manage"))))
         add(node, "authorizations", "Reduce production administrators",
           "More than five people can change production; prefer named, few administrators.");
+      foreach (a; recoveryAdvice(s))
+        add(node, "recovery", a.recommendation, a.reason);
     }
     if (directories.length && subaccounts.any!(s => s.directory.length == 0))
       add("global", "structure", "Place the remaining subaccounts in directories",
@@ -952,9 +903,8 @@ struct Landscape {
   /// The tenant and space a service call runs in. In order:
   ///   headers   X-Neko-Subaccount (key or subdomain), X-Neko-Tenant, X-Neko-Space
   ///   host      <subaccount-subdomain>.… (default tenant) or <tenant>.<subaccount-subdomain>.…
-  ///   site      the tenant and space of the site the request is for
   ///   default   the default tenant of the first subaccount
-  /// The space is the one named, else the site's, else the default space.
+  /// The space is the one named, else the default space.
   /// Throws NotFoundException for a subaccount, tenant or space that does not
   /// exist, ValidationException for a tenant that is ambiguous.
   CallContext resolveCall(const CallRequest r) const pure {
@@ -963,7 +913,6 @@ struct Landscape {
     auto haveSub = false;
     auto tenant = r.tenant.strip.toLower;
     auto space = r.space.strip.toLower;
-    string siteTenant, siteSpace;
 
     if (r.subaccount.strip.length) {
       if (!trySubaccountByName(r.subaccount.strip.toLower, sub))
@@ -1000,10 +949,6 @@ struct Landscape {
       haveSub = true;
       c.source = "header";
     }
-    if (!haveSub && r.site.length && tryHost(r.site, sub) && sub.tryPlacement(r.site, siteTenant, siteSpace)) {
-      haveSub = true;
-      c.source = "site";
-    }
     if (!haveSub) {
       if (subaccounts.length == 0)
         throw new NotFoundException("Subaccount", "(none)");
@@ -1017,22 +962,19 @@ struct Landscape {
         throw new NotFoundException("Tenant", sub.key ~ "/" ~ tenant);
       if (c.source != "subdomain")
         c.source = "header";
-    } else if (siteTenant.length)
-      sub.tryTenant(siteTenant, t);
-    else if (!sub.tryDefaultTenant(t))
+    } else if (!sub.tryDefaultTenant(t))
       throw new NotFoundException("Tenant", sub.key ~ "/(default)");
 
     Space sp;
     if (space.length) {
       if (!t.trySpace(space, sp))
         throw new NotFoundException("Space", sub.key ~ "/" ~ t.key ~ "/" ~ space);
-    } else if (siteSpace.length && t.key == siteTenant)
-      t.trySpace(siteSpace, sp);
-    else if (!t.trySpace(defaultSpaceKey, sp))
+    } else if (!t.trySpace(defaultSpaceKey, sp))
       throw new NotFoundException("Space", sub.key ~ "/" ~ t.key ~ "/" ~ defaultSpaceKey);
 
     c.subaccount = sub.key;
     c.subdomain = sub.subdomain;
+    c.region = activeRegion(sub);
     c.tenant = t.key;
     c.space = sp.key;
     return c;
@@ -1056,12 +998,12 @@ unittest {
   l.global.subdomainPrefix = "acme";
   l.global.costCenter = "CC-100";
   l.plans = defaultPlans();
-  l.global.entitlements = [Entitlement("sites.site", 10), Entitlement("platform.requests", unlimited)];
+  l.global.entitlements = [Entitlement("support.premium", 10), Entitlement("platform.requests", unlimited)];
   Directory shop;
   shop.key = "shop";
   shop.costCenter = "CC-200";
   shop.manageEntitlements = true;
-  shop.entitlements = [Entitlement("sites.site", 6)];
+  shop.entitlements = [Entitlement("support.premium", 6)];
   Directory eu;
   eu.key = "shop-eu";
   eu.parent = "shop";
@@ -1072,11 +1014,11 @@ unittest {
   dev.directory = "shop-eu";
   dev.purpose = "shop";
   dev.stage = Stage.dev;
-  dev.entitlements = [Entitlement("sites.site", 2)];
+  dev.entitlements = [Entitlement("support.premium", 2)];
   prod = dev;
   prod.key = "shop-prod";
   prod.stage = Stage.prod;
-  prod.entitlements = [Entitlement("sites.site", 3)];
+  prod.entitlements = [Entitlement("support.premium", 3)];
   dev.subdomain = subdomainFor(l.global, dev, "shop-eu");
   prod.subdomain = subdomainFor(l.global, prod, "shop-eu");
   dev.ensureTenancy(SysTime.init);
@@ -1087,20 +1029,21 @@ unittest {
   assert(dev.subdomain == "acme-shop-dev" && prod.subdomain == "acme-shop-prod");
   assert(l.depth("shop-eu") == 2 && l.sourceOf(prod) == "directory:shop" && l.sourceOf(shop) == "global");
   bool open;
-  assert(l.assignedFrom("directory:shop", "sites.site", open) == 5 && l.assignedFrom("global", "sites.site", open) == 6);
+  assert(l.assignedFrom("directory:shop", "support.premium", open) == 5
+      && l.assignedFrom("global", "support.premium", open) == 6);
   assert(l.validate().length == 0, l.validate().map!(i => i.message).join("; "));
   assert(l.costCenterOf(prod) == "CC-200");
 
   // over-assignment and entitlements the source does not hold
-  l.subaccounts[1].entitlements = [Entitlement("sites.site", 5), Entitlement("files.storage", 2)];
+  l.subaccounts[1].entitlements = [Entitlement("support.premium", 5), Entitlement("files.storage", 2)];
   auto issues = l.validate();
   assert(issues.any!(i => i.node == "directory:shop" && i.message.canFind("7 assigned")));
   assert(issues.any!(i => i.node == "subaccount:shop-prod" && i.message.canFind("files.storage")));
 
   // advice: one subaccount under a directory budget, mixed stages with changing rights
-  l.subaccounts[1].entitlements = [Entitlement("sites.site", 3)];
+  l.subaccounts[1].entitlements = [Entitlement("support.premium", 3)];
   l.directories[0].manageAuthorizations = true;
-  l.directories[0].roleCollections = [RoleCollection("Shop Admin", "", ["sites.manage"], ["jane"])];
+  l.directories[0].roleCollections = [RoleCollection("Shop Admin", "", ["files.manage"], ["jane"])];
   auto advice = l.advise();
   assert(advice.any!(a => a.topic == "authorizations" && a.recommendation.canFind("Shop Admin")));
   l.directories[1].costCenter = "CC-300";
@@ -1132,23 +1075,22 @@ unittest {
   assert(shop.tenants.length == 1 && shop.tenants[0].isDefault && shop.tenants[0].spaces[0].key == defaultSpaceKey);
   auto eu = Tenant("eu", "Europe");
   eu.ensureDefaultSpace(SysTime.init);
-  eu.spaces ~= Space("staging", "Staging", "", ["outlet"]);
-  shop.tenants[0].spaces[0].sites = ["shop"];
+  eu.spaces ~= Space("staging", "Staging");
   shop.tenants ~= eu;
   shop.admins = ["ann"];
   shop.members = ["bob"];
-  shop.services = ["sites", "files"];
+  shop.services = ["files", "landscape"];
   Subaccount other;
   other.key = "blog";
   other.subdomain = "acme-blog";
   other.ensureTenancy(SysTime.init);
   l.subaccounts = [other, shop];
   assert(l.validate().length == 0, l.validate().map!(i => i.message).join("; "));
-  assert(shop.sites == ["shop", "outlet"] && l.mayAdminister("shop-prod", "ann") && l.mayAdminister("blog", "root"));
+  assert(l.mayAdminister("shop-prod", "ann") && l.mayAdminister("blog", "root"));
   assert(!l.mayAdminister("blog", "ann") && l.subaccountsOf("bob") == ["shop-prod"]);
 
   // role collections: members of the user group, rights of the selected services
-  l.subaccounts[1].roleCollections = [RoleCollection("Editors", "", ["sites.manage"], ["bob"])];
+  l.subaccounts[1].roleCollections = [RoleCollection("Editors", "", ["files.manage"], ["bob"])];
   assert(l.validate().length == 0);
   l.subaccounts[1].roleCollections = [RoleCollection("Editors", "", ["users.manage"], ["eve"])];
   auto issues = l.validate();
@@ -1158,14 +1100,13 @@ unittest {
   // broken tenancy
   auto broken = l.copy;
   broken.subaccounts[1].tenants[1].isDefault = true;
-  broken.subaccounts[1].tenants[1].spaces[1].sites = ["shop"];
   broken.subaccounts[1].tenants[1].spaces = broken.subaccounts[1].tenants[1].spaces[1 .. $];
   auto bad = broken.validate().map!(i => i.message).join("; ");
-  assert(bad.canFind("exactly one default tenant") && bad.canFind("no space 'default'") && bad.canFind("more than one"));
+  assert(bad.canFind("exactly one default tenant") && bad.canFind("no space 'default'"));
 
   // service calls
-  CallContext call(string host, string sub = "", string tenant = "", string space = "", string site = "") {
-    return l.resolveCall(CallRequest(host, sub, tenant, space, site));
+  CallContext call(string host, string sub = "", string tenant = "", string space = "") {
+    return l.resolveCall(CallRequest(host, sub, tenant, space));
   }
 
   auto c = call("acme-shop-prod.neko.example");
@@ -1174,8 +1115,6 @@ unittest {
   assert(c.tenant == "eu" && c.space == "staging" && c.subdomain == "acme-shop-prod");
   c = call("localhost", "", "eu");
   assert(c.subaccount == "shop-prod" && c.tenant == "eu" && c.space == "default" && c.source == "header");
-  c = call("localhost", "", "", "", "outlet");
-  assert(c.tenant == "eu" && c.space == "staging" && c.source == "site");
   c = call("localhost");
   assert(c.subaccount == "blog" && c.source == "default");
   c = call("localhost", "acme-shop-prod");
@@ -1195,7 +1134,7 @@ unittest {
   catch (ValidationException)
     ambiguous = true;
   assert(ambiguous);
-  assert(serviceCatalogue().any!(x => x.key == "sites" && x.rights == ["sites.read", "sites.manage"]));
+  assert(serviceCatalogue().any!(x => x.key == "files" && x.rights == ["files.read", "files.manage"]));
 }
 
 /// A deep copy (const → mutable).

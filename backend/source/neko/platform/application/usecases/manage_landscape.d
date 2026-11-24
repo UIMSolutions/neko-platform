@@ -3,8 +3,9 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// The account hierarchy and billing (see domain.entities.landscape and
-/// domain.entities.billing for the rules).
+/// The account hierarchy and billing, disaster recovery and service
+/// assignments (see domain.entities.landscape, .billing, .recovery and
+/// .serviceassignments for the rules).
 module neko.platform.application.usecases.manage_landscape;
 
 import std.algorithm : any, canFind, countUntil, filter, map, remove, sort;
@@ -12,7 +13,9 @@ import std.array : array, join;
 import std.conv : to;
 import std.format : format;
 import std.string : strip, toLower;
+import std.traits : EnumMembers;
 import neko.platform.domain;
+import dr = neko.platform.domain.entities.recovery;
 import neko.platform.application.dtos;
 import neko.platform.ports;
 
@@ -29,16 +32,17 @@ import std.datetime.systime : SysTime;
 class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
   private ILandscapeRepository repo;
   private IUsageRepository usage;
-  private ISiteRepository sites;
+  /// The file libraries: a subaccount with files cannot be removed.
+  private IFileRepository files;
   private IEventPublisher events;
   private IClock clock;
   private SecurityDomain domain;
 
-  this(ILandscapeRepository repo, IUsageRepository usage, ISiteRepository sites, IEventPublisher events, IClock clock,
+  this(ILandscapeRepository repo, IUsageRepository usage, IFileRepository files, IEventPublisher events, IClock clock,
       SecurityDomain domain) {
     this.repo = repo;
     this.usage = usage;
-    this.sites = sites;
+    this.files = files;
     this.events = events;
     this.clock = clock;
     this.domain = domain;
@@ -272,9 +276,6 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
 
     if (create)
       s.ensureTenancy(now);
-    if (s.sites.length && s.domain != domain)
-      throw new ValidationException("Sites of this instance (" ~ domain.label ~ ") can only be hosted by a subaccount of "
-          ~ "the " ~ domain.label ~ " domain; " ~ s.key ~ " hosts " ~ s.sites.join(", "));
     s.modifiedAt = now;
     change(l, (ref Landscape x) {
       auto i = x.subaccounts.countUntil!(e => e.key == key);
@@ -295,9 +296,12 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
     Subaccount s;
     if (!l.trySubaccount(key.strip, s))
       throw new NotFoundException("Subaccount", key);
-    if (s.sites.length)
-      throw new ConflictException("The subaccount '" ~ s.key ~ "' still hosts " ~ s.sites.join(", ")
-          ~ "; assign the sites elsewhere first");
+    auto stored = files is null ? 0 : files.ofSubaccount(s.key).length;
+    if (stored)
+      throw new ConflictException("The subaccount '" ~ s.key ~ "' still has " ~ stored.to!string ~ " file"
+          ~ (stored == 1 ? "" : "s") ~ "; remove them first");
+    if (s.recovery.failedOver)
+      throw new ConflictException("The subaccount '" ~ s.key ~ "' runs in its secondary region; fail back first");
     repo.removeSubaccount(s.key);
     emit("landscape.subaccount.removed", s.key, actor, "Removed subaccount " ~ s.key);
   }
@@ -383,9 +387,6 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
     case "storageBytes":
       p.meter = Meter.storageBytes;
       break;
-    case "sites":
-      p.meter = Meter.sites;
-      break;
     default:
       throw new ValidationException("Unknown meter '" ~ r.meter ~ "'");
     }
@@ -410,7 +411,7 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
     emit("landscape.plan.removed", p.key, actor, "Removed service plan " ~ p.key);
   }
 
-  void ensureDefaults(string serviceName, string environment, string defaultSite, string[] admins = null) {
+  void ensureDefaults(string serviceName, string environment, string[] admins = null) {
     auto l = repo.load();
     if (l.plans.length == 0)
       foreach (p; defaultPlans())
@@ -420,7 +421,7 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
       g.name = serviceName;
       g.subdomainPrefix = subdomainLabel(serviceName.toLower.replaceNonLabel);
       g.entitlements = [Entitlement("platform.requests", unlimited), Entitlement("network.egress", unlimited),
-        Entitlement("files.storage", 100), Entitlement("sites.site", 10)];
+        Entitlement("files.storage", 100)];
       g.admins = admins.dup;
       g.modifiedAt = clock.now;
       repo.saveGlobal(g);
@@ -439,11 +440,8 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
           ~ domain.label));
       s.createdAt = clock.now;
       s.ensureTenancy(s.createdAt);
-      Site site;
-      if (defaultSite.length && sites.tryGet(defaultSite, site))
-        s.tenants[0].spaces[0].sites = [defaultSite];
       s.entitlements = [Entitlement("platform.requests", unlimited), Entitlement("network.egress", unlimited),
-        Entitlement("files.storage", 50), Entitlement("sites.site", 5)];
+        Entitlement("files.storage", 50)];
       s.modifiedAt = s.createdAt;
       repo.saveSubaccount(s);
     }
@@ -465,6 +463,8 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
         throw new ValidationException("Unknown service '" ~ svc ~ "'");
       services ~= k;
     }
+    if (services.sort.array == serviceKeys())
+      services = null; // every service, also those added later
     persist(l, id, (ref Landscape x) {
       auto s = subaccountRef(x, key.strip);
       s.admins = admins;
@@ -528,9 +528,6 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
         throw new NotFoundException("Tenant", s.key ~ "/" ~ tenant);
       if (s.tenants[i].isDefault)
         throw new ConflictException("The default tenant cannot be removed; make another tenant the default first");
-      if (s.tenants[i].sites.length)
-        throw new ConflictException("The tenant " ~ tenant ~ " still runs " ~ s.tenants[i].sites.join(", ")
-            ~ "; move the sites to another space first");
       s.tenants = s.tenants.remove(i);
       s.modifiedAt = clock.now;
     });
@@ -543,22 +540,9 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
     auto l = repo.load();
     auto key = subdomainLabel(r.key);
     auto now = clock.now;
-    string[] assigned;
-    foreach (site; r.sites) {
-      auto k = site.strip.toLower;
-      if (k.length == 0 || assigned.canFind(k))
-        continue;
-      Site existing;
-      if (!sites.tryGet(k, existing))
-        throw new ValidationException("There is no site '" ~ k ~ "' on this instance");
-      assigned ~= k;
-    }
     Subaccount target;
     if (!l.trySubaccount(subaccount.strip, target))
       throw new NotFoundException("Subaccount", subaccount);
-    if (assigned.length && target.domain != domain)
-      throw new ValidationException("Sites of this instance (" ~ domain.label ~ ") can only run in a subaccount of the "
-          ~ domain.label ~ " domain");
     persist(l, "subaccount:" ~ target.key, (ref Landscape x) {
       auto s = subaccountRef(x, target.key);
       auto ti = s.tenants.countUntil!(t => t.key == tenant.strip);
@@ -578,7 +562,6 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
         sp = t.spaces[i];
       sp.name = requireName(r.name, key);
       sp.description = r.description.strip;
-      sp.sites = assigned.sort.array;
       if (i < 0)
         t.spaces ~= sp;
       else
@@ -586,8 +569,7 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
       t.modifiedAt = s.modifiedAt = now;
     });
     emit(create ? "landscape.space.created" : "landscape.space.changed", subaccount ~ "/" ~ tenant ~ "/" ~ key, actor,
-      (create ? "Created" : "Changed") ~ " space " ~ key ~ " of tenant " ~ tenant ~ " in subaccount " ~ subaccount
-        ~ (assigned.length ? " (sites " ~ assigned.join(", ") ~ ")" : ""));
+      (create ? "Created" : "Changed") ~ " space " ~ key ~ " of tenant " ~ tenant ~ " in subaccount " ~ subaccount);
     return node("subaccount:" ~ target.key);
   }
 
@@ -604,15 +586,219 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
         throw new NotFoundException("Space", s.key ~ "/" ~ tenant ~ "/" ~ space);
       if (t.spaces[i].isDefault)
         throw new ConflictException("The default space cannot be removed; service calls without a space run there");
-      if (t.spaces[i].sites.length)
-        throw new ConflictException("The space " ~ space ~ " still runs " ~ t.spaces[i].sites.join(", ")
-            ~ "; move the sites first");
       t.spaces = t.spaces.remove(i);
       t.modifiedAt = s.modifiedAt = clock.now;
     });
     emit("landscape.space.removed", subaccount ~ "/" ~ tenant ~ "/" ~ space, actor, "Removed space " ~ space
         ~ " of tenant " ~ tenant ~ " in subaccount " ~ subaccount);
     return node("subaccount:" ~ subaccount.strip);
+  }
+
+  // ── disaster recovery ───────────────────────────────────────────────────
+
+  RecoveryOverviewDto recoveryOverview() {
+    auto l = repo.load();
+    RecoveryOverviewDto d;
+    foreach (s; l.subaccounts) {
+      auto r = recoveryDto(s);
+      switch (r.status) {
+      case "protected":
+        d.protectedCount++;
+        break;
+      case "failed-over":
+        d.failedOverCount++;
+        break;
+      case "misconfigured":
+        d.misconfiguredCount++;
+        break;
+      default:
+        d.unprotectedCount++;
+      }
+      if (!s.recovery.enabled && s.stage.isProduction)
+        d.unprotectedProduction++;
+      d.subaccounts ~= r;
+    }
+    foreach (st; [EnumMembers!RecoveryStrategy]) {
+      auto lim = limitsOf(st);
+      d.strategies ~= RecoveryStrategyDto(strategyKey(st), lim.label, lim.minRpoMinutes, lim.minRtoMinutes);
+    }
+    d.regions = regions.dup;
+    return d;
+  }
+
+  RecoveryDto recovery(string subaccount) {
+    return recoveryDto(requireSubaccount(repo.load(), subaccount));
+  }
+
+  RecoveryDto configureRecovery(string subaccount, RecoveryPlanRequest r, string actor) {
+    auto l = repo.load();
+    auto key = requireSubaccount(l, subaccount).key;
+    auto strategy = parseStrategy(r.strategy.strip.length ? r.strategy : "warm-standby");
+    auto now = clock.now;
+    persist(l, "subaccount:" ~ key, (ref Landscape x) {
+      auto s = subaccountRef(x, key);
+      dr.configureRecovery(*s, r.enabled, r.secondaryRegion, strategy, r.rpoMinutes, r.rtoMinutes, actor, now);
+      s.modifiedAt = now;
+    });
+    emit("landscape.recovery.plan", key, actor, r.enabled ? "Set up disaster recovery of subaccount " ~ key ~ ": "
+        ~ limitsOf(strategy).label ~ " to " ~ r.secondaryRegion.strip.toLower ~ " (RPO " ~ r.rpoMinutes.to!string
+        ~ " min, RTO " ~ r.rtoMinutes.to!string ~ " min)" : "Disabled disaster recovery of subaccount " ~ key);
+    return recovery(key);
+  }
+
+  RecoveryDto failover(string subaccount, RecoveryActionRequest r, string actor) {
+    auto l = repo.load();
+    auto s = requireSubaccount(l, subaccount);
+    foreach (i; recoveryIssues(s))
+      if (i.error)
+        throw new ValidationException("Fix the disaster recovery plan of " ~ s.key ~ " first: " ~ i.message);
+    auto now = clock.now;
+    persist(l, "subaccount:" ~ s.key, (ref Landscape x) {
+      auto t = subaccountRef(x, s.key);
+      dr.failover(*t, r.reason, r.minutes, actor, now);
+      t.modifiedAt = now;
+    });
+    emit("landscape.recovery.failover", s.key, actor, "Failed over subaccount " ~ s.key ~ " from " ~ s.region ~ " to "
+        ~ s.recovery.secondaryRegion ~ ": " ~ r.reason.strip);
+    return recovery(s.key);
+  }
+
+  RecoveryDto failback(string subaccount, RecoveryActionRequest r, string actor) {
+    auto l = repo.load();
+    auto s = requireSubaccount(l, subaccount);
+    auto now = clock.now;
+    persist(l, "subaccount:" ~ s.key, (ref Landscape x) {
+      auto t = subaccountRef(x, s.key);
+      dr.failback(*t, r.reason, r.minutes, actor, now);
+      t.modifiedAt = now;
+    });
+    emit("landscape.recovery.failback", s.key, actor, "Failed back subaccount " ~ s.key ~ " to " ~ s.region ~ ": "
+        ~ r.reason.strip);
+    return recovery(s.key);
+  }
+
+  RecoveryDto recordDrill(string subaccount, RecoveryDrillRequest r, string actor) {
+    auto l = repo.load();
+    auto s = requireSubaccount(l, subaccount);
+    auto now = clock.now;
+    bool success;
+    persist(l, "subaccount:" ~ s.key, (ref Landscape x) {
+      auto t = subaccountRef(x, s.key);
+      success = dr.recordDrill(*t, r.minutes, r.worked, r.notes, actor, now);
+      t.modifiedAt = now;
+    });
+    emit("landscape.recovery.drill", s.key, actor, "Disaster recovery drill of subaccount " ~ s.key ~ " to "
+        ~ s.recovery.secondaryRegion ~ ": " ~ (success ? "passed" : "failed") ~ " in " ~ r.minutes.to!string
+        ~ " min (RTO " ~ s.recovery.rtoMinutes.to!string ~ " min)");
+    return recovery(s.key);
+  }
+
+  private static RecoveryDto recoveryDto(const Subaccount s) {
+    RecoveryDto d;
+    d.subaccount = s.key;
+    d.name = s.name;
+    d.directory = s.directory;
+    d.stage = s.stage.to!string;
+    d.domain = s.domain.label;
+    d.primaryRegion = s.region;
+    d.primaryLabel = regionLabel(s.region);
+    d.secondaryRegion = s.recovery.secondaryRegion;
+    d.secondaryLabel = s.recovery.secondaryRegion.length ? regionLabel(s.recovery.secondaryRegion) : "";
+    d.activeRegion = activeRegion(s);
+    d.enabled = s.recovery.enabled;
+    d.strategy = strategyKey(s.recovery.strategy);
+    d.strategyLabel = limitsOf(s.recovery.strategy).label;
+    d.rpoMinutes = s.recovery.rpoMinutes;
+    d.rtoMinutes = s.recovery.rtoMinutes;
+    d.failedOver = s.recovery.failedOver;
+    d.lastFailoverAt = isoTime(s.recovery.lastFailoverAt);
+    d.lastDrillAt = isoTime(s.recovery.lastDrillAt);
+    d.status = recoveryStatus(s);
+    d.issues = recoveryIssues(s);
+    d.advice = recoveryAdvice(s);
+    foreach (e; s.recovery.history)
+      d.history ~= RecoveryEventDto(isoTime(e.at), e.kind, e.from, e.to, e.actor, e.reason, e.minutes, e.success);
+    d.canFailover = s.recovery.enabled && !s.recovery.failedOver && d.status != "misconfigured";
+    d.canFailback = s.recovery.failedOver;
+    d.canDrill = s.recovery.enabled && !s.recovery.failedOver;
+    return d;
+  }
+
+  // ── service assignments ─────────────────────────────────────────────────
+
+  ServiceAssignmentsDto serviceAssignments() {
+    auto l = repo.load();
+    ServiceAssignmentsDto d;
+    d.currency = l.global.currency;
+    foreach (s; l.subaccounts)
+      d.subaccounts ~= AssignmentSubaccountDto(s.key, s.name, s.directory, s.stage.to!string, s.region,
+        s.services.length == 0, effectiveServices(s).length);
+    d.services = serviceMatrix(l);
+    auto other = plansWithoutService(l);
+    auto ordered = l.plans.filter!(p => !other.canFind(p.key)).array ~ l.plans.filter!(p => other.canFind(p.key)).array;
+    foreach (p; ordered) {
+      PlanAssignmentDto row;
+      row.plan = p;
+      foreach (s; l.subaccounts) {
+        bool entitled;
+        long quota;
+        foreach (e; s.entitlements)
+          if (e.plan == p.key) {
+            entitled = true;
+            quota = e.quota;
+          }
+        row.quotas ~= quota;
+        row.entitled ~= entitled;
+        if (entitled)
+          row.entitledCount++;
+      }
+      d.plans ~= row;
+    }
+    return d;
+  }
+
+  ServiceAssignmentsDto assignService(ServiceAssignmentRequest r, string actor) {
+    auto l = repo.load();
+    auto service = r.service.strip.toLower;
+    string[] keys;
+    foreach (k; r.subaccounts)
+      if (k.strip.length && !keys.canFind(k.strip.toLower))
+        keys ~= k.strip.toLower;
+    if (keys.length == 0)
+      throw new ValidationException("Choose at least one subaccount");
+    // all or nothing: every subaccount is checked before anything is stored
+    auto after = copy(l);
+    auto now = clock.now;
+    string[] changed;
+    foreach (k; keys) {
+      auto s = subaccountRef(after, k);
+      auto list = withService(s.services, service, r.assign);
+      if (list == s.services)
+        continue;
+      if (!r.assign) {
+        auto using = collectionsUsing(*s, service);
+        if (using.length)
+          throw new ConflictException("The role collection" ~ (using.length == 1 ? " " : "s ") ~ using.join(", ")
+              ~ " of subaccount " ~ k ~ " grant" ~ (using.length == 1 ? "s" : "") ~ " rights of " ~ service
+              ~ "; change " ~ (using.length == 1 ? "it" : "them") ~ " first");
+      }
+      s.services = list;
+      s.modifiedAt = now;
+      changed ~= k;
+    }
+    if (changed.length) {
+      auto result = copy(after);
+      change(l, (ref Landscape x) { x.subaccounts = copy(result).subaccounts; });
+      foreach (k; changed) {
+        Subaccount s;
+        after.trySubaccount(k, s);
+        repo.saveSubaccount(s);
+      }
+      emit(r.assign ? "landscape.service.assigned" : "landscape.service.unassigned", service, actor,
+        (r.assign ? "Assigned the service " ~ service ~ " to " : "Unassigned the service " ~ service ~ " from ")
+        ~ "subaccount" ~ (changed.length == 1 ? " " : "s ") ~ changed.join(", "));
+    }
+    return serviceAssignments();
   }
 
   // ── billing ─────────────────────────────────────────────────────────────
@@ -647,7 +833,6 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
             row.requests = sb.requests;
             row.bytesOut = sb.bytesOut;
             row.storageBytes = sb.storageBytes;
-            row.sites = sb.sites;
           }
       if (t.kind == "directory") {
         Directory dir;
@@ -790,7 +975,14 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
       d.purpose = x.purpose;
       d.stage = x.stage.to!string;
       d.domain = x.domain.label;
-      d.sites = x.sites;
+      d.recoveryStatus = recoveryStatus(x);
+      d.secondaryRegion = x.recovery.secondaryRegion;
+      d.activeRegion = activeRegion(x);
+      if (files !is null)
+        foreach (f; files.ofSubaccount(x.key)) {
+          d.files++;
+          d.fileBytes += f.size;
+        }
       d.betaFeatures = x.betaFeatures;
       d.admins = x.admins.dup;
       d.members = x.members.dup;
@@ -902,8 +1094,9 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
           t.region = s.region;
           t.domain = s.domain.label;
           t.subdomain = s.subdomain;
-          t.sites = s.sites.length;
           t.tenants = s.tenants.length;
+          t.recoveryStatus = recoveryStatus(s);
+          t.activeRegion = activeRegion(s);
           foreach (sb; bill.subaccounts)
             if (sb.subaccount == s.key)
               t.monthCost = sb.total;
@@ -985,6 +1178,20 @@ private void patchCollections(ref Landscape x, string node, RoleCollection rc, b
     if ("subaccount:" ~ s.key == node)
       return patch(s.roleCollections);
   throw new NotFoundException("Node", node);
+}
+
+/// The subaccount `key` (any case, blanks ignored) or NotFoundException.
+private Subaccount requireSubaccount(const Landscape l, string key) {
+  Subaccount s;
+  if (!l.trySubaccount(key.strip.toLower, s))
+    throw new NotFoundException("Subaccount", key.strip);
+  return s;
+}
+
+/// "AWS · Europe (Frankfurt)"
+private string regionLabel(string id) pure {
+  RegionInfo info;
+  return tryRegion(id, info) ? info.provider ~ " · " ~ info.location : id;
 }
 
 /// The subaccount `key` of `x`, to change in place.
@@ -1133,7 +1340,7 @@ version (unittest) {
 
     void add(const(UsageRecord)[] deltas) {
       foreach (d; deltas)
-        items ~= UsageRecord(d.month, d.site, d.requests, d.bytesOut, d.peakStorageBytes);
+        items ~= UsageRecord(d.month, d.subaccount, d.requests, d.bytesOut, d.peakStorageBytes);
     }
   }
 }
@@ -1144,65 +1351,47 @@ unittest {
   import std.datetime.timezone : UTC;
   import std.typecons : nullable;
   import neko.platform.application.services : FixedClock;
-  import neko.platform.application.usecases.manage_files : FakeSites;
+  import neko.platform.application.usecases.manage_files : FakeFiles;
   import neko.platform.application.usecases.manage_users : fails, NoEvents;
 
-  auto siteRepo = new FakeSites;
-  foreach (k; ["main", "shop", "outlet"]) {
-    Site s;
-    s.key = SiteKey(k);
-    siteRepo.save(s);
-  }
   auto repo = new FakeLandscape;
   auto usage = new FakeUsage;
-  auto uc = new ManageLandscapeUseCase(repo, usage, siteRepo, new NoEvents,
+  auto fileRepo = new FakeFiles;
+  auto uc = new ManageLandscapeUseCase(repo, usage, fileRepo, new NoEvents,
     new FixedClock(SysTime(DateTime(2026, 11, 20, 8, 0, 0), UTC())), SecurityDomain.open);
 
-  uc.ensureDefaults("ACME Platform", "development", "main", ["root"]);
-  uc.ensureDefaults("Other", "production", "main"); // only once
+  uc.ensureDefaults("ACME Platform", "development", ["root"]);
+  uc.ensureDefaults("Other", "production"); // only once
   auto start = uc.overview();
   assert(start.month == "2026-11" && start.subaccounts == 1 && start.plans.length == defaultPlans().length);
   auto platform = uc.node("subaccount:platform-open");
-  assert(platform.subdomain == "acme-platform-platform-dev" && platform.sites == ["main"] && platform.stage == "dev");
+  assert(platform.subdomain == "acme-platform-platform-dev" && platform.stage == "dev");
+  assert(platform.recoveryStatus == "unprotected" && platform.activeRegion == "eu10");
   assert(uc.node("global").name == "ACME Platform" && start.issues.length == 0);
 
-  // a directory with its own budget, below the global account's 10 sites
+  // a directory with its own budget, below the global account's 100 GB of files
   DirectoryRequest shop = {key: "shop", name: "Shop", manageEntitlements: true, costCenter: "CC-200", owner: "jane"};
   uc.saveDirectory(shop, true, "admin");
-  uc.setEntitlement("directory:shop", "sites.site", 4, false, "admin");
-  assert(fails!ValidationException(() { uc.setEntitlement("directory:shop", "sites.site", 6, false, "admin"); }));
+  uc.setEntitlement("directory:shop", "files.storage", 40, false, "admin");
+  assert(fails!ValidationException(() { uc.setEntitlement("directory:shop", "files.storage", 60, false, "admin"); }));
   assert(fails!ValidationException(() { uc.setEntitlement("directory:shop", "support.premium", 1, false, "admin"); }));
 
   SubaccountRequest prod = {key: "shop-prod", name: "Shop production", directory: "shop", region: "eu11",
-    purpose: "shop", stage: "prod"};
+    purpose: "shop", stage: "prod", domain: "confidential"};
   auto p = uc.saveSubaccount(prod, true, "admin");
   assert(p.subdomain == "acme-platform-shop-prod" && p.entitlementSource == "directory:shop");
   assert(p.tenants.length == 1 && p.tenants[0].isDefault && p.tenants[0].spaces[0].key == "default");
-  // sites run in spaces: two sites but no sites entitlement yet → fine (pay per use) …
-  uc.saveSpace("shop-prod", "default", SpaceRequest("default", "Default", "", ["shop", "outlet"]), false, "admin");
-  assert(uc.node("subaccount:shop-prod").sites == ["outlet", "shop"]);
-  // … but a quota below the number of hosted sites is refused, and so is more than the directory has
-  assert(fails!ValidationException(() { uc.setEntitlement("subaccount:shop-prod", "sites.site", 1, false, "admin"); }));
-  assert(fails!ValidationException(() { uc.setEntitlement("subaccount:shop-prod", "sites.site", 5, false, "admin"); }));
-  uc.setEntitlement("subaccount:shop-prod", "sites.site", 3, false, "admin");
+  assert(fails!ValidationException(() { uc.setEntitlement("subaccount:shop-prod", "files.storage", 50, false, "admin"); }));
+  uc.setEntitlement("subaccount:shop-prod", "files.storage", 30, false, "admin");
   auto dir = uc.node("directory:shop");
-  assert(dir.entitlements[0].assignedBelow == 3 && dir.entitlements[0].available == 1);
+  assert(dir.entitlements[0].assignedBelow == 30 && dir.entitlements[0].available == 10);
 
-  // sites run in one space; region and subdomain are fixed
+  // region and subdomain are fixed
   SubaccountRequest dev = {key: "shop-dev", name: "Shop dev", directory: "shop", purpose: "shop", stage: "dev"};
   uc.saveSubaccount(dev, true, "admin");
-  assert(fails!ValidationException(() {
-      uc.saveSpace("shop-dev", "default", SpaceRequest("default", "", "", ["shop"]), false, "admin");
-    }));
-  assert(fails!ValidationException(() {
-      uc.saveSpace("shop-dev", "default", SpaceRequest("default", "", "", ["nowhere"]), false, "admin");
-    }));
   prod.region = "eu20";
   assert(fails!InvalidStateTransitionException(() { uc.saveSubaccount(prod, false, "admin"); }));
   prod.region = "";
-  prod.domain = "secret";
-  assert(fails!ValidationException(() { uc.saveSubaccount(prod, false, "admin"); })); // sites of an open instance
-  prod.domain = "";
 
   // tenants and spaces
   uc.saveTenant("shop-prod", TenantRequest("eu", "Europe"), true, "admin");
@@ -1211,8 +1400,7 @@ unittest {
   auto eu = uc.node("subaccount:shop-prod").tenants[1];
   assert(eu.key == "eu" && !eu.isDefault && eu.spaces.length == 2 && eu.spaces[0].isDefault);
   auto call = uc.resolveCall(CallRequest("eu.acme-platform-shop-prod.example", "", "", "staging"));
-  assert(call.subaccount == "shop-prod" && call.tenant == "eu" && call.space == "staging");
-  assert(uc.resolveCall(CallRequest("localhost", "", "", "", "outlet")).tenant == "default");
+  assert(call.subaccount == "shop-prod" && call.tenant == "eu" && call.space == "staging" && call.region == "eu11");
   assert(fails!ConflictException(() { uc.removeSpace("shop-prod", "eu", "default", "admin"); }));
   assert(fails!ConflictException(() { uc.removeTenant("shop-prod", "default", "admin"); }));
   assert(fails!ValidationException(() { uc.saveTenant("shop-prod", TenantRequest("default"), false, "admin"); }));
@@ -1225,31 +1413,54 @@ unittest {
   assert(fails!NotFoundException(() { uc.removeTenant("shop-prod", "nope", "admin"); }));
 
   // administrators, user group, services
-  uc.setSubaccountAccess("shop-prod", SubaccountAccessRequest(["Ann"], ["bob", "ann"], ["sites", "files"]), "admin");
+  uc.setSubaccountAccess("shop-prod", SubaccountAccessRequest(["Ann"], ["bob", "ann"], ["landscape", "files"]),
+    "admin");
   auto access = uc.node("subaccount:shop-prod");
-  assert(access.admins == ["ann"] && access.members == ["bob"] && access.services == ["files", "sites"]);
+  assert(access.admins == ["ann"] && access.members == ["bob"] && access.services == ["files", "landscape"]);
   assert(uc.mayAdminister("shop-prod", "ann") && !uc.mayAdminister("shop-dev", "ann"));
   assert(uc.grantedRights("bob") == ["landscape.read"] && uc.grantedRights("eve").length == 0);
   assert(uc.mayAdminister("shop-dev", "root") && uc.grantedRights("root").length == 3);
   assert(fails!ValidationException(() {
       uc.setSubaccountAccess("shop-prod", SubaccountAccessRequest(null, null, ["nosuch"]), "admin");
     }));
-  uc.saveRoleCollection("subaccount:shop-prod", RoleCollectionRequest("Editors", "", ["sites.manage"], ["bob"]),
+  uc.saveRoleCollection("subaccount:shop-prod", RoleCollectionRequest("Editors", "", ["files.manage"], ["bob"]),
     "ann");
-  // not in the user group / a service not selected / dropping a member still in a role collection
+  // not in the user group / a service not assigned / dropping a member still in a role collection
   assert(fails!ValidationException(() {
-      uc.saveRoleCollection("subaccount:shop-prod", RoleCollectionRequest("X", "", ["sites.read"], ["eve"]), "ann");
+      uc.saveRoleCollection("subaccount:shop-prod", RoleCollectionRequest("X", "", ["files.read"], ["eve"]), "ann");
     }));
   assert(fails!ValidationException(() {
       uc.saveRoleCollection("subaccount:shop-prod", RoleCollectionRequest("X", "", ["users.read"], ["bob"]), "ann");
     }));
   assert(fails!ValidationException(() {
-      uc.setSubaccountAccess("shop-prod", SubaccountAccessRequest(["ann"], null, ["sites", "files"]), "ann");
+      uc.setSubaccountAccess("shop-prod", SubaccountAccessRequest(["ann"], null, ["landscape", "files"]), "ann");
     }));
+
+  // service assignments from the global account: the matrix …
+  auto matrix = uc.serviceAssignments();
+  assert(matrix.subaccounts.length == 3 && matrix.services.length == serviceCatalogue().length);
+  auto filesRow = matrix.services.filter!(r => r.service.key == "files").front;
+  assert(filesRow.assigned == 3 && filesRow.cells[1].subaccount == "shop-prod" && filesRow.cells[1].usedBy == ["Editors"]);
+  assert(filesRow.cells[1].entitlements == [Entitlement("files.storage", 30)]);
+  assert(matrix.plans[0].plan.key == "files.storage" && matrix.plans[0].entitledCount == 2);
+  // … unassigning what a role collection uses is refused, for all subaccounts at once
+  assert(fails!ConflictException(() {
+      uc.assignService(ServiceAssignmentRequest("files", ["shop-dev", "shop-prod"], false), "root");
+    }));
+  assert(uc.node("subaccount:shop-dev").services.length == 0);
+  // … from "every service" to an explicit list and back
+  uc.assignService(ServiceAssignmentRequest("users", ["shop-dev", "platform-open"], false), "root");
+  auto devServices = uc.node("subaccount:shop-dev").services;
+  assert(devServices.length == serviceKeys().length - 1 && !devServices.canFind("users"));
+  uc.assignService(ServiceAssignmentRequest("Users", ["shop-dev", "shop-prod"], true), "root");
+  assert(uc.node("subaccount:shop-dev").services.length == 0); // every service again
+  assert(uc.node("subaccount:shop-prod").services == ["files", "landscape", "users"]);
+  assert(fails!NotFoundException(() { uc.assignService(ServiceAssignmentRequest("users", ["nope"]), "root"); }));
+  assert(fails!ValidationException(() { uc.assignService(ServiceAssignmentRequest("sites", ["shop-dev"]), "root"); }));
   uc.removeRoleCollection("subaccount:shop-prod", "Editors", "ann");
 
   // role collections: directories only with authorizations enabled
-  auto admins = RoleCollectionRequest("Shop Admin", "", ["sites.manage", "files.manage"], ["Jane", "jane"]);
+  auto admins = RoleCollectionRequest("Shop Admin", "", ["landscape.manage", "files.manage"], ["Jane", "jane"]);
   assert(fails!ValidationException(() { uc.saveRoleCollection("directory:shop", admins, "admin"); }));
   shop.manageAuthorizations = true;
   uc.saveDirectory(shop, false, "admin");
@@ -1262,9 +1473,40 @@ unittest {
       uc.saveRoleCollection("subaccount:shop-dev", RoleCollectionRequest("x", "", ["no.such"]), "admin");
     }));
 
-  // billing: usage of the shop sites goes to shop-prod and up to the directory
+  // disaster recovery: production without a plan gets advice
+  auto rec = uc.recoveryOverview();
+  assert(rec.subaccounts.length == 3 && rec.unprotectedCount == 3 && rec.unprotectedProduction == 1);
+  assert(rec.strategies.length == 4 && rec.regions.length == regions.length);
+  assert(uc.overview().advice.any!(a => a.node == "subaccount:shop-prod" && a.topic == "recovery"));
+  // confidential data in an EU Access region stays under EU Access
+  assert(fails!ValidationException(() {
+      uc.configureRecovery("shop-prod", RecoveryPlanRequest(true, "eu20", "warm-standby", 15, 60), "root");
+    }));
+  assert(fails!ValidationException(() {
+      uc.configureRecovery("shop-prod", RecoveryPlanRequest(true, "eu11"), "root");
+    }));
+  auto plan = uc.configureRecovery("shop-prod", RecoveryPlanRequest(true, "onprem", "Pilot Light", 10, 45), "root");
+  assert(plan.status == "protected" && plan.strategy == "pilot-light" && plan.secondaryLabel == "Self-hosted · Own data center");
+  assert(plan.canFailover && plan.canDrill && !plan.canFailback && plan.history.length == 1);
+  assert(uc.recordDrill("shop-prod", RecoveryDrillRequest(30, true, "ok"), "root").history[0].success);
+  assert(!uc.recordDrill("shop-prod", RecoveryDrillRequest(50), "root").history[0].success); // RTO 45 missed
+  assert(fails!ValidationException(() { uc.failover("shop-prod", RecoveryActionRequest(""), "root"); }));
+  auto over = uc.failover("shop-prod", RecoveryActionRequest("eu11 outage", 20), "root");
+  assert(over.status == "failed-over" && over.activeRegion == "onprem" && over.canFailback && !over.canDrill);
+  assert(uc.resolveCall(CallRequest("acme-platform-shop-prod.example")).region == "onprem");
+  assert(fails!InvalidStateTransitionException(() {
+      uc.failover("shop-prod", RecoveryActionRequest("again"), "root");
+    }));
+  assert(fails!ConflictException(() { uc.removeSubaccount("shop-prod", "admin"); }));
+  assert(uc.recoveryOverview().failedOverCount == 1);
+  uc.failback("shop-prod", RecoveryActionRequest("eu11 healthy"), "root");
+  assert(uc.recovery("Shop-Prod").activeRegion == "eu11" && uc.recovery("shop-prod").history.length == 5);
+  assert(fails!InvalidStateTransitionException(() { uc.recordDrill("shop-dev", RecoveryDrillRequest(1), "root"); }));
+  assert(fails!NotFoundException(() { uc.recovery("nope"); }));
+
+  // billing: usage of shop-prod goes up to the directory
   enum gib = 1024L * 1024 * 1024;
-  usage.add([UsageRecord("2026-11", "shop", 100_000, 2 * gib, gib), UsageRecord("2026-11", "nowhere", 7, 0, 0)]);
+  usage.add([UsageRecord("2026-11", "shop-prod", 100_000, 2 * gib, gib), UsageRecord("2026-11", "gone", 7, 0, 0)]);
   auto bill = uc.bill();
   auto row = bill.rows.filter!(r => r.node == "subaccount:shop-prod").front;
   assert(row.requests == 100_000 && row.costCenter == "CC-200" && row.total > 0);
@@ -1272,10 +1514,15 @@ unittest {
   assert(bill.rows[0].node == "global" && bill.unassigned.length == 1);
   assert(uc.csv().canFind("shop-prod;CC-200;platform.requests;100.000000"));
 
-  // removal rules
+  // removal rules: not with files, not while entitled
+  StoredFile f;
+  f.id = FileId("f1");
+  f.subaccount = "shop-prod";
+  fileRepo.save(f);
+  assert(uc.node("subaccount:shop-prod").files == 1);
   assert(fails!ConflictException(() { uc.removeDirectory("shop", "admin"); }));
   assert(fails!ConflictException(() { uc.removeSubaccount("shop-prod", "admin"); }));
-  assert(fails!ConflictException(() { uc.removePlan("sites.site", "admin"); }));
+  assert(fails!ConflictException(() { uc.removePlan("files.storage", "admin"); }));
   uc.removeSubaccount("shop-dev", "admin");
   assert(uc.overview().subaccounts == 2);
 }

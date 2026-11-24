@@ -30,6 +30,7 @@ import neko.platform.infrastructure.firewall;
 import neko.platform.infrastructure.monitoring.traffic;
 import neko.platform.infrastructure.security : apiContentSecurityPolicy;
 import neko.platform.ports.usecases : IManageNetworkUseCase;
+import neko.platform.infrastructure.firewall.banlist;
 
 @safe:
 
@@ -90,15 +91,15 @@ RequestArea areaFor(string path, string restPath, string odataPath) pure nothrow
 }
 
 class Firewall : HTTPServerRequestHandler {
-  private HTTPServerRequestHandler next;
-  private ClientAddresses addresses;
-  private IManageNetworkUseCase network;
-  private WafInspector waf;
-  private RateLimiter limiter;
-  private BanList bans;
-  private TrafficMonitor traffic;
-  private FirewallMode mode_;
-  private string restPath, odataPath;
+  protected HTTPServerRequestHandler next;
+  protected ClientAddresses addresses;
+  protected IManageNetworkUseCase network;
+  protected WafInspector waf;
+  protected RateLimiter limiter;
+  protected BanList bans;
+  protected TrafficMonitor traffic;
+  protected FirewallMode mode_;
+  protected string restPath, odataPath;
 
   this(HTTPServerRequestHandler next, ClientAddresses addresses, IManageNetworkUseCase network, WafInspector waf,
       RateLimiter limiter, BanList bans, TrafficMonitor traffic, FirewallMode mode, string restPath, string odataPath) {

@@ -5,24 +5,24 @@
 *****************************************************************************************************************/
 /// Billing: what each subaccount used in a month and what it costs.
 ///
-/// The platform measures usage per site (requests, bytes sent, peak file
-/// storage). A site belongs to one subaccount, so usage adds up per
-/// subaccount, then per directory and for the global account. Measured plans
-/// cost quantity × price; plans without a meter cost the entitled quota ×
-/// price (a fixed monthly fee). Usage of sites no subaccount hosts is listed
-/// separately, unbilled.
+/// The platform measures usage per subaccount (requests, bytes sent, peak
+/// file storage); it adds up per directory and for the global account.
+/// Measured plans cost quantity × price; plans without a meter cost the
+/// entitled quota × price (a fixed monthly fee). Usage recorded for
+/// subaccounts that no longer exist is listed separately, unbilled.
 module neko.platform.domain.entities.billing;
 
-import std.algorithm : canFind, max;
+import std.algorithm : any, max;
 import neko.platform.domain.entities.landscape;
 
 @safe:
 
-/// Usage of one site in one month.
+/// Usage of one subaccount in one month.
 struct UsageRecord {
   /// "2026-11"
   string month;
-  string site;
+  /// Subaccount key.
+  string subaccount;
   long requests;
   long bytesOut;
   long peakStorageBytes;
@@ -56,7 +56,6 @@ struct SubaccountBill {
   long requests;
   long bytesOut;
   long storageBytes;
-  long sites;
   ChargeLine[] lines;
   double total = 0;
 }
@@ -66,7 +65,7 @@ struct Bill {
   string month;
   string currency;
   SubaccountBill[] subaccounts;
-  /// Usage of sites without a subaccount (not billed).
+  /// Usage of subaccounts that no longer exist (not billed).
   UsageRecord[] unassigned;
   /// Directory key → total of its subtree.
   double[string] byDirectory;
@@ -79,18 +78,15 @@ Bill computeBill(const Landscape l, string month, const(UsageRecord)[] usage) pu
   Bill bill;
   bill.month = month;
   bill.currency = l.global.currency;
-  foreach (u; usage) {
-    Subaccount host;
-    if (u.month == month && !l.tryHost(u.site, host))
+  foreach (u; usage)
+    if (u.month == month && !l.subaccounts.any!(s => s.key == u.subaccount))
       bill.unassigned ~= u;
-  }
   foreach (s; l.subaccounts) {
     SubaccountBill b;
     b.subaccount = s.key;
     b.costCenter = l.costCenterOf(s);
-    b.sites = cast(long) s.sites.length;
     foreach (u; usage)
-      if (u.month == month && s.sites.canFind(u.site)) {
+      if (u.month == month && u.subaccount == s.key) {
         b.requests += u.requests;
         b.bytesOut += u.bytesOut;
         b.storageBytes += u.peakStorageBytes;
@@ -117,9 +113,6 @@ Bill computeBill(const Landscape l, string month, const(UsageRecord)[] usage) pu
         break;
       case Meter.storageBytes:
         line.quantity = b.storageBytes / p.unitSize;
-        break;
-      case Meter.sites:
-        line.quantity = b.sites / p.unitSize;
         break;
       }
       if (!line.entitled && line.quantity == 0)
@@ -152,17 +145,17 @@ unittest {
   prod.key = "shop-prod";
   prod.directory = "shop";
   prod.ensureTenancy(SysTime.init);
-  prod.tenants[0].spaces[0].sites = ["shop", "outlet"];
-  prod.entitlements = [Entitlement("sites.site", 1), Entitlement("platform.requests", unlimited),
+  prod.entitlements = [Entitlement("files.storage", 1), Entitlement("platform.requests", unlimited),
     Entitlement("support.premium", 2)];
   l.subaccounts = [prod];
 
   enum gib = 1024L * 1024 * 1024;
-  auto usage = [UsageRecord("2026-11", "shop", 120_000, 3 * gib, gib), UsageRecord("2026-11", "outlet", 30_000, 0, gib),
-    UsageRecord("2026-10", "shop", 999, 0, 0), UsageRecord("2026-11", "main", 50, 1000, 0)];
+  auto usage = [UsageRecord("2026-11", "shop-prod", 120_000, 3 * gib, gib),
+    UsageRecord("2026-11", "shop-prod", 30_000, 0, gib), UsageRecord("2026-10", "shop-prod", 999, 0, 0),
+    UsageRecord("2026-11", "gone", 50, 1000, 0)];
   auto bill = computeBill(l, "2026-11", usage);
   auto b = bill.subaccounts[0];
-  assert(b.requests == 150_000 && b.sites == 2 && b.storageBytes == 2 * gib);
+  assert(b.requests == 150_000 && b.storageBytes == 2 * gib);
 
   double amount(string plan) {
     foreach (x; b.lines)
@@ -180,8 +173,7 @@ unittest {
 
   assert(isClose(amount("platform.requests"), 150 * 0.04) && !over("platform.requests"));
   assert(isClose(amount("network.egress"), 3 * 0.09) && over("network.egress")); // not entitled
-  assert(isClose(amount("files.storage"), 2 * 0.025));
-  assert(isClose(amount("sites.site"), 2 * 5.0) && over("sites.site")); // 2 sites, quota 1
+  assert(isClose(amount("files.storage"), 2 * 0.025) && over("files.storage")); // 2 GB, quota 1
   assert(isClose(amount("support.premium"), 300.0)); // fixed fee: quota × price
   assert(isClose(bill.byDirectory["shop"], bill.total) && bill.unassigned.length == 1);
 

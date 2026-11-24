@@ -43,7 +43,6 @@ int usersCommand(PlatformContainer c, CliArgs a, string actor, CliOutput output)
     r.email = a.opt("email");
     // --role= is the spelling from before roles could be combined
     r.roles = list(a.opt("roles", a.opt("role", "viewer")));
-    r.sites = sitesOf(a.opt("sites", "all"));
     r.password = password(a);
     auto created = c.users.create(r, actor);
     output.message("Created " ~ created.userName ~ " (roles: " ~ created.roles.join(", ") ~ ").");
@@ -61,14 +60,6 @@ int usersCommand(PlatformContainer c, CliArgs a, string actor, CliOutput output)
     auto changed = c.users.update(user.id, r, actor);
     output.message(changed.userName ~ " now has the roles " ~ changed.roles.join(", ") ~ ".");
     return 0;
-  case "sites":
-    auto user = byName(c, a.word(2, "user name"));
-    UpdateUserRequest r;
-    r.sites = nullable(sitesOf(a.word(3, "sites (comma separated, or all)")));
-    auto changed = c.users.update(user.id, r, actor);
-    output.message(changed.userName ~ " now works on " ~ (changed.allSites ? "every site" : changed.sites.join(", "))
-        ~ ".");
-    return 0;
   case "activate", "deactivate":
     auto user = byName(c, a.word(2, "user name"));
     UpdateUserRequest r;
@@ -84,11 +75,6 @@ int usersCommand(PlatformContainer c, CliArgs a, string actor, CliOutput output)
   default:
     throw new ValidationException("Unknown users command '" ~ sub ~ "'");
   }
-}
-
-/// "all" → [] (every site)
-private string[] sitesOf(string text) {
-  return text == "all" ? null : list(text);
 }
 
 private UserDto byName(PlatformContainer c, string name) {

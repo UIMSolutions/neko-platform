@@ -3,10 +3,12 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// `landscape …` commands: the account hierarchy, recommendations, billing.
+/// `landscape …` commands: the account hierarchy, recommendations, billing,
+/// service assignments and disaster recovery.
 module neko.platform.presentation.cli.landscape;
 
 import std.array : join, replicate;
+import std.string : toUpper;
 import std.conv : to;
 import std.format : format;
 import vibe.data.json : serializeToJson;
@@ -51,15 +53,16 @@ int landscapeCommand(PlatformContainer c, CliArgs a, string actor, CliOutput out
     string[][] rows = [["Kind", n.kind], ["Name", n.name]];
     if (n.kind == "subaccount")
       rows ~= [["Region", n.region ~ " (" ~ n.regionLabel ~ ")"], ["Subdomain", n.subdomain],
-        ["Purpose / stage", n.purpose ~ " / " ~ n.stage], ["Domain", n.domain], ["Sites", n.sites.join(", ")],
+        ["Purpose / stage", n.purpose ~ " / " ~ n.stage], ["Domain", n.domain],
+        ["Disaster recovery", n.recoveryStatus ~ (n.secondaryRegion.length ? " (to " ~ n.secondaryRegion ~ ", running in "
+          ~ n.activeRegion ~ ")" : "")], ["Files", n.files.to!string ~ " (" ~ byteSize(n.fileBytes) ~ ")"],
         ["Administrators", n.admins.join(", ")], ["User group", n.members.join(", ")],
         ["Services", n.services.length ? n.services.join(", ") : "all"]];
     if (n.kind == "global")
       rows ~= ["Administrators", n.admins.join(", ")];
     foreach (t; n.tenants)
       foreach (sp; t.spaces)
-        rows ~= ["Tenant / space", t.key ~ (t.isDefault ? " (default)" : "") ~ " / " ~ sp.key
-            ~ (sp.sites.length ? ": " ~ sp.sites.join(", ") : "")];
+        rows ~= ["Tenant / space", t.key ~ (t.isDefault ? " (default)" : "") ~ " / " ~ sp.key];
     if (n.kind == "directory")
       rows ~= [["Parent", n.parent.length ? n.parent : "global"], ["Entitlements", n.manageEntitlements ? "own" : "inherited"],
         ["Authorizations", n.manageAuthorizations ? "own" : "inherited"], ["Owner", n.owner]];
@@ -138,22 +141,139 @@ int landscapeCommand(PlatformContainer c, CliArgs a, string actor, CliOutput out
     if (op == "remove")
       c.landscape.removeSpace(key, tenant, space, actor);
     else
-      c.landscape.saveSpace(key, tenant, SpaceRequest(space, a.opt("name"), a.opt("description"),
-        list(a.opt("sites"))), op == "add", actor);
+      c.landscape.saveSpace(key, tenant, SpaceRequest(space, a.opt("name"), a.opt("description")), op == "add",
+        actor);
     output.message((op == "remove" ? "Removed" : "Saved") ~ " space " ~ key ~ "/" ~ tenant ~ "/" ~ space);
     return 0;
   case "resolve":
     auto call = c.landscape.resolveCall(CallRequest(a.opt("host"), a.opt("subaccount"), a.opt("tenant"),
-      a.opt("space"), a.opt("site")));
+      a.opt("space")));
     call.globalAccount = c.account.key;
     if (output.json) {
       output.value(serializeToJson(call));
       return 0;
     }
-    output.table(["GLOBAL ACCOUNT", "SUBACCOUNT", "TENANT", "SPACE", "BY"], [[call.globalAccount, call.subaccount,
-      call.tenant, call.space, call.source]]);
+    output.table(["GLOBAL ACCOUNT", "SUBACCOUNT", "TENANT", "SPACE", "REGION", "BY"], [[call.globalAccount,
+      call.subaccount, call.tenant, call.space, call.region, call.source]]);
     return 0;
+  case "assignments":
+    auto view = c.landscape.serviceAssignments();
+    if (output.json) {
+      output.value(serializeToJson(view));
+      return 0;
+    }
+    string[] header = ["SERVICE"];
+    foreach (x; view.subaccounts)
+      header ~= x.key.toUpper ~ (x.allServices ? " (ALL)" : "");
+    string[][] rows;
+    foreach (row; view.services) {
+      string[] line = [row.service.key];
+      foreach (cell; row.cells) {
+        string[] quotas;
+        foreach (e; cell.entitlements)
+          quotas ~= e.plan ~ "=" ~ (e.quota == unlimited ? "∞" : e.quota.to!string);
+        line ~= (cell.assigned ? (cell.usedBy.length ? "yes*" : "yes") : "–") ~ (quotas.length ? " "
+            ~ quotas.join(" ") : "");
+      }
+      rows ~= line;
+    }
+    output.table(header, rows);
+    output.message("* used by a role collection of the subaccount (cannot be unassigned)");
+    return 0;
+  case "assign", "unassign":
+    auto service = a.word(2, "service");
+    auto target = a.word(3, "subaccount[,…] or all");
+    string[] keys;
+    if (target == "all")
+      foreach (x; c.landscape.serviceAssignments().subaccounts)
+        keys ~= x.key;
+    else
+      keys = list(target);
+    c.landscape.assignService(ServiceAssignmentRequest(service, keys, sub == "assign"), actor);
+    output.message((sub == "assign" ? "Assigned " ~ service ~ " to " : "Unassigned " ~ service ~ " from ")
+        ~ keys.join(", "));
+    return 0;
+  case "recovery":
+    return recoveryCommand(c, a, actor, output);
   default:
     throw new ValidationException("Unknown landscape command '" ~ sub ~ "'");
   }
+}
+
+/// `landscape recovery …`
+private int recoveryCommand(PlatformContainer c, CliArgs a, string actor, CliOutput output) {
+  auto op = a.wordOr(2, "list");
+  switch (op) {
+  case "list":
+    auto view = c.landscape.recoveryOverview();
+    if (output.json) {
+      output.value(serializeToJson(view));
+      return 0;
+    }
+    string[][] rows;
+    foreach (d; view.subaccounts)
+      rows ~= [d.subaccount, d.stage, d.status, d.primaryRegion, d.secondaryRegion.length ? d.secondaryRegion : "–",
+        d.activeRegion, d.enabled ? d.strategy : "–", d.enabled ? d.rpoMinutes.to!string ~ "/" ~ d.rtoMinutes.to!string
+        : "–", d.lastDrillAt.length ? d.lastDrillAt[0 .. 10] : "never"];
+    output.table(["SUBACCOUNT", "STAGE", "STATUS", "PRIMARY", "SECONDARY", "ACTIVE", "STRATEGY", "RPO/RTO MIN",
+      "LAST DRILL"], rows);
+    output.message(format("%s protected, %s failed over, %s misconfigured, %s unprotected (%s in production)",
+      view.protectedCount, view.failedOverCount, view.misconfiguredCount, view.unprotectedCount,
+      view.unprotectedProduction));
+    return 0;
+  case "show":
+    return showRecovery(output, c.landscape.recovery(a.word(3, "subaccount")));
+  case "plan":
+    auto key = a.word(3, "subaccount");
+    RecoveryPlanRequest r;
+    if (a.flag("disable")) {
+      auto current = c.landscape.recovery(key);
+      r = RecoveryPlanRequest(false, current.secondaryRegion, current.strategy, current.rpoMinutes, current.rtoMinutes);
+    } else
+      r = RecoveryPlanRequest(true, a.opt("secondary"), a.opt("strategy", "warm-standby"),
+        a.opt("rpo", "15").to!long, a.opt("rto", "60").to!long);
+    return showRecovery(output, c.landscape.configureRecovery(key, r, actor));
+  case "failover", "failback":
+    auto key = a.word(3, "subaccount");
+    auto r = RecoveryActionRequest(a.opt("reason"), a.opt("minutes", "0").to!long);
+    auto d = op == "failover" ? c.landscape.failover(key, r, actor) : c.landscape.failback(key, r, actor);
+    output.message(d.subaccount ~ " runs in " ~ d.activeRegion ~ ".");
+    return 0;
+  case "drill":
+    auto key = a.word(3, "subaccount");
+    if (!a.has("minutes"))
+      throw new ValidationException("Missing option --minutes= (how long the failover took)");
+    auto d = c.landscape.recordDrill(key, RecoveryDrillRequest(a.opt("minutes").to!long, !a.flag("failed"),
+      a.opt("notes")), actor);
+    output.message("Drill of " ~ d.subaccount ~ (d.history[0].success ? " passed" : " failed") ~ ": "
+        ~ d.history[0].minutes.to!string ~ " min against an RTO of " ~ d.rtoMinutes.to!string ~ " min"
+        ~ (d.history[0].reason.length ? " (" ~ d.history[0].reason ~ ")" : ""));
+    return d.history[0].success ? 0 : 1;
+  default:
+    throw new ValidationException("Unknown recovery command '" ~ op ~ "'");
+  }
+}
+
+private int showRecovery(CliOutput output, RecoveryDto d) {
+  if (output.json) {
+    output.value(serializeToJson(d));
+    return 0;
+  }
+  string[][] rows = [["Subaccount", d.subaccount ~ " (" ~ d.stage ~ ", " ~ d.domain ~ ")"], ["Status", d.status],
+    ["Primary region", d.primaryRegion ~ " (" ~ d.primaryLabel ~ ")"],
+    ["Secondary region", d.secondaryRegion.length ? d.secondaryRegion ~ " (" ~ d.secondaryLabel ~ ")" : "–"],
+    ["Active region", d.activeRegion], ["Strategy", d.enabled ? d.strategyLabel : "–"],
+    ["RPO / RTO", d.enabled ? d.rpoMinutes.to!string ~ " / " ~ d.rtoMinutes.to!string ~ " min" : "–"],
+    ["Last drill", d.lastDrillAt.length ? d.lastDrillAt : "never"],
+    ["Last failover", d.lastFailoverAt.length ? d.lastFailoverAt : "never"]];
+  foreach (i; d.issues)
+    rows ~= [i.error ? "Error" : "Warning", i.message];
+  foreach (ad; d.advice)
+    rows ~= ["Advice", ad.recommendation ~ " — " ~ ad.reason];
+  foreach (e; d.history)
+    rows ~= ["History", (e.at.length >= 16 ? e.at[0 .. 16] : e.at) ~ " " ~ e.kind ~ (e.kind == "drill" ? (e.success
+        ? " passed" : " failed") : "") ~ " " ~ e.from ~ (e.from != e.to ? " → " ~ e.to : "") ~ " by " ~ e.actor
+        ~ (e.reason.length ? ": " ~ e.reason : "")];
+  output.table(["FIELD", "VALUE"], rows);
+  return 0;
 }

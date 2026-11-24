@@ -23,10 +23,10 @@ class DocumentFileRepository : IFileRepository {
     return loadAll();
   }
 
-  StoredFile[] ofSite(string site) {
+  StoredFile[] ofSubaccount(string subaccount) {
     StoredFile[] result;
     foreach (f; loadAll())
-      if (f.site.value == site)
+      if (f.subaccount == subaccount)
         result ~= f;
     return result;
   }
@@ -55,12 +55,12 @@ unittest {
   auto repo = new DocumentFileRepository(new MemoryDocumentStore);
   StoredFile f;
   f.id = FileId("1");
-  f.site = SiteKey("shop");
+  f.subaccount = "shop-prod";
   repo.save(f);
 
   StoredFile found;
-  assert(repo.tryGet(FileId("1"), found) && found.site.value == "shop");
-  assert(repo.ofSite("shop").length == 1);
+  assert(repo.tryGet(FileId("1"), found) && found.subaccount == "shop-prod");
+  assert(repo.ofSubaccount("shop-prod").length == 1);
   assert(repo.remove(FileId("1")) && !repo.remove(FileId("1")));
 }
 

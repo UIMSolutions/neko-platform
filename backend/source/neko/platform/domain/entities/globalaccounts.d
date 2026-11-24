@@ -22,7 +22,7 @@ import std.array : array;
 import std.datetime.systime : SysTime;
 import std.string : strip, toLower;
 import neko.platform.domain.entities.landscape : landscapeKey;
-import neko.platform.domain.entities.site : normalizeHost, validHost;
+import neko.platform.domain.types.host : normalizeHost, validHost;
 import neko.platform.domain.exceptions;
 
 @safe:

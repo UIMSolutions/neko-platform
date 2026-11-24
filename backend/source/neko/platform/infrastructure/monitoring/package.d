@@ -218,7 +218,7 @@ string areaOf(string path, string restPath, string odataPath) pure nothrow {
   import std.algorithm : startsWith;
 
   if (path == "/")
-    return "site";
+    return "home";
   if (path.startsWith("/media/"))
     return "media";
   if (path.startsWith("/ui/"))
@@ -229,7 +229,7 @@ string areaOf(string path, string restPath, string odataPath) pure nothrow {
     return "odata";
   if (path.startsWith("/api/") || path == "/health" || path == "/metrics")
     return "api";
-  foreach (prefix; ["/files", "/sites", "/users", "/roles", "/status", "/monitoring", "/account", "/login", "/logout", "/start"])
+  foreach (prefix; ["/files", "/landscape", "/users", "/roles", "/status", "/monitoring", "/account", "/login", "/logout", "/start"])
     if (path == prefix || path.startsWith(prefix ~ "/"))
       return prefix[1 .. $];
   return "other";
@@ -421,7 +421,7 @@ unittest {
   assert(s.perMinute.length == 60 && s.perMinute[$ - 1] == 4);
   assert(s.errorRate == 0.25);
 
-  assert(areaOf("/", "/rest/v1/", "/odata/v4/platform") == "site");
+  assert(areaOf("/", "/rest/v1/", "/odata/v4/platform") == "home");
   assert(areaOf("/files/abc/download", "/rest/v1/", "/odata") == "files");
   assert(areaOf("/filesx", "/rest/v1/", "/odata") == "other");
   assert(areaOf("/rest/v1/services", "/rest/v1/", "/odata") == "rest");

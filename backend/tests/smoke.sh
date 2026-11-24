@@ -144,45 +144,42 @@ check "role rights change at once" "200" \
   "$(post "$WORK/cookies" /roles/ops -d 'label=Operators&rights=status.read&rights=users.read&rights=roles.read')"
 check "… vic now sees roles" "200" "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/vic" $O/roles)"
 
-echo "Sites, files, monitoring"
-check "/ shows the default site without sign-in" "This is the default site" "$(curl -s $O/)"
-check "create site 'shop' (host shop.test, de + en)" "200" \
-  "$(post "$WORK/cookies" /sites --data-urlencode 'key=shop' --data-urlencode 'name=Shop' \
-    --data-urlencode 'hosts=shop.test' --data-urlencode 'defaultLanguage=de' --data-urlencode 'languages=en')"
-check "German content" "200" "$(post "$WORK/cookies" /sites/shop/content --data-urlencode 'language=de' \
-  --data-urlencode 'title=Willkommen' --data-urlencode 'body=Hallo')"
-check "English content" "200" "$(post "$WORK/cookies" /sites/shop/content -d 'language=en&title=Welcome')"
-check "host name selects the site, Accept-Language the language" "Welcome" \
-  "$(curl -s -H 'Host: shop.test' -H 'Accept-Language: en-GB,en;q=0.9' $O/)"
-check "?lang= overrides" "Willkommen" "$(curl -s -H 'Host: shop.test' -H 'Accept-Language: en' "$O/?lang=de")"
-check "Content-Language header" "de" \
-  "$(curl -s -o /dev/null -D - -H 'Host: shop.test' $O/ | tr -d '\r' | sed -n 's/^Content-Language: //p')"
-check "unknown hosts get the default site" "This is the default site" "$(curl -s -H 'Host: other.test' $O/)"
+echo "Files, monitoring"
+check "/ leads to the sign-in" "/login" "$(curl -s -o /dev/null -w '%{redirect_url}' $O/)"
+check "… or, signed in, to the pages" "/start" "$(curl -s -o /dev/null -w '%{redirect_url}' -b "$WORK/cookies" $O/)"
+check "create subaccount shop-dev" "200" "$(post "$WORK/cookies" /landscape/subaccounts \
+  -d 'key=shop-dev&name=Shop&region=eu10&purpose=shop&stage=dev')"
 printf 'GIF89a' > "$WORK/logo.gif"; printf '<script>alert(1)</script>' > "$WORK/page.html"
-check "upload two files (multipart)" "200" "$(post "$WORK/cookies" /files/upload -F site=shop -F isPublic=on \
-  -F "files=@$WORK/logo.gif" -F "files=@$WORK/page.html")"
-check "files are stored on disk per site" "2" "$(ls "$WORK/data/open/files/shop" | wc -l | tr -d ' ')"
-media=$(curl -s -H 'Host: shop.test' $O/ | grep -o '/media/shop/[^"]*page.html' | head -1)
+check "upload two files to shop-dev (multipart)" "200" "$(post "$WORK/cookies" /files/upload -F subaccount=shop-dev \
+  -F isPublic=on -F "files=@$WORK/logo.gif" -F "files=@$WORK/page.html")"
+check "files are stored on disk per subaccount" "2" "$(ls "$WORK/data/open/files/shop-dev" | wc -l | tr -d ' ')"
+media=$(curl -s -b "$WORK/cookies" "$O/files?subaccount=shop-dev" | grep -o '/media/shop-dev/[^"]*page.html' | head -1)
+check "public files need no sign-in" "200" "$(curl -s -o /dev/null -w '%{http_code}' "$O$media")"
 check "public HTML is only offered as a download" "attachment; filename=\"page.html\"" \
   "$(curl -s -o /dev/null -D - "$O$media" | tr -d '\r' | sed -n 's/^Content-Disposition: //p')"
 check "… as application/octet-stream" "application/octet-stream" "$(curl -s -o /dev/null -w '%{content_type}' "$O$media")"
-check "create editor 'eve' limited to shop" "200" "$(post "$WORK/cookies" /users \
-  -d 'userName=eve&roles=editor&scope=some&sites=shop&active=on&password=eve-password-1&confirm=eve-password-1')"
+check "create editor 'eve'" "200" "$(post "$WORK/cookies" /users \
+  -d 'userName=eve&roles=editor&active=on&password=eve-password-1&confirm=eve-password-1')"
+check "eve joins the user group of shop-dev" "user group: eve" \
+  "$("$BIN/platform-open" landscape access shop-dev --members=eve)"
 curl -s -o /dev/null -c "$WORK/eve" -d 'user=eve&password=eve-password-1' $O/login
-check "eve only sees her site" "1" "$(curl -s -b "$WORK/eve" $O/sites | grep -c 'fw-normal">' || true)"
-check "eve cannot open the default site's settings (error toast)" '"error":true' \
-  "$(curl -s -o /dev/null -D - -b "$WORK/eve" -H 'HX-Request: true' $O/sites/main/edit | grep -i '^HX-Trigger')"
-post "$WORK/cookies" /files/upload -F site=main -F "files=@$WORK/logo.gif" >/dev/null
-mainfile=$(curl -s -b "$WORK/cookies" "$O/files?site=main" | grep -o '/files/[^/]*/download' | head -1)
-check "… nor download its files" "404" "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/eve" "$O$mainfile")"
+check "eve only sees the library of shop-dev" "0" \
+  "$(curl -s -b "$WORK/eve" $O/files | grep -c 'value="platform-open"' || true)"
+check "… with its files" "page.html" "$(curl -s -b "$WORK/eve" "$O/files?subaccount=shop-dev")"
+post "$WORK/cookies" /files/upload -F subaccount=platform-open -F "files=@$WORK/logo.gif" >/dev/null
+mainfile=$(curl -s -b "$WORK/cookies" "$O/files?subaccount=platform-open" | grep -o '/files/[^/]*/download' | head -1)
+check "eve cannot download files of other subaccounts" "404" \
+  "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/eve" "$O$mainfile")"
 check "… which the administrator can" "200" "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/cookies" "$O$mainfile")"
 check "eve has no monitoring" "403" "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/eve" $O/monitoring)"
 check "monitoring page" "Requests per minute" "$(curl -s -b "$WORK/cookies" $O/monitoring)"
 check "metrics (Prometheus, local scraper)" "neko_http_requests_total" "$(curl -s $O/metrics)"
-check "… with the files per site" 'neko_site_files{domain="open",site="shop"} 2' "$(curl -s $O/metrics)"
-check "CLI lists the sites" "shop.test" "$("$BIN/platform-open" sites list)"
-check "a site with files cannot be removed" "still has 2 files" \
-  "$("$BIN/platform-open" sites remove shop 2>&1 || true)"
+check "… with the files per subaccount" 'neko_subaccount_files{domain="open",subaccount="shop-dev"} 2' \
+  "$(curl -s $O/metrics)"
+check "CLI lists the files per subaccount" "shop-dev" "$("$BIN/platform-open" files usage)"
+check "a subaccount with files cannot be removed" "still has 2 files" "$(curl -s -D - -o /dev/null -b "$WORK/cookies" \
+  -H "Origin: $O" -H "HX-Request: true" -H "X-CSRF-Token: $csrf" -X POST $O/landscape/subaccounts/shop-dev/delete)"
+check "sites are gone" "404" "$(curl -s -o /dev/null -w '%{http_code}' -b "$WORK/cookies" $O/sites)"
 
 echo "Firewall, IP lists, traffic"
 code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
@@ -205,7 +202,7 @@ check "allow list refuses to lock out the caller" "lock you out" \
 sleep 6 # the server re-reads the rules within 5 seconds
 check "CLI deny rule blocks everything" "403" "$(code -H 'X-Forwarded-For: 203.0.113.9' $O/)"
 check "allow list closes the management pages to others" "403" "$(code -H 'X-Forwarded-For: 192.0.2.1' $O/login)"
-check "… but not the public site" "200" "$(code -H 'X-Forwarded-For: 192.0.2.1' $O/)"
+check "… but not the public files" "200" "$(code -H 'X-Forwarded-For: 192.0.2.1' "$O$media")"
 check "… while listed addresses get in" "200" "$(code -b "$WORK/cookies" $O/security)"
 check "firewall check (CLI)" "blocked" "$("$BIN/platform-open" firewall check 192.0.2.1)"
 check "traffic metrics" "neko_network_bytes_total" "$(curl -s $O/metrics)"
@@ -213,21 +210,80 @@ check "firewall metrics" 'neko_firewall_events_total{domain="open",rule="sqli"}'
 
 echo "Landscape and billing"
 check "landscape page" "Hierarchy" "$(curl -s -b "$WORK/cookies" $O/landscape)"
-check "default subaccount hosts the default site" "platform-open" "$("$BIN/platform-open" landscape)"
+check "the first subaccount runs this instance" "platform-open" "$("$BIN/platform-open" landscape)"
 check "create directory 'retail' with its own budget" "200" "$(post "$WORK/cookies" /landscape/directories \
   -d 'key=retail&name=Retail&manageEntitlements=on&costCenter=CC-7&owner=jane')"
-check "entitle the directory" "200" "$(post "$WORK/cookies" /landscape/entitlement -d 'node=directory:retail&plan=sites.site&quota=2')"
+check "entitle the directory" "200" "$(post "$WORK/cookies" /landscape/entitlement -d 'node=directory:retail&plan=files.storage&quota=20')"
 check "over-assignment refused" "assigned below, but only" "$(curl -s -b "$WORK/cookies" -H "Origin: $O" -H "HX-Request: true" \
-  -H "X-CSRF-Token: $csrf" -d 'node=directory:retail&plan=sites.site&quota=99' $O/landscape/entitlement)"
+  -H "X-CSRF-Token: $csrf" -d 'node=directory:retail&plan=files.storage&quota=99' $O/landscape/entitlement)"
 check "create subaccount with scheme subdomain" "200" "$(post "$WORK/cookies" /landscape/subaccounts \
-  -d 'key=retail-prod&name=Retail&directory=retail&region=eu11&purpose=shop&stage=prod&sites=shop')"
+  -d 'key=retail-prod&name=Retail&directory=retail&region=eu11&purpose=shop&stage=prod')"
 check "… subdomain from the scheme" "shop-prod" "$("$BIN/platform-open" landscape show subaccount:retail-prod)"
 check "… draws from the directory" "directory:retail" "$("$BIN/platform-open" landscape show subaccount:retail-prod)"
-check "a site belongs to one subaccount" "also assigned" "$(curl -s -b "$WORK/cookies" -H "Origin: $O" -H "HX-Request: true" \
-  -H "X-CSRF-Token: $csrf" -d 'key=retail-dev&name=x&directory=retail&region=eu10&stage=dev&sites=shop' $O/landscape/subaccounts)"
 check "region cannot change" "cannot change" "$(curl -s -b "$WORK/cookies" -H "Origin: $O" -H "HX-Request: true" \
-  -H "X-CSRF-Token: $csrf" -d 'name=Retail&directory=retail&region=us10&stage=prod&sites=shop' $O/landscape/subaccounts/retail-prod)"
-check "eve has no landscape" "403" "$(code -b "$WORK/eve" $O/landscape)"
+  -H "X-CSRF-Token: $csrf" -d 'name=Retail&directory=retail&region=us10&stage=prod' $O/landscape/subaccounts/retail-prod)"
+check "create tenant eu" "200" "$(post "$WORK/cookies" /landscape/subaccounts/retail-prod/tenants -d 'key=eu&name=Europe')"
+check "… with a space qa" "200" "$(post "$WORK/cookies" /landscape/subaccounts/retail-prod/tenants/eu/spaces -d 'key=qa')"
+check "the default space cannot be removed" "cannot be removed" "$(curl -s -D - -b "$WORK/cookies" -H "Origin: $O" \
+  -H "HX-Request: true" -H "X-CSRF-Token: $csrf" -X POST $O/landscape/subaccounts/retail-prod/tenants/eu/spaces/default/delete)"
+check "subaccount access (CLI)" "services: files, landscape" "$("$BIN/platform-open" landscape access retail-prod \
+  --admins=admin --members=bob --services=landscape,files)"
+
+echo "Service assignments"
+check "assignment matrix" "Services × subaccounts" "$(curl -s -b "$WORK/cookies" $O/landscape/assignments)"
+check "unassign files from shop-dev (web)" "200" \
+  "$(post "$WORK/cookies" /landscape/assignments -d 'service=files&subaccount=shop-dev&assign=0')"
+check "… uploads to shop-dev are refused" "not assigned" "$(curl -s -D - -o /dev/null -b "$WORK/cookies" -H "Origin: $O" \
+  -H "HX-Request: true" -H "X-CSRF-Token: $csrf" -F subaccount=shop-dev -F "files=@$WORK/logo.gif" $O/files/upload)"
+check "… its files stay reachable" "page.html" "$(curl -s -b "$WORK/cookies" "$O/files?subaccount=shop-dev")"
+check "assign files to every subaccount (CLI)" "Assigned files" "$("$BIN/platform-open" landscape assign files all)"
+check "… shop-dev has every service again" "[]" \
+  "$("$BIN/platform-open" landscape show subaccount:shop-dev --json | json "['services']")"
+check "matrix (CLI)" "SERVICE" "$("$BIN/platform-open" landscape assignments)"
+
+echo "Disaster recovery"
+check "recovery page" "unprotected" "$(curl -s -b "$WORK/cookies" $O/landscape/recovery)"
+check "production without a plan is advised" "Set up disaster recovery" "$("$BIN/platform-open" landscape check)"
+check "plan for retail-prod (CLI)" "protected" "$("$BIN/platform-open" landscape recovery plan retail-prod \
+  --secondary=eu20 --strategy=pilot-light --rpo=10 --rto=45)"
+check "the secondary region must differ (web)" "must differ" "$(curl -s -b "$WORK/cookies" -H "Origin: $O" \
+  -H "HX-Request: true" -H "X-CSRF-Token: $csrf" -d 'enabled=on&secondaryRegion=eu10&strategy=warm-standby&rpoMinutes=15&rtoMinutes=60' \
+  $O/landscape/recovery/shop-dev/plan)"
+check "drill within the RTO (web)" "passed" "$(curl -s -D - -o /dev/null -b "$WORK/cookies" -H "Origin: $O" \
+  -H "HX-Request: true" -H "X-CSRF-Token: $csrf" -d 'minutes=30&worked=on&reason=smoke' \
+  $O/landscape/recovery/retail-prod/drill)"
+check "drill over the RTO fails (CLI, exit 1)" "1" \
+  "$("$BIN/platform-open" landscape recovery drill retail-prod --minutes=90 >/dev/null 2>&1; echo $?)"
+check "failover (web)" "200" "$(post "$WORK/cookies" /landscape/recovery/retail-prod/failover -d 'reason=smoke+test&minutes=12')"
+check "… calls run in the secondary region" "X-Neko-Region: eu20" "$(curl -s -D - -o /dev/null \
+  -H 'X-Neko-Subaccount: retail-prod' $O/rest/v1/context | tr -d '\r')"
+check "… a failed-over subaccount cannot change its region" "fail back first" \
+  "$("$BIN/platform-open" landscape recovery plan retail-prod --secondary=eu30 2>&1 || true)"
+check "failback (CLI)" "runs in eu11" "$("$BIN/platform-open" landscape recovery failback retail-prod --reason=healthy)"
+check "history of the plan" "failback eu20 → eu11" "$("$BIN/platform-open" landscape recovery show retail-prod)"
+check "recovery list (CLI)" "1 protected" "$("$BIN/platform-open" landscape recovery)"
+
+echo "Account model: call context, global accounts"
+check "default call context" '"subaccount":"platform-open"' "$(curl -s $O/rest/v1/context)"
+check "tenant and space by header" '"space":"qa"' "$(curl -s -H 'X-Neko-Subaccount: retail-prod' \
+  -H 'X-Neko-Tenant: eu' -H 'X-Neko-Space: qa' $O/rest/v1/context)"
+check "tenant by subdomain" "X-Neko-Tenant: eu" "$(curl -s -D - -o /dev/null \
+  -H "Host: eu.$("$BIN/platform-open" landscape show subaccount:retail-prod --json | json "['subdomain']").example" \
+  $O/rest/v1/overview | tr -d '\r')"
+check "unknown tenant refused" "404" "$(code -H 'X-Neko-Tenant: nope' $O/rest/v1/overview)"
+check "create global account acme (CLI)" "global-accounts/acme" "$("$BIN/platform-open" globals add --key=acme \
+  --name=ACME --hosts=acme.localhost)"
+check "acme is physically separate" "acme" "$(ls "$WORK/data/open/global-accounts")"
+check "acme has its own users" "0" "$("$BIN/platform-open" --global=acme users --json | json "[0]['userName']" \
+  | grep -c eve || true)"
+check "requests naming acme go to acme" "X-Neko-Global-Account: acme" "$(curl -s -D - -o /dev/null \
+  -H 'X-Neko-Global-Account: acme' $O/rest/v1/overview | tr -d '\r')"
+check "… and so do those for acme.localhost" '"globalAccount":"acme"' "$(curl -s -H 'Host: acme.localhost' \
+  $O/rest/v1/context)"
+check "unknown global account refused" "404" "$(code -H 'X-Neko-Global-Account: nope' $O/rest/v1/overview)"
+check "global accounts page (operator)" "global-accounts/acme" "$(curl -s -b "$WORK/cookies" $O/accounts)"
+check "eve sees the landscape as a member of shop-dev" "200" "$(code -b "$WORK/eve" $O/landscape)"
+check "… but cannot change the recovery of retail-prod" "403" "$(code -b "$WORK/eve" $O/landscape/recovery/retail-prod/plan)"
 check "billing page" "Costs by hierarchy" "$(curl -s -b "$WORK/cookies" $O/landscape/billing)"
 check "billing CSV" "month;subaccount;cost_center" "$(curl -s -b "$WORK/cookies" $O/landscape/billing.csv)"
 check "landscape check (CLI)" "0" "$("$BIN/platform-open" landscape check >/dev/null; echo $?)"

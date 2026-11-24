@@ -7,6 +7,7 @@ import std.datetime.systime : SysTime;
 import std.regex : Regex, matchFirst, regex;
 import std.string : indexOf, strip, toLower;
 import std.uni : isWhite;
+import uim.jsons;
 
 @safe:
 
@@ -18,4 +19,23 @@ struct Ban {
   string reason;
   /// Set by an administrator (not automatic).
   bool manual;
+
+  Json toJson() const {
+    import uim.jsons;
+
+    return Json.emptyObject
+      .set("client", client)
+      .set("since", since)
+      .set("until", until)
+      .set("reason", reason)
+      .set("manual", manual);
+  }
+
+  static Ban fromJson(Json json) {
+    auto b = Ban();
+    b.client = json.getString("client", "");
+    b.since = json.get("since", SysTime.min);
+    b.until = json.get("until", SysTime.min);
+    b.reason = json.getString("reason", "");
+    b.manual = json.getBoolean("manual", false);  return b; }
 }

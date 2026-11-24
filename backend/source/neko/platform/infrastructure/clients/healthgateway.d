@@ -8,7 +8,9 @@ module neko.platform.infrastructure.clients.healthgateway;
 
 import core.time : seconds;
 import vibe.core.log : logDebug;
-import vibe.http.client;
+import vibe.d;
+import uim.jsons;
+import uim.service;
 import neko.platform.domain.enumerations : HealthState;
 import neko.platform.ports.gateways;
 
@@ -19,9 +21,18 @@ class HttpHealthGateway : IServiceHealthGateway {
   private HTTPClientSettings settings;
 
   this(int timeoutSeconds) {
+    this.initialize(Json.emptyObject.set("timeoutSeconds", timeoutSeconds));
+  }
+
+  bool initialize(Json config = Json(null)) {
+    if (!config.isObject) 
+      return true;
+
     settings = new HTTPClientSettings;
-    settings.connectTimeout = timeoutSeconds.seconds;
-    settings.readTimeout = timeoutSeconds.seconds;
+    settings.connectTimeout = config.getInteger("timeoutSeconds", 30).seconds;
+    settings.readTimeout = config.getInteger("timeoutSeconds", 30).seconds;
+
+    return true;
   }
 
   HealthState probe(string url) {

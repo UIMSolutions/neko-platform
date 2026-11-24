@@ -54,9 +54,10 @@ class BanList {
   }
 
   bool isBanned(string client, SysTime now, out Ban ban) nothrow {
-    if (auto b = client in bans) {
+    if (client in bans) {
+      auto b = bans[client];
       if (now < b.until) {
-        ban = *b;
+        ban = b;
         return true;
       }
       bans.remove(client);
@@ -66,12 +67,10 @@ class BanList {
 
   /// Current bans, the newest first.
   Ban[] active(SysTime now) {
-    import std.algorithm : sort;
+    import std.algorithm;
+    import std.array;
 
-    Ban[] list;
-    foreach (b; bans)
-      if (now < b.until)
-        list ~= b;
+    Ban[] list = bans.byValue.filter!(b => now < b.until).array;
     list.sort!((a, b) => a.since > b.since);
     return list;
   }

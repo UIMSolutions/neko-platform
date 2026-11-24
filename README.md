@@ -35,18 +35,19 @@ dub build --config=open            # → backend/build/platform-open
 
 | URL | What |
 | --- | --- |
-| `/` | the public site: the site claiming the request's host name, otherwise the default site (no sign-in) |
-| `/media/<site>/<id>/<name>` | public files of a site |
+| `/` | to `/login`, or `/start` when signed in |
+| `/media/<subaccount>/<id>/<name>` | public files of a subaccount (no sign-in) |
 | `/login` | sign-in for the server-rendered pages |
 | `/status` | status page (vibe.d web interface, Tabler + htmx, all assets embedded — works in isolated domains) |
 | `/monitoring` | request figures, failures, slow requests, recent log, storage |
 | `/security` | firewall events, network traffic per client, IP allow/deny lists, bans |
 | `/landscape` | account hierarchy: global account → directories → subaccounts → tenants → spaces, administrators, user groups, services, entitlements, role collections, recommendations |
 | `/accounts` | the global accounts of the instance (operator, default global account only) |
-| `/rest/v1/context` | the global account, subaccount, tenant and space a request runs in |
+| `/rest/v1/context` | the global account, subaccount, tenant, space and region a request runs in |
+| `/landscape/assignments` | service assignments: services × subaccounts with their entitlements |
+| `/landscape/recovery` | multi-region disaster recovery: plans, failover, failback, drills |
 | `/landscape/billing` | usage and costs per subaccount, directory and global account; CSV export |
-| `/sites` | sites (tenants): host names, languages, home page content per language |
-| `/files` | file library per site: documents, images, audio, video |
+| `/files` | file library per subaccount: documents, images, audio, video |
 | `/users`, `/roles` | user management, roles and the access rights they grant |
 | `/account` | own roles and rights, password change |
 | `/index.html` | Fiori cockpit (needs a frontend build, see below) |
@@ -68,8 +69,8 @@ echo 'a-new-password' | ./build/platform-open users passwd admin
 ```
 
 **Roles and access rights.** What a web user may do follows from fixed access
-rights: `status.read`, `events.read`, `monitoring.read`, `sites.read`,
-`sites.manage`, `files.read`, `files.manage`, `security.read`,
+rights: `status.read`, `events.read`, `monitoring.read`, `files.read`,
+`files.manage`, `security.read`,
 `security.manage`, `landscape.read`, `landscape.manage`, `billing.read`,
 `users.read`, `users.manage`,
 `roles.read`, `roles.manage`, `accounts.manage`. Roles bundle rights and are managed at runtime
@@ -80,7 +81,7 @@ holds the union of their rights. Every domain starts with four built-in roles:
 | --- | --- |
 | `admin` | every right, including rights added later; not editable |
 | `auditor` | every `….read` right; changes nothing |
-| `editor` | `status.read`, `sites.read`, `sites.manage`, `files.read`, `files.manage` |
+| `editor` | `status.read`, `files.read`, `files.manage` |
 | `viewer` | `status.read` (the default for new users) |
 
 When a new version adds rights, built-in roles stored by an older version
@@ -104,37 +105,28 @@ field (`viewer` or `admin`) is read as the built-in role of the same name.
 The REST and OData APIs are unchanged: they are still protected by the
 approuter / XSUAA scopes (`enforceScopes`), not by web roles.
 
-**Sites (multi-tenancy).** An instance serves several sites. Each site has a
-key, a name, host names, languages (the first is the default language), a home
-page per language, and its own file library. A request is answered by the site
-that claims its host name; all other host names get the **default site** at
-`/`. On the first start the instance creates the default site `main` (named
-after `serviceName`, language `defaultLanguage`). The language of a page comes
-from `?lang=`, else the browser's `Accept-Language`, else the site's default
-language; a language without its own text shows the default language's text.
-Signed-in users preview any of their sites with `/?site=<key>`.
+**Files.** Every subaccount has a file library. Uploads (several at once, up
+to `maxUploadBytes` each, optionally a `subaccountQuotaBytes` per subaccount)
+need the service `files` to be assigned to the subaccount and are stored on the
+file system under `<dataDir>/<domain>/files/<subaccount>/<id>`; the metadata
+(name, size, SHA-256, description, public flag) is in `files.json`. Users see
+the libraries of the subaccounts they administer or whose user group they are
+in; global account administrators, and users in no user group at all, see
+every library. A subaccount with files cannot be removed. The content type
+follows the file name's extension and is never taken from the client. Public
+files are downloadable without signing in under `/media/<subaccount>/…`.
 
-Accounts can be limited to some sites (user dialog, or `users sites <name> a,b`).
-Site rights (`sites.*`, `files.*`) then apply to those sites only, and the
-others do not exist for the user. Creating, removing and choosing the default
-site needs access to every site, and a limited user can only manage accounts
-within their own sites. A site can only be removed once it has no files and no
-account is limited to it.
-
-**Files.** Uploads (several at once, up to `maxUploadBytes` each, optionally a
-`siteQuotaBytes` per site) are stored on the file system under
-`<dataDir>/<domain>/files/<site>/<id>`; the metadata (name, size, SHA-256,
-description, public flag) is in `files.json`. The content type follows the file
-name's extension and is never taken from the client. Public files appear on the
-site's page (images, audio/video players, documents) and under `/media/…`.
+*Upgrading from a version with sites:* at start-up, the files and usage of
+each site move to the subaccount whose space ran it (else to the first
+subaccount), with their content; the `sites.site` plan, the `sites` service and
+`sites.*` rights leave the landscape, and `sites.json` is emptied. Site limits
+of user accounts are dropped — subaccount user groups take their place.
 Raster images, audio, video and PDF are shown in place; everything else,
 including SVG and HTML, is only sent as a download, and every file is sent with
 a sandboxing Content-Security-Policy and `nosniff`.
 
 ```bash
-./build/platform-open sites add --key=shop --name=Shop --hosts=shop.example.org --language=de --languages=en,fr
-./build/platform-open sites content shop --lang=de --title="Willkommen" --file=intro-de.txt
-./build/platform-open files add shop price-list.pdf logo.png --public
+./build/platform-open files add shop-prod price-list.pdf logo.png --public
 ./build/platform-open files usage
 ```
 
@@ -145,13 +137,13 @@ request to `access-YYYY-MM-DD.ndjson` (one JSON object per line, without query
 strings); files older than `logRetentionDays` are removed. `/monitoring`
 (`monitoring.read`) shows uptime, request rate, errors, latency (average, p95,
 histogram), figures per area, the latest failed and slow requests, storage per
-site and the recent log with a level filter; it refreshes every 10 seconds.
+subaccount and the recent log with a level filter; it refreshes every 10 seconds.
 `/metrics` exposes the same figures in the Prometheus format. Without
 `metricsToken` it only answers local clients (and the unix socket).
 
 **Global accounts.** An instance (one security domain) manages one or more
 global accounts, and they are **physically separate**: each has its own data
-directory with its own users, roles, sessions, sites, files, landscape and
+directory with its own users, roles, sessions, files, landscape and
 usage. The default global account keeps the instance's data directory
 (`data/<domain>/`, so single-account setups stay as they were); every other
 one lives in `data/<domain>/global-accounts/<key>/`. The registry
@@ -178,9 +170,9 @@ the logs are shared. The operator manages them under `/accounts`
 | --- | --- |
 | Global account | governance: contract (CPEA, PAYG, subscription), currency, cost center; its **administrators**; the purchased entitlements; global role collections; the subdomain scheme |
 | Directories (nested up to 5 levels) | a group of subaccounts with owner and cost center; optionally **own entitlements** (a budget its subaccounts draw from) and **own role collections** (valid for every subaccount below) |
-| Subaccounts | logically separate: region (`eu10`, `eu11` EU Access, `eu20`, `us10`, …, `onprem`), subdomain, purpose, stage (`sandbox`, `dev`, `test`, `qa`, `prod`), security domain; its **administrators**, its **user group** and its **selected services**; entitlements, role collections |
+| Subaccounts | logically separate: region (`eu10`, `eu11` EU Access, `eu20`, `us10`, …, `onprem`), subdomain, purpose, stage (`sandbox`, `dev`, `test`, `qa`, `prod`), security domain; its **administrators**, its **user group** and its **assigned services**; entitlements, role collections; a file library; a **disaster recovery plan** |
 | Tenants (≥ 1 per subaccount) | logically separated from each other; exactly one is the default tenant |
-| Spaces (≥ 1 per tenant) | separated within their tenant; every tenant has the space `default`. Sites run in a space (each in exactly one) |
+| Spaces (≥ 1 per tenant) | separated within their tenant; every tenant has the space `default` |
 
 Global account administrators administer everything in their global account
 (they hold `landscape.read`, `landscape.manage` and `billing.read` without a
@@ -188,17 +180,44 @@ role). Subaccount administrators manage the tenants, spaces, user group,
 services and role collections of their subaccount; members of a user group
 see the landscape. Role collections of a subaccount can only be given to its
 user group (and administrators), and only grant access rights of the services
-selected for it (`sites` for `sites.read`/`sites.manage`, …; none selected =
-every service).
+assigned to it (`files` for `files.read`/`files.manage`, …; none listed =
+every service, also services added later).
+
+**Service assignments.** `/landscape/assignments` shows every service ×
+every subaccount of the global account, with the subaccount's entitlements to
+the plans of each service (a plan belongs to the service its key starts with:
+`files.storage` → `files`) and a table of all quotas. Global account
+administrators (`landscape.manage`) assign or unassign a service per cell or
+for every subaccount at once — all or nothing: a service stays assigned while
+a role collection of the subaccount grants its rights. Unassigning from a
+subaccount that has every service lists the others explicitly; assigning the
+last missing one returns it to "every service".
+
+**Multi-region disaster recovery.** A subaccount runs in its primary region.
+Its recovery plan (`/landscape/recovery`) names a secondary region, a strategy
+(`backup-restore`, `pilot-light`, `warm-standby`, `active-active`) and the
+objectives RPO (data that may be lost) and RTO (time to restore), in minutes.
+A **failover** moves it to the secondary region — service calls then report
+that region (`X-Neko-Region`, `GET /rest/v1/context`) — and a **failback**
+returns it; both need a reason. A **drill** records a rehearsed failover and
+passes when it worked within the RTO. Every operation is kept in the plan's
+history (50 entries). Rules: the secondary region differs from the primary
+one, confidential and secret subaccounts in an EU Access region fail over
+only to another EU Access (or self-hosted) region, the region of a
+failed-over subaccount cannot change and it cannot be removed. Warnings:
+objectives the strategy cannot reach, a secondary region in the same location,
+data leaving its geography. The advisor recommends a plan for production
+subaccounts, a first drill, fixing a failed drill and failing back. Global
+account administrators and the subaccount's administrators run all of it.
 
 **Service calls run in a tenant and a space.** Every request is resolved to
 one subaccount, tenant and space, in this order: the headers
 `X-Neko-Subaccount` (key or subdomain), `X-Neko-Tenant`, `X-Neko-Space`; the
-host name (`<subdomain>.…` → default tenant, `<tenant>.<subdomain>.…`); the
-site the request is for; else the default tenant of the first subaccount. The
-space is the one named, else the site's, else `default`. The result is echoed
-as response headers (`X-Neko-Global-Account`, `X-Neko-Subaccount`,
-`X-Neko-Tenant`, `X-Neko-Space`), written to the access log and returned by
+host name (`<subdomain>.…` → default tenant, `<tenant>.<subdomain>.…`); else
+the default tenant of the first subaccount. The space is the one named, else
+`default`. The result, with the region the subaccount runs in, is echoed as
+response headers (`X-Neko-Global-Account`, `X-Neko-Subaccount`,
+`X-Neko-Tenant`, `X-Neko-Space`, `X-Neko-Region`), written to the access log and returned by
 `GET /rest/v1/context`; a tenant or space that was asked for and does not
 exist is answered with 404.
 
@@ -209,10 +228,10 @@ subaccount exists. Entitlements flow down: a subaccount draws from the nearest
 directory above it that manages entitlements, else from the global account;
 quotas may be unlimited (pay per use). Every change is refused if it would
 introduce an error: over-assigned quotas, plans the source is not entitled
-to, duplicate subdomains, a site in two spaces, a subaccount without a
-(default) tenant or a tenant without its default space, role collections
-naming users outside the user group or rights of unselected services, more sites than the
-`sites.site` entitlement, cycles or more than five directory levels.
+to, duplicate subdomains, a subaccount without a (default) tenant or a tenant
+without its default space, role collections naming users outside the user
+group or rights of unassigned services, a broken disaster recovery plan,
+cycles or more than five directory levels.
 
 **Where directory entitlements and role collections make sense.** The page
 explains it, and a built-in advisor checks the landscape:
@@ -230,20 +249,23 @@ explains it, and a built-in advisor checks the landscape:
   the directory (segregation of duties).
 - Further advice: one directory per security domain, no beta features in
   production, EU Access or self-hosted regions for confidential/secret
-  subaccounts, small global role collections, few production administrators.
+  subaccounts, small global role collections, few production administrators,
+  disaster recovery for production subaccounts.
 
 Role collections here describe the authorizations of the landscape
 (governance); the platform's own pages are protected by the roles under
 `/roles` plus the rights the account model grants to administrators.
 
-**Billing.** The platform measures, per site and month, the requests and
-bytes of its public pages (`/` by host name, `/media/…`) and the peak size of
-its files, and stores them every minute (`usage.json`). A site belongs to one
-subaccount, so usage adds up per subaccount, directory and global account.
+**Billing.** The platform measures, per subaccount and month, the requests
+and bytes of REST and OData calls that name the subaccount (header or
+subdomain; calls that fall back to the first subaccount are not billed) and of
+its public files (`/media/<subaccount>/…`), and the peak size of its files, and
+stores them every minute (`usage.json`). Usage adds up per subaccount,
+directory and global account.
 Service plans (`/landscape/billing`, editable) price it: measured plans cost
 quantity × price, plans without a meter cost their entitled quota × price (a
 fixed fee). Usage beyond or without an entitlement is billed as pay per use
-and flagged; sites without a subaccount are listed, unbilled. Prices are not
+and flagged; usage of removed subaccounts is listed, unbilled. Prices are not
 versioned: a price change also applies to earlier months when they are
 viewed again.
 
@@ -252,19 +274,27 @@ viewed again.
 ./build/platform-open landscape show subaccount:shop-prod
 ./build/platform-open landscape check                # problems and advice; exit 1 on errors
 ./build/platform-open landscape billing --month=2026-11 --csv > billing.csv
-./build/platform-open landscape access shop-prod --admins=jane --members=bob,ann --services=sites,files
+./build/platform-open landscape access shop-prod --admins=jane --members=bob,ann --services=files,landscape
 ./build/platform-open landscape tenant add shop-prod eu --name=Europe
-./build/platform-open landscape space add shop-prod eu staging --sites=shop-staging
+./build/platform-open landscape space add shop-prod eu staging
 ./build/platform-open landscape resolve --host=eu.acme-shop-prod.example --space=staging
+./build/platform-open landscape assignments          # services × subaccounts
+./build/platform-open landscape unassign users shop-dev,shop-prod
+./build/platform-open landscape assign files all
+./build/platform-open landscape recovery plan shop-prod --secondary=eu20 --strategy=pilot-light --rpo=10 --rto=45
+./build/platform-open landscape recovery drill shop-prod --minutes=30
+./build/platform-open landscape recovery failover shop-prod --reason="eu11 outage"
+./build/platform-open landscape recovery failback shop-prod --reason="eu11 healthy"
+./build/platform-open landscape recovery            # every subaccount
 ```
 
 **Firewall, network traffic, IP lists.** Every request passes, in this order:
 
 1. **IP allow / deny lists** (always enforced). A rule is an address or CIDR
    network (IPv4 or IPv6) on the allow or the deny list, for one area: the
-   management pages (`admin`: sign-in, `/status`, `/sites`, …, the Fiori app),
+   management pages (`admin`: sign-in, `/status`, `/landscape`, …, the Fiori app),
    the APIs (`api`: REST, OData, `/api`, `/metrics`) or everything (`all`,
-   including the public site). A matching deny rule blocks. Once an area has
+   including public files). A matching deny rule blocks. Once an area has
    allow rules, only the listed networks reach it, so the allow list works as
    a whitelist. Rules are stored with the domain's data (`iprules.json`) and
    managed under `/security` or with `firewall …` on the CLI. Changes that
@@ -377,8 +407,7 @@ The config file is `NEKO_CONFIG_FILE`, else the first of
 | `accessLog` | `NEKO_ACCESS_LOG` | `true` | one log line and NDJSON record per request |
 | `metricsToken` | `NEKO_METRICS_TOKEN` | – | bearer token for `/metrics`; unset = local clients only |
 | `maxUploadBytes` | `NEKO_MAX_UPLOAD` | 50 MiB | per uploaded file |
-| `siteQuotaBytes` | `NEKO_SITE_QUOTA` | `0` | bytes per site; 0 = no quota |
-| `defaultLanguage` | `NEKO_DEFAULT_LANGUAGE` | `en` | language of the default site created on the first start |
+| `subaccountQuotaBytes` | `NEKO_SUBACCOUNT_QUOTA` | `0` | bytes of files per subaccount; 0 = no quota (also read from `siteQuotaBytes` / `NEKO_SITE_QUOTA`) |
 | `firewallMode` | `NEKO_FIREWALL_MODE` | `block` | `block`, `detect` (log only) or `off` (IP lists only) |
 | `rateLimitPerMinute` | `NEKO_RATE_LIMIT` | `600` | requests per client address and minute; 0 = off |
 | `banAfterViolations` | `NEKO_BAN_AFTER` | `20` | firewall findings within 10 minutes that ban an address; 0 = never |
@@ -412,7 +441,7 @@ On Cloud Foundry, bind a user-provided service named or tagged
 ```bash
 dub test --config=open           # unit tests (domain rules, use cases, adapters)
 BIN=$PWD/build backend/tests/smoke.sh   # end-to-end: CLI, two domains, unix socket, scopes, OData,
-                                        # roles, sites, uploads, monitoring, firewall, IP lists,
+                                        # roles, uploads, monitoring, firewall, IP lists,
                                         # landscape, billing
 ```
 

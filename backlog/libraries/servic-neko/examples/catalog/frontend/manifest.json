@@ -1,6 +1,6 @@
 {
   "_version": "1.59.0",
-  "sap.app": {
+  "neko.app": {
     "id": "uim.catalog",
     "type": "application",
     "i18n": "i18n/i18n.properties",
@@ -15,19 +15,19 @@
       }
     }
   },
-  "sap.ui": {
+  "neko.ui": {
     "technology": "UI5",
     "deviceTypes": { "desktop": true, "tablet": true, "phone": true }
   },
-  "sap.ui5": {
+  "neko.ui5": {
     "rootView": { "viewName": "uim.catalog.view.App", "type": "XML", "id": "app" },
     "dependencies": {
       "minUI5Version": "1.120.0",
-      "libs": { "sap.m": {}, "sap.ui.core": {}, "sap.f": {} }
+      "libs": { "neko.m": {}, "neko.ui.core": {}, "neko.f": {} }
     },
     "contentDensities": { "compact": true, "cozy": true },
     "models": {
-      "i18n": { "type": "sap.ui.model.resource.ResourceModel", "settings": { "bundleName": "uim.catalog.i18n.i18n" } },
+      "i18n": { "type": "neko.ui.model.resource.ResourceModel", "settings": { "bundleName": "uim.catalog.i18n.i18n" } },
       "": {
         "dataSource": "mainService",
         "preload": true,

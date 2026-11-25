@@ -1,6 +1,6 @@
-sap.ui.define([
-  "sap/ui/model/json/JSONModel",
-  "sap/ui/Device"
+neko.ui.define([
+  "neko/ui/model/json/JSONModel",
+  "neko/ui/Device"
 ], function (JSONModel, Device) {
   "use strict";
 

@@ -1,5 +1,5 @@
 /* global QUnit */
-sap.ui.define(["uim/catalog/model/formatter"], function (formatter) {
+neko.ui.define(["uim/catalog/model/formatter"], function (formatter) {
   "use strict";
 
   QUnit.module("formatter");

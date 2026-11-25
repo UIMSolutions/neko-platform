@@ -12,19 +12,19 @@
     in air-gapped domains `npm run build` creates a self-contained dist/.
   -->
   <script
-    id="sap-ui-bootstrap"
-    src="resources/sap-ui-core.js"
-    data-sap-ui-theme="sap_fiori_3"
-    data-sap-ui-resource-roots='{"neko.platform": "./"}'
-    data-sap-ui-compat-version="edge"
-    data-sap-ui-async="true"
-    data-sap-ui-on-init="module:sap/ui/core/ComponentSupport"
-    data-sap-ui-frame-options="deny">
+    id="neko-ui-bootstrap"
+    src="resources/neko-ui-core.js"
+    data-neko-ui-theme="sap_fiori_3"
+    data-neko-ui-resource-roots='{"neko.platform": "./"}'
+    data-neko-ui-compat-version="edge"
+    data-neko-ui-async="true"
+    data-neko-ui-on-init="module:neko/ui/core/ComponentSupport"
+    data-neko-ui-frame-options="deny">
   </script>
 </head>
 <body class="sapUiBody" id="content">
   <div
-    data-sap-ui-component
+    data-neko-ui-component
     data-name="neko.platform"
     data-id="container"
     data-settings='{"id": "platform"}'

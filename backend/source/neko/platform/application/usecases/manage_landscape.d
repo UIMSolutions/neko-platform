@@ -258,7 +258,7 @@ class ManageLandscapeUseCase : IManageLandscapeUseCase, IBillingUseCase {
     s.costCenter = r.costCenter.strip;
     s.betaFeatures = r.betaFeatures;
 
-    // Region and subdomain are fixed once the subaccount exists (as in SAP BTP).
+    // Region and subdomain are fixed once the subaccount exists (as in NEKO BTP).
     auto region = r.region.strip.toLower;
     if (create) {
       RegionInfo info;

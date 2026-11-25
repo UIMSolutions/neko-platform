@@ -1,5 +1,5 @@
-sap.ui.define([
-  "sap/ui/core/UIComponent",
+neko.ui.define([
+  "neko/ui/core/UIComponent",
   "uim/catalog/model/models"
 ], function (UIComponent, models) {
   "use strict";
@@ -7,7 +7,7 @@ sap.ui.define([
   return UIComponent.extend("uim.catalog.Component", {
     metadata: {
       manifest: "json",
-      interfaces: ["sap.ui.core.IAsyncContentCreation"]
+      interfaces: ["neko.ui.core.IAsyncContentCreation"]
     },
 
     init: function () {

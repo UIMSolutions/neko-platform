@@ -3,7 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// HTTP server: OData v4 for SAP Fiori + health endpoint (+ static Fiori app for local development).
+/// HTTP server: OData v4 for NEKO Fiori + health endpoint (+ static Fiori app for local development).
 ///
 ///   dub run                     → http://localhost:8080/odata/v4/catalog/$metadata
 module app;
@@ -23,7 +23,7 @@ version (unittest) {
     auto runtime = bootstrapCatalog(config);
 
     auto odata = new ODataController(runtime.engine, config["odataPath"].get!string, config["defaultTenant"].get!string);
-    // Security: XSUAA binding (RS256, SAP BTP) > shared secret (HS256) > open (local development)
+    // Security: XSUAA binding (RS256, NEKO BTP) > shared secret (HS256) > open (local development)
     auto uaa = serviceCredentials(config, "xsuaa");
     if (uaa.isObject && "verificationkey" in uaa) {
       odata.verifier = new Rs256TokenVerifier(uaa["verificationkey"].get!string);

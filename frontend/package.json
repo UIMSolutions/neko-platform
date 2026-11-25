@@ -1,7 +1,7 @@
 {
   "name": "neko-platform-ui",
   "version": "1.0.0",
-  "description": "SAP Fiori 3 (OpenUI5) cockpit of the Neko Platform",
+  "description": "NEKO Fiori 3 (OpenUI5) cockpit of the Neko Platform",
   "private": true,
   "license": "Apache-2.0",
   "scripts": {
@@ -12,7 +12,7 @@
     "lint": "ui5lint"
   },
   "devDependencies": {
-    "@sap-ux/ui5-middleware-fe-mockserver": "^2.2.0",
+    "@neko-ux/ui5-middleware-fe-mockserver": "^2.2.0",
     "@ui5/cli": "^4.0.0",
     "@ui5/linter": "^1.0.0",
     "ui5-middleware-simpleproxy": "^3.2.0"

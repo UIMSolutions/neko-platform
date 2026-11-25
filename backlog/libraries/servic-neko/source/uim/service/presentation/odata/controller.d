@@ -3,7 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// Generic OData v4 HTTP endpoint for SAP Fiori / UI5 (sap.ui.model.odata.v4.ODataModel).
+/// Generic OData v4 HTTP endpoint for NEKO Fiori / UI5 (neko.ui.model.odata.v4.ODataModel).
 ///
 ///   GET    <root>/                         service document
 ///   GET    <root>/$metadata                CSDL with Fiori annotations

@@ -125,8 +125,8 @@ string buildMetadata() {
   x ~= `<edmx:Edmx Version="4.0" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx">` ~ "\n";
   x ~= `<edmx:Reference Uri="https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Capabilities.V1.xml">`
     ~ `<edmx:Include Alias="Capabilities" Namespace="Org.OData.Capabilities.V1"/></edmx:Reference>` ~ "\n";
-  x ~= `<edmx:Reference Uri="https://sap.github.io/odata-vocabularies/vocabularies/Common.xml">`
-    ~ `<edmx:Include Alias="Common" Namespace="com.sap.vocabularies.Common.v1"/></edmx:Reference>` ~ "\n";
+  x ~= `<edmx:Reference Uri="https://neko.github.io/odata-vocabularies/vocabularies/Common.xml">`
+    ~ `<edmx:Include Alias="Common" Namespace="com.neko.vocabularies.Common.v1"/></edmx:Reference>` ~ "\n";
   x ~= `<edmx:DataServices><Schema Namespace="` ~ odataNamespace ~ `" xmlns="http://docs.oasis-open.org/odata/ns/edm">` ~ "\n";
 
   foreach (e; entityTypes) {

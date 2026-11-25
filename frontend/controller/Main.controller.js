@@ -1,10 +1,10 @@
-sap.ui.define([
+neko.ui.define([
   "neko/platform/controller/BaseController",
   "neko/platform/model/models",
-  "sap/ui/model/Filter",
-  "sap/ui/model/FilterOperator",
-  "sap/m/MessageBox",
-  "sap/m/library"
+  "neko/ui/model/Filter",
+  "neko/ui/model/FilterOperator",
+  "neko/m/MessageBox",
+  "neko/m/library"
 ], function (BaseController, models, Filter, FilterOperator, MessageBox, mobileLibrary) {
   "use strict";
 
@@ -184,7 +184,7 @@ sap.ui.define([
 
     onCloseDialog: function (oEvent) {
       var oControl = oEvent.getSource();
-      while (oControl && !oControl.isA("sap.m.Dialog")) {
+      while (oControl && !oControl.isA("neko.m.Dialog")) {
         oControl = oControl.getParent();
       }
       if (oControl) {

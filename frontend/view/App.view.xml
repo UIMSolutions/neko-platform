@@ -1,7 +1,7 @@
 <mvc:View
   controllerName="neko.platform.controller.App"
-  xmlns:mvc="sap.ui.core.mvc"
-  xmlns="sap.m"
+  xmlns:mvc="neko.ui.core.mvc"
+  xmlns="neko.m"
   displayBlock="true">
   <App id="app" busy="{ui>/busy}" busyIndicatorDelay="0"/>
 </mvc:View>

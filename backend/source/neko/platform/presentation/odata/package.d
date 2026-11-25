@@ -3,7 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// OData v4 endpoint for SAP Fiori (sap.ui.model.odata.v4.ODataModel).
+/// OData v4 endpoint for NEKO Fiori (neko.ui.model.odata.v4.ODataModel).
 ///
 ///   GET    <base>/  ·  <base>/$metadata
 ///   GET    <base>/Services[?$filter&$orderby&$search&$select&$top&$skip&$count]  ·  /Services/$count

@@ -3,7 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// The account hierarchy, modelled on SAP BTP:
+/// The account hierarchy, modelled on NEKO BTP:
 ///
 ///   Global Account   governance: contract, cost center, the purchased
 ///                    entitlements (service plans and quotas), global role

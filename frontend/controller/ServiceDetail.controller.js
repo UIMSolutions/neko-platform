@@ -1,6 +1,6 @@
-sap.ui.define([
+neko.ui.define([
   "neko/platform/controller/BaseController",
-  "sap/m/MessageBox"
+  "neko/m/MessageBox"
 ], function (BaseController, MessageBox) {
   "use strict";
 

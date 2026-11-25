@@ -1,9 +1,9 @@
-sap.ui.define([
-  "sap/ui/test/Opa5",
-  "sap/ui/test/actions/Press",
-  "sap/ui/test/matchers/AggregationLengthEquals",
-  "sap/ui/test/matchers/BindingPath",
-  "sap/ui/test/matchers/Properties"
+neko.ui.define([
+  "neko/ui/test/Opa5",
+  "neko/ui/test/actions/Press",
+  "neko/ui/test/matchers/AggregationLengthEquals",
+  "neko/ui/test/matchers/BindingPath",
+  "neko/ui/test/matchers/Properties"
 ], function (Opa5, Press, AggregationLengthEquals, BindingPath, Properties) {
   "use strict";
 
@@ -14,7 +14,7 @@ sap.ui.define([
       actions: {
         iPressTheService: function (sName) {
           return this.waitFor({
-            controlType: "sap.m.ObjectIdentifier",
+            controlType: "neko.m.ObjectIdentifier",
             viewName: sViewName,
             matchers: new Properties({ title: sName }),
             success: function (aIdentifiers) {

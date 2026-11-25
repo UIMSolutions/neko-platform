@@ -1,9 +1,9 @@
 <mvc:View
   controllerName="uim.catalog.controller.App"
-  xmlns:mvc="sap.ui.core.mvc"
-  xmlns="sap.m"
-  xmlns:f="sap.f"
-  xmlns:core="sap.ui.core"
+  xmlns:mvc="neko.ui.core.mvc"
+  xmlns="neko.m"
+  xmlns:f="neko.f"
+  xmlns:core="neko.ui.core"
   displayBlock="true">
   <App id="app">
     <f:DynamicPage id="page" headerExpanded="true" showFooter="false">
@@ -13,8 +13,8 @@
             <Title text="{i18n>appTitle}" />
           </f:heading>
           <f:actions>
-            <Button text="{i18n>reprice}" icon="sap-icon://lead" press=".onOpenReprice" />
-            <Button text="{i18n>refresh}" icon="sap-icon://refresh" press=".onRefresh" />
+            <Button text="{i18n>reprice}" icon="neko-icon://lead" press=".onOpenReprice" />
+            <Button text="{i18n>refresh}" icon="neko-icon://refresh" press=".onRefresh" />
           </f:actions>
         </f:DynamicPageTitle>
       </f:title>
@@ -52,8 +52,8 @@
               <Title id="productsTitle" text="{i18n>products}" level="H2" />
               <ToolbarSpacer />
               <SearchField id="search" width="18rem" placeholder="{i18n>searchPlaceholder}" search=".onSearch" />
-              <Button text="{i18n>create}" icon="sap-icon://add" type="Emphasized" press=".onOpenCreate" />
-              <Button text="{i18n>delete}" icon="sap-icon://delete" press=".onDelete" />
+              <Button text="{i18n>create}" icon="neko-icon://add" type="Emphasized" press=".onOpenCreate" />
+              <Button text="{i18n>delete}" icon="neko-icon://delete" press=".onDelete" />
             </OverflowToolbar>
           </headerToolbar>
           <columns>

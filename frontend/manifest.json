@@ -1,6 +1,6 @@
 {
   "_version": "1.60.0",
-  "sap.app": {
+  "neko.app": {
     "id": "neko.platform",
     "type": "application",
     "i18n": "i18n/i18n.properties",
@@ -28,12 +28,12 @@
       }
     }
   },
-  "sap.ui": {
+  "neko.ui": {
     "technology": "UI5",
     "fullWidth": true,
     "deviceTypes": { "desktop": true, "tablet": true, "phone": true }
   },
-  "sap.ui5": {
+  "neko.ui5": {
     "rootView": {
       "viewName": "neko.platform.view.App",
       "type": "XML",
@@ -42,17 +42,17 @@
     "dependencies": {
       "minUI5Version": "1.120.0",
       "libs": {
-        "sap.ui.core": {},
-        "sap.m": {},
-        "sap.f": {},
-        "sap.ui.layout": {},
-        "sap.ui.unified": {}
+        "neko.ui.core": {},
+        "neko.m": {},
+        "neko.f": {},
+        "neko.ui.layout": {},
+        "neko.ui.unified": {}
       }
     },
     "contentDensities": { "compact": true, "cozy": true },
     "models": {
       "i18n": {
-        "type": "sap.ui.model.resource.ResourceModel",
+        "type": "neko.ui.model.resource.ResourceModel",
         "settings": {
           "bundleName": "neko.platform.i18n.i18n",
           "supportedLocales": ["", "en", "de"],
@@ -72,7 +72,7 @@
     },
     "routing": {
       "config": {
-        "routerClass": "sap.m.routing.Router",
+        "routerClass": "neko.m.routing.Router",
         "type": "View",
         "viewType": "XML",
         "path": "neko.platform.view",

@@ -1,9 +1,9 @@
-sap.ui.define([
-  "sap/ui/core/mvc/Controller",
-  "sap/ui/core/routing/History",
-  "sap/ui/core/UIComponent",
-  "sap/m/MessageBox",
-  "sap/m/MessageToast",
+neko.ui.define([
+  "neko/ui/core/mvc/Controller",
+  "neko/ui/core/routing/History",
+  "neko/ui/core/UIComponent",
+  "neko/m/MessageBox",
+  "neko/m/MessageToast",
   "neko/platform/model/formatter"
 ], function (Controller, History, UIComponent, MessageBox, MessageToast, formatter) {
   "use strict";

@@ -1,7 +1,7 @@
 <core:FragmentDefinition
-  xmlns="sap.m"
-  xmlns:core="sap.ui.core"
-  xmlns:u="sap.ui.unified">
+  xmlns="neko.m"
+  xmlns:core="neko.ui.core"
+  xmlns:u="neko.ui.unified">
   <Dialog id="importDialog" title="{i18n>transfers.import}" contentWidth="36rem" class="sapUiContentPadding">
     <MessageStrip text="{i18n>import.hint}" type="Information" showIcon="true" class="sapUiSmallMarginBottom"/>
     <VBox>

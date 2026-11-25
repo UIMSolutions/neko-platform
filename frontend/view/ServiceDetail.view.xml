@@ -1,15 +1,15 @@
 <mvc:View
   controllerName="neko.platform.controller.ServiceDetail"
-  xmlns:mvc="sap.ui.core.mvc"
-  xmlns:core="sap.ui.core"
-  xmlns:form="sap.ui.layout.form"
-  xmlns="sap.m">
+  xmlns:mvc="neko.ui.core.mvc"
+  xmlns:core="neko.ui.core"
+  xmlns:form="neko.ui.layout.form"
+  xmlns="neko.m">
   <Page id="servicePage" title="{Name}" showNavButton="true" navButtonPress=".onNavBack" showFooter="true">
     <content>
       <ObjectHeader
         title="{Name}"
         intro="{Description}"
-        icon="sap-icon://cloud"
+        icon="neko-icon://cloud"
         responsive="true"
         backgroundDesign="Translucent">
         <statuses>
@@ -54,17 +54,17 @@
     <footer>
       <OverflowToolbar>
         <ToggleButton id="editButton" text="{= ${ui>/editMode} ? ${i18n>done} : ${i18n>edit} }"
-          icon="sap-icon://edit" pressed="{ui>/editMode}" enabled="{= %{Status} !== 'retired' }"/>
+          icon="neko-icon://edit" pressed="{ui>/editMode}" enabled="{= %{Status} !== 'retired' }"/>
         <ToolbarSpacer/>
         <Button id="activateButton" text="{i18n>action.activate}" type="Accept"
           enabled="{= %{Status} === 'registered' || %{Status} === 'suspended' }" press=".onActivate"/>
         <Button id="suspendButton" text="{i18n>action.suspend}"
           enabled="{= %{Status} === 'active' }" press=".onSuspend"/>
-        <Button id="checkButton" text="{i18n>action.check}" icon="sap-icon://stethoscope"
+        <Button id="checkButton" text="{i18n>action.check}" icon="neko-icon://stethoscope"
           enabled="{= %{Status} === 'active' &amp;&amp; !!%{BaseUrl} }" press=".onCheckHealth"/>
         <Button id="retireButton" text="{i18n>action.retire}" type="Reject"
           enabled="{= %{Status} !== 'retired' }" press=".onRetire"/>
-        <Button id="deleteButton" text="{i18n>action.delete}" icon="sap-icon://delete" type="Reject"
+        <Button id="deleteButton" text="{i18n>action.delete}" icon="neko-icon://delete" type="Reject"
           visible="{= %{Status} === 'retired' }" press=".onDelete"/>
       </OverflowToolbar>
     </footer>

@@ -1,7 +1,7 @@
-sap.ui.define([
-  "sap/ui/test/Opa5",
-  "sap/ui/test/actions/Press",
-  "sap/ui/test/matchers/Properties"
+neko.ui.define([
+  "neko/ui/test/Opa5",
+  "neko/ui/test/actions/Press",
+  "neko/ui/test/matchers/Properties"
 ], function (Opa5, Press, Properties) {
   "use strict";
 

@@ -13,7 +13,7 @@ mixin(ShowModule!());
 @safe:
 
 /**
-  * Base configuration class for SAP services.
+  * Base configuration class for NEKO services.
   * Contains common configuration properties and initialization logic.
   * Specific services can extend this class to add their own configuration properties and validation.
   *

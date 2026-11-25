@@ -5,7 +5,7 @@
 *****************************************************************************************************************/
 /// Resolution of the RequestContext from HTTP headers.
 ///
-/// Behind the SAP approuter every request carries an XSUAA JWT
+/// Behind the NEKO approuter every request carries an XSUAA JWT
 /// ("Authorization: Bearer <jwt>"). Tenant (zid) and user are taken from the
 /// token; scopes are only trusted if an ITokenVerifier verified the
 /// signature. Without a verifier the token is decoded for identification

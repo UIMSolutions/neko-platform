@@ -4,7 +4,7 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// CSDL (EDMX 4.0) $metadata and service document generation, including the
-/// annotations SAP Fiori elements needs out of the box: Common.Label,
+/// annotations NEKO Fiori elements needs out of the box: Common.Label,
 /// Core.Computed/Immutable, Capabilities.*Restrictions, UI.HeaderInfo,
 /// UI.LineItem and UI.SelectionFields.
 module uim.service.presentation.odata.metadata;
@@ -41,8 +41,8 @@ string buildODataMetadata(const ODataServiceModel model) {
   reference(x, "https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Core.V1.xml", "Core", "Org.OData.Core.V1");
   reference(x, "https://oasis-tcs.github.io/odata-vocabularies/vocabularies/Org.OData.Capabilities.V1.xml",
     "Capabilities", "Org.OData.Capabilities.V1");
-  reference(x, "https://sap.github.io/odata-vocabularies/vocabularies/Common.xml", "Common", "com.sap.vocabularies.Common.v1");
-  reference(x, "https://sap.github.io/odata-vocabularies/vocabularies/UI.xml", "UI", "com.sap.vocabularies.UI.v1");
+  reference(x, "https://neko.github.io/odata-vocabularies/vocabularies/Common.xml", "Common", "com.neko.vocabularies.Common.v1");
+  reference(x, "https://neko.github.io/odata-vocabularies/vocabularies/UI.xml", "UI", "com.neko.vocabularies.UI.v1");
   x ~= `  <edmx:DataServices>` ~ "\n";
   x ~= `    <Schema Namespace=` ~ attr(ns) ~ ` xmlns="http://docs.oasis-open.org/odata/ns/edm">` ~ "\n";
 

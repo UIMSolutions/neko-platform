@@ -1,6 +1,6 @@
 /*global QUnit */
-sap.ui.define([
-  "sap/ui/test/opaQunit",
+neko.ui.define([
+  "neko/ui/test/opaQunit",
   "./pages/Main",
   "./pages/ServiceDetail"
 ], function (opaTest) {

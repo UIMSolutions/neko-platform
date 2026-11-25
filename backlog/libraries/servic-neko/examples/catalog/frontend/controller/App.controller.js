@@ -1,7 +1,7 @@
-sap.ui.define([
-  "sap/ui/core/mvc/Controller",
-  "sap/m/MessageToast",
-  "sap/m/MessageBox",
+neko.ui.define([
+  "neko/ui/core/mvc/Controller",
+  "neko/m/MessageToast",
+  "neko/m/MessageBox",
   "uim/catalog/model/formatter"
 ], function (Controller, MessageToast, MessageBox, formatter) {
   "use strict";

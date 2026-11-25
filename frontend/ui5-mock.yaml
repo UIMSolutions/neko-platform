@@ -13,23 +13,23 @@ framework:
   name: OpenUI5
   version: "1.120.21"
   libraries:
-    - name: sap.m
-    - name: sap.f
-    - name: sap.ui.core
-    - name: sap.ui.layout
-    - name: sap.ui.unified
-    - name: themelib_sap_fiori_3
+  - name: neko.m
+  - name: neko.f
+  - name: neko.ui.core
+  - name: neko.ui.layout
+  - name: neko.ui.unified
+  - name: themelib_sap_fiori_3
 server:
   settings:
     httpPort: 8091
   customMiddleware:
-    - name: sap-fe-mockserver
-      beforeMiddleware: csp
-      configuration:
-        mountPath: /
-        services:
-          - urlPath: /odata/v4/platform
-            metadataPath: ./localService/metadata.xml
-            mockdataPath: ./localService/mockdata
-            generateMockData: false
-        annotations: []
+  - name: neko-fe-mockserver
+    beforeMiddleware: csp
+    configuration:
+      mountPath: /
+      services:
+      - urlPath: /odata/v4/platform
+        metadataPath: ./localService/metadata.xml
+        mockdataPath: ./localService/mockdata
+        generateMockData: false
+      annotations: []

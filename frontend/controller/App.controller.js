@@ -1,4 +1,4 @@
-sap.ui.define([
+neko.ui.define([
   "neko/platform/controller/BaseController"
 ], function (BaseController) {
   "use strict";

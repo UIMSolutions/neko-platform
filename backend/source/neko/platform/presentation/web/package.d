@@ -5,7 +5,7 @@
 *****************************************************************************************************************/
 /// Web adapters: server-rendered pages — vibe.d web interfaces (vibe.web.web,
 /// access rights via vibe.web.auth), Diet templates, Tabler and htmx — plus
-/// the SAP Fiori app for local development.
+/// the NEKO Fiori app for local development.
 ///
 ///   guard      PageContext (auth info, one predicate per access right), WebGuard, PageAuthentication
 ///   sessions   WebSessions, LoginThrottle, origin checks

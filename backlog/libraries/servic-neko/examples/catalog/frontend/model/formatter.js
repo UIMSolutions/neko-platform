@@ -1,8 +1,8 @@
-sap.ui.define([], function () {
+neko.ui.define([], function () {
   "use strict";
 
   return {
-    /** Product status → sap.ui.core.ValueState */
+    /** Product status → neko.ui.core.ValueState */
     statusState: function (status) {
       switch (status) {
         case "active": return "Success";

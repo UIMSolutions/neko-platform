@@ -3,7 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// The subset of OData system query options used by SAP Fiori lists:
+/// The subset of OData system query options used by NEKO Fiori lists:
 ///   $filter   Field eq|ne 'v' | contains(Field,'v') | startswith(Field,'v'), joined by "and"
 ///   $orderby  Field [asc|desc][, …]
 ///   $search   free text over all string properties

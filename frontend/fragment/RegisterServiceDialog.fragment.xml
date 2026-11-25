@@ -1,7 +1,7 @@
 <core:FragmentDefinition
-  xmlns="sap.m"
-  xmlns:core="sap.ui.core"
-  xmlns:form="sap.ui.layout.form">
+  xmlns="neko.m"
+  xmlns:core="neko.ui.core"
+  xmlns:form="neko.ui.layout.form">
   <Dialog id="registerDialog" title="{i18n>services.register}" contentWidth="32rem" class="sapUiContentPadding">
     <form:SimpleForm editable="true" layout="ResponsiveGridLayout" labelSpanL="4" labelSpanM="4">
       <form:content>

@@ -1,5 +1,5 @@
-sap.ui.define([
-  "sap/ui/core/library"
+neko.ui.define([
+  "neko/ui/core/library"
 ], function (coreLibrary) {
   "use strict";
 
@@ -38,9 +38,9 @@ sap.ui.define([
 
     healthIcon: function (sHealth) {
       switch (sHealth) {
-        case "up": return "sap-icon://status-positive";
-        case "down": return "sap-icon://status-negative";
-        default: return "sap-icon://status-inactive";
+        case "up": return "neko-icon://status-positive";
+        case "down": return "neko-icon://status-negative";
+        default: return "neko-icon://status-inactive";
       }
     },
 
@@ -54,7 +54,7 @@ sap.ui.define([
     },
 
     directionIcon: function (sDirection) {
-      return sDirection === "outbound" ? "sap-icon://outbox" : "sap-icon://inbox";
+      return sDirection === "outbound" ? "neko-icon://outbox" : "neko-icon://inbox";
     },
 
     /** Higher classification → stronger colour. */

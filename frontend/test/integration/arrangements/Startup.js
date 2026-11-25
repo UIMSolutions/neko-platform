@@ -1,5 +1,5 @@
-sap.ui.define([
-  "sap/ui/test/Opa5"
+neko.ui.define([
+  "neko/ui/test/Opa5"
 ], function (Opa5) {
   "use strict";
 

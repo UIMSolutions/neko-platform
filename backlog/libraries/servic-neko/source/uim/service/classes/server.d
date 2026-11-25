@@ -11,7 +11,7 @@ mixin(ShowModule!());
 
 @safe:
 /**
-  * SAPServer - Base class for all SAP service HTTP servers
+  * SAPServer - Base class for all NEKO service HTTP servers
   * Provides common functionality like:
   * - Base path handling
   * - Authentication validation

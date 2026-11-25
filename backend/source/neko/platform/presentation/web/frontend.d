@@ -3,7 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// Serves the SAP Fiori app from frontend/ for local development.
+/// Serves the NEKO Fiori app from frontend/ for local development.
 module neko.platform.presentation.web.frontend;
 
 import std.file : exists, isDir;

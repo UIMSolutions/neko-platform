@@ -1,7 +1,7 @@
 <core:FragmentDefinition
-  xmlns="sap.m"
-  xmlns:core="sap.ui.core"
-  xmlns:form="sap.ui.layout.form">
+  xmlns="neko.m"
+  xmlns:core="neko.ui.core"
+  xmlns:form="neko.ui.layout.form">
   <Dialog id="exportDialog" title="{i18n>transfers.export}" contentWidth="36rem" class="sapUiContentPadding">
     <MessageStrip text="{i18n>export.hint}" type="Information" showIcon="true" class="sapUiSmallMarginBottom"/>
     <form:SimpleForm editable="true" layout="ResponsiveGridLayout" labelSpanL="3" labelSpanM="3">

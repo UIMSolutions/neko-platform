@@ -3,7 +3,7 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// Structured (one JSON object per line) logging, as expected by the SAP BTP
+/// Structured (one JSON object per line) logging, as expected by the NEKO BTP
 /// Cloud Logging / Kibana pipelines, plus a vibe.d request logging wrapper.
 module uim.service.infrastructure.logging.structured;
 

@@ -34,8 +34,10 @@ struct Ban {
   static Ban fromJson(Json json) {
     auto b = Ban();
     b.client = json.getString("client", "");
-    b.since = json.get("since", SysTime.min);
-    b.until = json.get("until", SysTime.min);
+    b.since = json.hasKey("since") ? json.getString("since") : SysTime.min;
+    b.until = json.hasKey("until") ? json.getString("until") : SysTime.min;
     b.reason = json.getString("reason", "");
-    b.manual = json.getBoolean("manual", false);  return b; }
+    b.manual = json.getBoolean("manual", false);
+    return b;
+  }
 }

@@ -1,7 +1,7 @@
 /*global QUnit */
-sap.ui.define([
+neko.ui.define([
   "neko/platform/model/formatter",
-  "sap/ui/core/library"
+  "neko/ui/core/library"
 ], function (formatter, coreLibrary) {
   "use strict";
 
@@ -20,7 +20,7 @@ sap.ui.define([
     assert.strictEqual(formatter.healthState("up"), ValueState.Success);
     assert.strictEqual(formatter.healthState("down"), ValueState.Error);
     assert.strictEqual(formatter.healthState("unknown"), ValueState.None);
-    assert.strictEqual(formatter.healthIcon("down"), "sap-icon://status-negative");
+    assert.strictEqual(formatter.healthIcon("down"), "neko-icon://status-negative");
   });
 
   QUnit.test("domain classification gets stronger colours", function (assert) {

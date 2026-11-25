@@ -1,4 +1,4 @@
-sap.ui.define([
+neko.ui.define([
   "./model/formatter"
 ], function () {
   "use strict";

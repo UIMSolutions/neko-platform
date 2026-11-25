@@ -1,10 +1,10 @@
 <mvc:View
   controllerName="neko.platform.controller.Main"
-  xmlns:mvc="sap.ui.core.mvc"
-  xmlns:core="sap.ui.core"
-  xmlns:f="sap.f"
-  xmlns:l="sap.ui.layout"
-  xmlns="sap.m">
+  xmlns:mvc="neko.ui.core.mvc"
+  xmlns:core="neko.ui.core"
+  xmlns:f="neko.f"
+  xmlns:l="neko.ui.layout"
+  xmlns="neko.m">
   <f:DynamicPage id="mainPage" headerExpanded="true" showFooter="false">
     <f:title>
       <f:DynamicPageTitle>
@@ -18,9 +18,9 @@
           <ObjectStatus
             text="{parts: ['Domain'], formatter: '.formatter.domainText'}"
             state="{path: 'Domain', formatter: '.formatter.domainState'}"
-            icon="sap-icon://shield"
+            icon="neko-icon://shield"
             inverted="true"/>
-          <Button icon="sap-icon://refresh" tooltip="{i18n>refresh}" press=".onRefresh"/>
+          <Button icon="neko-icon://refresh" tooltip="{i18n>refresh}" press=".onRefresh"/>
         </f:actions>
       </f:DynamicPageTitle>
     </f:title>
@@ -49,10 +49,10 @@
             <Label text="{i18n>overview.capabilities}"/>
             <HBox>
               <ObjectStatus class="sapUiTinyMarginEnd" text="{i18n>overview.export}"
-                icon="{= %{CanExport} ? 'sap-icon://accept' : 'sap-icon://decline' }"
+                icon="{= %{CanExport} ? 'neko-icon://accept' : 'neko-icon://decline' }"
                 state="{= %{CanExport} ? 'Success' : 'None' }"/>
               <ObjectStatus text="{i18n>overview.import}"
-                icon="{= %{CanImport} ? 'sap-icon://accept' : 'sap-icon://decline' }"
+                icon="{= %{CanImport} ? 'neko-icon://accept' : 'neko-icon://decline' }"
                 state="{= %{CanImport} ? 'Success' : 'None' }"/>
             </HBox>
           </l:VerticalLayout>
@@ -64,7 +64,7 @@
       <IconTabBar id="tabs" select=".onTabSelect" expandable="false" stretchContentHeight="false"
         applyContentPadding="false">
         <items>
-          <IconTabFilter id="servicesTab" key="services" icon="sap-icon://cloud" text="{i18n>servicesTitle}"
+          <IconTabFilter id="servicesTab" key="services" icon="neko-icon://cloud" text="{i18n>servicesTitle}"
             count="{ServiceCount}">
             <Table
               id="servicesTable"
@@ -87,7 +87,7 @@
                     <core:Item key="retired" text="{i18n>status.retired}"/>
                   </Select>
                   <Button id="registerButton" text="{i18n>services.register}" type="Emphasized"
-                    icon="sap-icon://add" press=".onOpenRegister"/>
+                    icon="neko-icon://add" press=".onOpenRegister"/>
                 </OverflowToolbar>
               </headerToolbar>
               <columns>
@@ -115,7 +115,7 @@
             </Table>
           </IconTabFilter>
 
-          <IconTabFilter id="transfersTab" key="transfers" icon="sap-icon://journey-arrive"
+          <IconTabFilter id="transfersTab" key="transfers" icon="neko-icon://journey-arrive"
             text="{i18n>transfersTitle}" count="{TransferCount}">
             <Table
               id="transfersTable"
@@ -128,9 +128,9 @@
                 <OverflowToolbar>
                   <Title text="{i18n>transfersTitle}" level="H2"/>
                   <ToolbarSpacer/>
-                  <Button id="exportButton" text="{i18n>transfers.export}" icon="sap-icon://outbox"
+                  <Button id="exportButton" text="{i18n>transfers.export}" icon="neko-icon://outbox"
                     type="Emphasized" visible="{= %{CanExport} === true }" press=".onOpenExport"/>
-                  <Button id="importButton" text="{i18n>transfers.import}" icon="sap-icon://inbox"
+                  <Button id="importButton" text="{i18n>transfers.import}" icon="neko-icon://inbox"
                     visible="{= %{CanImport} === true }" press=".onOpenImport"/>
                 </OverflowToolbar>
               </headerToolbar>
@@ -165,7 +165,7 @@
                       <Text text="{CreatedAt}"/>
                       <Text text="{CreatedBy}" class="sapUiTinyMarginTop"/>
                     </VBox>
-                    <Button icon="sap-icon://download" tooltip="{i18n>transfers.download}" type="Transparent"
+                    <Button icon="neko-icon://download" tooltip="{i18n>transfers.download}" type="Transparent"
                       visible="{path: 'Direction', targetType: 'any', formatter: '.formatter.isOutbound'}" press=".onDownload"/>
                   </cells>
                 </ColumnListItem>

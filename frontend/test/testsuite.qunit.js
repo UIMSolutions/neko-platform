@@ -1,4 +1,4 @@
-sap.ui.define(function () {
+neko.ui.define(function () {
   "use strict";
 
   return {

@@ -1,6 +1,6 @@
 # Approuter
 
-Single entry point on SAP BTP: XSUAA login, scope checks per route, CSRF
+Single entry point on NEKO BTP: XSUAA login, scope checks per route, CSRF
 protection and forwarding to the backend destination `neko-platform-srv`.
 The Fiori app is served from `resources/` — a self-contained build
 (`npm run build:ui`) that includes the OpenUI5 runtime, so no CDN is needed.

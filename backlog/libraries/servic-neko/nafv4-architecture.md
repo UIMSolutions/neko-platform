@@ -135,7 +135,7 @@ Generic OData v4 endpoint provided to services (`ODataController`):
 ```
 Build artefact
 ├── libneko-platform-service.a   (D static library)
-├── libuim-sap-service.a        (SAP-extended static library)
+├── libuim-neko-service.a        (NEKO-extended static library)
 └── libuim-service.a            (alias entry)
 
 dub.sdl consumers add:

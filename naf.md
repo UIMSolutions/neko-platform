@@ -29,7 +29,7 @@ Service platform operations
 │   ├── verify and import packages from lower domains
 │   └── audit refused packages (wrong recipient, downward flow, tampering, replay)
 └── C1.4 Platform administration
-    ├── web cockpit (SAP Fiori 3) and status page
+    ├── web cockpit (NEKO Fiori 3) and status page
     ├── command-line interface
     └── layered configuration (file → env → VCAP_SERVICES)
 ```
@@ -120,8 +120,8 @@ sequenceDiagram
 | Resource | Technology |
 | --- | --- |
 | Backend | D, vibe.d 0.10 (vibe-http), dyaml; one executable per domain |
-| Frontend | OpenUI5 1.120 (LTS), SAP Fiori 3 theme, OData v4 model |
-| Approuter | `@sap/approuter` (Node.js), XSUAA |
+| Frontend | OpenUI5 1.120 (LTS), NEKO Fiori 3 theme, OData v4 model |
+| Approuter | `@neko/approuter` (Node.js), XSUAA |
 | Storage | JSON documents per collection (`<dataDir>/<domain>/*.json`) or memory |
 | Deployment | MTA (`mta.yaml`), Cloud Foundry `binary_buildpack` |
 

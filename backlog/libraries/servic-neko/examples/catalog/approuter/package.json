@@ -4,6 +4,6 @@
   "private": true,
   "description": "Approuter of the neko-platform catalog reference service (XSUAA login, routing, CSRF)",
   "engines": { "node": ">=20" },
-  "scripts": { "start": "node node_modules/@sap/approuter/approuter.js" },
-  "dependencies": { "@sap/approuter": "^20.0.0" }
+  "scripts": { "start": "node node_modules/@neko/approuter/approuter.js" },
+  "dependencies": { "@neko/approuter": "^20.0.0" }
 }

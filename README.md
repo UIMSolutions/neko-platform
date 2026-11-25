@@ -15,9 +15,9 @@ built for `secret` can never run as `open`.
 
 ```text
 backend/      D 2.x + vibe.d — hexagonal architecture (REST, OData v4, CLI, web, unix socket)
-frontend/     SAP Fiori 3 cockpit (OpenUI5, OData v4 model)
-approuter/    SAP approuter: XSUAA login, routing, CSRF (Cloud Foundry)
-mta.yaml      deploys backend + approuter + XSUAA to SAP BTP
+frontend/     NEKO Fiori 3 cockpit (OpenUI5, OData v4 model)
+approuter/    NEKO approuter: XSUAA login, routing, CSRF (Cloud Foundry)
+mta.yaml      deploys backend + approuter + XSUAA to NEKO BTP
 services/     services hosted on the platform (management)
 ```
 
@@ -164,7 +164,7 @@ the logs are shared. The operator manages them under `/accounts`
 
 **Landscape: global account, directories, subaccounts, tenants, spaces.**
 `/landscape` models the account hierarchy inside a global account (after the
-[SAP BTP account model](https://help.sap.com/docs/btp/sap-business-technology-platform/account-model)):
+[NEKO BTP account model](https://help.neko.com/docs/btp/neko-business-technology-platform/account-model)):
 
 | Level | Holds |
 | --- | --- |
@@ -445,7 +445,7 @@ BIN=$PWD/build backend/tests/smoke.sh   # end-to-end: CLI, two domains, unix soc
                                         # landscape, billing
 ```
 
-## Deployment (SAP BTP, Cloud Foundry)
+## Deployment (NEKO BTP, Cloud Foundry)
 
 ```bash
 NEKO_DOMAIN=restricted mbt build

@@ -1,7 +1,7 @@
 _schema-version: "3.3"
 ID: uim-catalog
 version: 1.0.0
-description: neko-platform catalog reference service — D/vibe.d backend (OData v4), SAP Fiori 3 UI and approuter
+description: neko-platform catalog reference service — D/vibe.d backend (OData v4), NEKO Fiori 3 UI and approuter
 
 parameters:
   enable-parallel-deployments: true

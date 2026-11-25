@@ -2,7 +2,7 @@
 
 Shared library for all UIM platform services: hexagonal scaffolding (entities,
 repositories, use cases) plus **opt-in adapters that give a service an OData v4
-endpoint for SAP Fiori, a command line interface and a GtkD desktop GUI from one
+endpoint for NEKO Fiori, a command line interface and a GtkD desktop GUI from one
 EDM model**.
 
 See also [UML.md](UML.md) and [nafv4-architecture.md](nafv4-architecture.md).
@@ -93,7 +93,7 @@ for business errors; each adapter maps it (HTTP status, CLI exit code 1, GUI dia
 `resolveRequestContext` takes tenant (`zid`) and user from the bearer token. Scopes are
 only trusted when an `ITokenVerifier` verified the token:
 
-- `Rs256TokenVerifier(xsuaa.verificationkey)` — SAP XSUAA tokens (OpenSSL)
+- `Rs256TokenVerifier(xsuaa.verificationkey)` — NEKO XSUAA tokens (OpenSSL)
 - `Hs256TokenVerifier(secret)` — shared secret, service-to-service, tests
 
 Set `controller.requireAuthentication = true` and `engine.enforceScopes = true` in

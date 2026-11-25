@@ -6,11 +6,11 @@
   "license": "Apache-2.0",
   "engines": { "node": ">=20" },
   "scripts": {
-    "start": "node node_modules/@sap/approuter/approuter.js",
+    "start": "node node_modules/@neko/approuter/approuter.js",
     "build:ui": "cd ../frontend && npm ci && npm run build && rm -rf ../approuter/resources && cp -r dist ../approuter/resources",
-    "start:local": "npm run build:ui && node node_modules/@sap/approuter/approuter.js"
+    "start:local": "npm run build:ui && node node_modules/@neko/approuter/approuter.js"
   },
   "dependencies": {
-    "@sap/approuter": "^16.8.0"
+    "@neko/approuter": "^16.8.0"
   }
 }

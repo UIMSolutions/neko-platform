@@ -2,7 +2,7 @@
 
 A small product catalog that shows the target architecture end to end:
 a D/vibe.d backend in Clean Architecture, one EDM model exposed as **OData v4**
-(SAP Fiori 3 frontend), **CLI** and **GtkD GUI**, deployed with an **approuter**
+(NEKO Fiori 3 frontend), **CLI** and **GtkD GUI**, deployed with an **approuter**
 and XSUAA via `mta.yaml`.
 
 ```

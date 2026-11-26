@@ -136,6 +136,11 @@ int serve(PlatformInstance instance) {
         logWarn("usage: cannot store usage records of %s: %s", key, e.msg);
   }
 
+  // Time: NTP when a server answers, else the system clock.
+  instance.clock.start();
+  scope (exit)
+    instance.clock.stop();
+
   auto usageTimer = setTimer(60.seconds, &flushUsage, true);
   scope (exit) {
     usageTimer.stop();

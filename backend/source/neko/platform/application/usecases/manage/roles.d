@@ -4,7 +4,7 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Roles: named bundles of access rights, assigned to user accounts.
-module neko.platform.application.usecases.manage_roles;
+module neko.platform.application.usecases.manage.roles;
 
 import std.algorithm : canFind, count, filter, map, sort;
 import std.array : array, join;

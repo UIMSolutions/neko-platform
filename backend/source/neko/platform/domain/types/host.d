@@ -14,6 +14,7 @@ import neko.platform.domain.exceptions;
 @safe:
 
 /// "Example.org:8080" → "example.org", "[::1]:8080" → "[::1]"; "" if empty.
+/// Removes trailing dots and converts to lower case.
 string normalizeHost(string hostHeader) pure {
   auto h = hostHeader.strip.toLower;
   if (h.length && h[0] == '[') {
@@ -27,8 +28,19 @@ string normalizeHost(string hostHeader) pure {
     h = h[0 .. $ - 1];
   return h;
 }
+///
+unittest {
+  assert(normalizeHost("Example.org:8080") == "example.org");
+  assert(normalizeHost("[::1]:8080") == "[::1]");
+  assert(normalizeHost("Example.org.") == "example.org");
+  assert(normalizeHost("") == "");
+  assert(normalizeHost("example.org") == "example.org");
+  assert(normalizeHost("example.org:80") == "example.org");
+  assert(normalizeHost("example.org:443") == "example.org");
+}
 
 /// A host name (lower case, without port), or ValidationException.
+/// Validates a host name (lower case, without port), or throws ValidationException.
 string validHost(string name) pure {
   auto h = normalizeHost(name);
   if (h.length == 0 || h.length > 253 || h[0] == '.' || h[0] == '-'
@@ -36,15 +48,27 @@ string validHost(string name) pure {
     throw new ValidationException("'" ~ name.strip ~ "' is not a host name (e.g. www.example.org)");
   return h;
 }
-
 ///
 unittest {
-  assert(normalizeHost("[::1]:8080") == "[::1]" && normalizeHost("Example.org.") == "example.org");
   assert(validHost("Shop.Example.org:8080") == "shop.example.org");
   bool failed;
+  failed = false;
   try
     validHost("bad host");
   catch (ValidationException)
     failed = true;
   assert(failed);
+}
+
+bool isValidHost(string name) pure {
+  auto h = normalizeHost(name);
+  if (h.length == 0 || h.length > 253 || h[0] == '.' || h[0] == '-'
+      || !h.all!(c => (c.isAlphaNum && c < 0x80) || c == '.' || c == '-' || c == '[' || c == ']' || c == ':'))
+    return false;
+  return true;
+}
+///
+unittest {
+  assert(isValidHost("shop.example.org:8080"));
+  assert(!isValidHost("bad host"));
 }

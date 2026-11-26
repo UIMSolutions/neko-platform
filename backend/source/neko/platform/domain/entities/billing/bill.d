@@ -3,62 +3,15 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-/// Billing: what each subaccount used in a month and what it costs.
-///
-/// The platform measures usage per subaccount (requests, bytes sent, peak
-/// file storage); it adds up per directory and for the global account.
-/// Measured plans cost quantity × price; plans without a meter cost the
-/// entitled quota × price (a fixed monthly fee). Usage recorded for
-/// subaccounts that no longer exist is listed separately, unbilled.
-module neko.platform.domain.entities.billing;
+module neko.platform.domain.entities.billing.bill;
 
 import std.algorithm : any, max;
 import neko.platform.domain.entities.landscape;
+import neko.platform.domain.entities.billing.subaccountbill;
+import neko.platform.domain.entities.billing.chargeline;
+import neko.platform.domain.entities.billing.usagerecord;
 
 @safe:
-
-/// Usage of one subaccount in one month.
-struct UsageRecord {
-  /// "2026-11"
-  string month;
-  /// Subaccount key.
-  string subaccount;
-  long requests;
-  long bytesOut;
-  long peakStorageBytes;
-
-  /// Add `delta` (counters add up, the storage peak is the maximum).
-  void merge(const UsageRecord delta) pure nothrow {
-    requests += delta.requests;
-    bytesOut += delta.bytesOut;
-    peakStorageBytes = max(peakStorageBytes, delta.peakStorageBytes);
-  }
-}
-
-/// A line item for a charge in a bill.
-struct ChargeLine {
-  string plan;
-  string unit;
-  /// In billing units.
-  double quantity = 0;
-  double price = 0;
-  double amount = 0;
-  /// Entitled quota in billing units; `unlimited`; 0 = not entitled.
-  long quota;
-  bool entitled;
-  bool overQuota;
-}
-
-/// A bill for one subaccount in one month.
-struct SubaccountBill {
-  string subaccount;
-  string costCenter;
-  long requests;
-  long bytesOut;
-  long storageBytes;
-  ChargeLine[] lines;
-  double total = 0;
-}
 
 /// The complete bill for a month, including all subaccounts and unassigned usage.
 struct Bill {

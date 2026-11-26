@@ -20,24 +20,24 @@ struct Ban {
   /// Set by an administrator (not automatic).
   bool manual;
 
-  Json toJson() const {
-    import uim.jsons;
+  // Json toJson() const {
+    // import uim.jsons;
+// 
+    // return Json.emptyObject
+      // .set("client", client)
+      // .set("since", since)
+      // .set("until", until)
+      // .set("reason", reason)
+      // .set("manual", manual);
+  // }
 
-    return Json.emptyObject
-      .set("client", client)
-      .set("since", since)
-      .set("until", until)
-      .set("reason", reason)
-      .set("manual", manual);
-  }
-
-  static Ban fromJson(Json json) {
-    auto b = Ban();
-    b.client = json.getString("client", "");
-    b.since = json.hasKey("since") ? json.getString("since") : SysTime.min;
-    b.until = json.hasKey("until") ? json.getString("until") : SysTime.min;
-    b.reason = json.getString("reason", "");
-    b.manual = json.getBoolean("manual", false);
-    return b;
-  }
+  // static Ban fromJson(Json json) {
+    // auto b = Ban();
+    // b.client = json.getString("client", "");
+    // b.since = json.hasKey("since") ? json.getString("since") : SysTime.min;
+    // b.until = json.hasKey("until") ? json.getString("until") : SysTime.min;
+    // b.reason = json.getString("reason", "");
+    // b.manual = json.getBoolean("manual", false);
+    // return b;
+  // }
 }

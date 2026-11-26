@@ -16,6 +16,7 @@ import neko.platform.domain.exceptions;
 
 @safe:
 
+/// Represents an IP address (IPv4 or IPv6). IPv4 is stored as an IPv4-mapped IPv6 address.
 struct IpAddress {
   ubyte[16] bytes;
 
@@ -27,7 +28,7 @@ struct IpAddress {
   }
 
   bool isLoopback() const pure nothrow {
-    if (isV4)
+    if (isV4())
       return bytes[12] == 127;
     foreach (i; 0 .. 15)
       if (bytes[i] != 0)
@@ -37,7 +38,7 @@ struct IpAddress {
 
   /// "192.0.2.1", "2001:db8::1" (compressed, lower case).
   string toString() const pure {
-    if (isV4)
+    if (isV4())
       return format("%s.%s.%s.%s", bytes[12], bytes[13], bytes[14], bytes[15]);
     ushort[8] g;
     foreach (i; 0 .. 8)
@@ -132,16 +133,20 @@ private bool parseV6(string t, ref ubyte[16] target) pure {
   tail = right.length ? right.split(":") : null;
   ubyte[4] v4;
   bool hasV4;
-  ref string[] last() return {
+
+  ref string[] last() {
     return dbl >= 0 ? tail : head;
   }
 
-  if (last.length && last[$ - 1].canFind('.')) {
-    if (!parseV4(last[$ - 1], v4[]))
+  // Check for embedded IPv4 address at the end of the IPv6 address.
+  if (last().length > 0 && last()[$ - 1].canFind('.')) {
+    if (!parseV4(last()[$ - 1], v4[]))
       return false;
-    last = last[0 .. $ - 1];
+
+    last() = last()[0 .. $ - 1];
     hasV4 = true;
   }
+
   auto groups = head.length + tail.length + (hasV4 ? 2 : 0);
   if (dbl < 0 && groups != 8)
     return false;
@@ -204,12 +209,14 @@ struct IpNetwork {
       else if (keep < 8)
         base.bytes[i] &= cast(ubyte)(0xff << (8 - keep));
     }
+    
     if (base.isV4 || prefix >= 96 && isMappedPrefix(base)) {
       base.bytes[10] = 0xff;
       base.bytes[11] = 0xff;
     }
   }
 
+  /// Checks if the given IP address is contained within this network.
   bool contains(const IpAddress a) const pure nothrow {
     foreach (i; 0 .. 16) {
       auto keep = prefix - cast(int) i * 8;
@@ -222,14 +229,15 @@ struct IpNetwork {
     return true;
   }
 
+  /// Checks if this network represents an IPv4 network.
   bool isV4() const pure nothrow {
     return prefix >= 96 && base.isV4;
   }
 
-  /// "10.0.0.0/8", "192.0.2.7" (single addresses without prefix).
+  /// Returns a string representation of the network in CIDR notation ("10.0.0.0/8", "192.0.2.7" for single addresses without prefix).
   string toString() const pure {
-    auto bits = isV4 ? prefix - 96 : prefix;
-    auto full = isV4 ? 32 : 128;
+    auto bits = isV4() ? prefix - 96 : prefix;
+    auto full = isV4() ? 32 : 128;
     return base.toString ~ (bits == full ? "" : "/" ~ bits.to!string);
   }
 }

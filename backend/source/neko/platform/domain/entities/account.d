@@ -16,6 +16,7 @@ import neko.platform.domain.types;
 
 @safe:
 
+/// Represents a user account within the platform, including roles, profile information, and security-related timestamps.
 struct UserAccount {
   AccountId id;
   UserName userName;
@@ -43,7 +44,7 @@ struct UserAccount {
 
   /// At least one active administrator must remain, so every right stays reachable.
   bool isActiveAdmin() const pure nothrow {
-    return active && isAdmin;
+    return active && isAdmin();
   }
 
   /// The name shown in the UI.
@@ -95,15 +96,15 @@ unittest {
   auto now = Clock.currTime;
   UserAccount a;
   a.userName = UserName("jane");
-  assert(a.label == "jane" && !a.isAdmin);
+  assert(a.label() == "jane" && !a.isAdmin());
   a.changeProfile(" Jane Doe ", "jane@example.org", now);
   assert(a.label == "Jane Doe");
-  assert(a.roles.length == 0 && !a.isAdmin);
+  assert(a.roles.length == 0 && !a.isAdmin());
   a.assignRoles([RoleName("viewer"), RoleName("Admin"), RoleName("admin")], now);
   assert(a.roles == [adminRole, viewerRole]);
-  assert(a.isActiveAdmin);
+  assert(a.isActiveAdmin());
   a.setActive(false, now);
-  assert(!a.isActiveAdmin);
+  assert(!a.isActiveAdmin());
 
   bool rejected;
   try

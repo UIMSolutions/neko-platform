@@ -4,7 +4,7 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// IP allow and deny lists (see domain.entities.iprule for the policy).
-module neko.platform.application.usecases.manage_network;
+module neko.platform.application.usecases.manage.network;
 
 import core.time : Duration, seconds;
 import std.algorithm : map, sort;

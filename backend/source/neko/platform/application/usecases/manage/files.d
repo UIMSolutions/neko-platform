@@ -7,7 +7,7 @@
 /// in a blob store (one folder per subaccount). Who reaches a library:
 /// see access.mayAccessSubaccount. Uploads need the service "files" to be
 /// assigned to the subaccount.
-module neko.platform.application.usecases.manage_files;
+module neko.platform.application.usecases.manage.files;
 
 import std.algorithm : canFind, map, sort;
 import std.array : array;

@@ -4,7 +4,7 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// The global accounts of the instance (see domain.entities.globalaccounts).
-module neko.platform.application.usecases.manage_globalaccounts;
+module neko.platform.application.usecases.manage.globalaccounts;
 
 import core.time : seconds;
 import std.algorithm : countUntil, filter;

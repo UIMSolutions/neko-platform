@@ -4,7 +4,7 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Service catalogue: register, change, run through the life cycle, remove.
-module neko.platform.application.usecases.manage_services;
+module neko.platform.application.usecases.manage.services;
 
 import std.algorithm : canFind, filter, map, sort;
 import std.array : array;

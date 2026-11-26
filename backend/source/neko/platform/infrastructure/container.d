@@ -12,6 +12,7 @@
 /// global accounts and builds their containers on first use.
 module neko.platform.infrastructure.container;
 
+import core.time : seconds;
 import std.path : buildPath;
 import vibe.core.log : logInfo;
 import neko.platform.domain;
@@ -73,8 +74,9 @@ string accountDataDir(PlatformConfig config, SecurityDomain domain, const Global
 
 /// `store` overrides the configured storage (used by tests). `account`: the
 /// global account (default: the default one, in the instance's data directory).
+/// `clock`: the instance's clock (default: the system clock).
 PlatformContainer buildContainer(PlatformConfig config, SecurityDomain domain, IDocumentStore store = null,
-    GlobalAccountEntry account = GlobalAccountEntry.init) {
+    GlobalAccountEntry account = GlobalAccountEntry.init, IClock clock = null) {
   auto c = new PlatformContainer;
   c.config = config;
   c.domain = domain;
@@ -96,7 +98,7 @@ PlatformContainer buildContainer(PlatformConfig config, SecurityDomain domain, I
   c.serviceRepository = new DocumentServiceRepository(c.store);
   c.transferRepository = new DocumentTransferRepository(c.store);
   c.events = new LoggingEventPublisher;
-  c.clock = new SystemClock;
+  c.clock = clock !is null ? clock : new SystemClock;
   auto ids = new UuidGenerator;
 
   c.services = new ManageServicesUseCase(c.serviceRepository, c.events, c.clock, ids, domain);
@@ -143,6 +145,10 @@ class PlatformInstance {
   IDocumentStore store;
   IGlobalAccountRepository registry;
   IManageGlobalAccountsUseCase accounts;
+  /// One clock for all global accounts: NTP time when a server answers
+  /// (synchronised once `clock.start()` runs, i.e. when serving), else the
+  /// system time.
+  NtpClock clock;
   private PlatformContainer[string] containers;
   private bool memory;
 
@@ -152,7 +158,7 @@ class PlatformInstance {
     if (auto c = key in containers)
       return *c;
     auto entry = accounts.get(key);
-    auto c = buildContainer(config, domain, memory ? new MemoryDocumentStore : null, entry);
+    auto c = buildContainer(config, domain, memory ? new MemoryDocumentStore : null, entry, clock);
     containers[key] = c;
     return c;
   }
@@ -185,9 +191,10 @@ PlatformInstance buildInstance(PlatformConfig config, SecurityDomain domain, IDo
   else
     i.store = new JsonFileDocumentStore(config.effectiveDataDir(domain));
   i.registry = new DocumentGlobalAccountRepository(i.store);
-  i.accounts = new ManageGlobalAccountsUseCase(i.registry, new LoggingEventPublisher, new SystemClock);
+  i.clock = new NtpClock(config.ntpServerList, config.ntpSyncIntervalSeconds.seconds);
+  i.accounts = new ManageGlobalAccountsUseCase(i.registry, new LoggingEventPublisher, i.clock);
   auto def = i.accounts.ensureDefault(defaultAccount(config).key, config.serviceName);
   if (store !is null)
-    i.containers[def.key] = buildContainer(config, domain, store, def); // the default one shares the test store
+    i.containers[def.key] = buildContainer(config, domain, store, def, i.clock); // the default one shares the test store
   return i;
 }

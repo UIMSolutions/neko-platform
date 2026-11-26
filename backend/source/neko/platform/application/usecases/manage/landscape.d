@@ -6,7 +6,7 @@
 /// The account hierarchy and billing, disaster recovery and service
 /// assignments (see domain.entities.landscape, .billing, .recovery and
 /// .serviceassignments for the rules).
-module neko.platform.application.usecases.manage_landscape;
+module neko.platform.application.usecases.manage.landscape;
 
 import std.algorithm : any, canFind, countUntil, filter, map, remove, sort;
 import std.array : array, join;

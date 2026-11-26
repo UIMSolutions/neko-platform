@@ -4,7 +4,7 @@
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
 /// Web user accounts: sign-in, the first administrator, account management.
-module neko.platform.application.usecases.manage_users;
+module neko.platform.application.usecases.manage.users;
 
 import std.algorithm : count, map, sort;
 import std.array : array, join;

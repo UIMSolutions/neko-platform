@@ -87,6 +87,11 @@ struct PlatformConfig {
   /// Reverse proxies (addresses or CIDR, comma separated) whose
   /// X-Forwarded-For header names the real client, e.g. the approuter.
   string trustedProxies = "";
+  /// NTP time servers (comma separated, tried in order); "" = system clock.
+  /// Unreachable servers fall back to the system clock as well.
+  string ntpServers = "pool.ntp.org";
+  /// Resynchronisation interval of the NTP clock (0 = only at start-up).
+  int ntpSyncIntervalSeconds = 3600;
 
   /// Where the values came from (diagnostics).
   string[] sources = ["defaults"];
@@ -118,6 +123,9 @@ struct PlatformConfig {
     str("metricsToken", metricsToken);
     str("firewallMode", firewallMode);
     str("trustedProxies", trustedProxies);
+    str("ntpServers", ntpServers);
+    if ("ntpSyncIntervalSeconds" in values)
+      ntpSyncIntervalSeconds = asNumber!int(values["ntpSyncIntervalSeconds"], "ntpSyncIntervalSeconds");
     if ("rateLimitPerMinute" in values)
       rateLimitPerMinute = asNumber!int(values["rateLimitPerMinute"], "rateLimitPerMinute");
     if ("banAfterViolations" in values)
@@ -179,6 +187,8 @@ struct PlatformConfig {
       throw new Exception("firewallMode must be 'block', 'detect' or 'off', not '" ~ firewallMode ~ "'");
     if (rateLimitPerMinute < 0 || banAfterViolations < 0 || banMinutes <= 0)
       throw new Exception("rateLimitPerMinute and banAfterViolations must be >= 0, banMinutes > 0");
+    if (ntpSyncIntervalSeconds < 0)
+      throw new Exception("ntpSyncIntervalSeconds must be >= 0");
     foreach (p; proxyList)
       try {
         import neko.platform.domain.types.ipnetwork : IpNetwork;
@@ -196,6 +206,15 @@ struct PlatformConfig {
     foreach (p; trustedProxies.splitter(','))
       if (p.strip.length)
         result ~= p.strip;
+    return result;
+  }
+
+  /// The entries of `ntpServers`.
+  string[] ntpServerList() const {
+    string[] result;
+    foreach (s; ntpServers.splitter(','))
+      if (s.strip.length)
+        result ~= s.strip;
     return result;
   }
 
@@ -268,6 +287,8 @@ struct PlatformConfig {
     j["banAfterViolations"] = banAfterViolations;
     j["banMinutes"] = banMinutes;
     j["trustedProxies"] = trustedProxies;
+    j["ntpServers"] = ntpServers;
+    j["ntpSyncIntervalSeconds"] = ntpSyncIntervalSeconds;
     j["sources"] = Json(sources.map!(s => Json(s)).array);
     return j;
   }
@@ -303,7 +324,8 @@ PlatformConfig loadConfig(SecurityDomain domain) {
     ["NEKO_ACCESS_LOG", "accessLog"], ["NEKO_METRICS_TOKEN", "metricsToken"],
     ["NEKO_FIREWALL_MODE", "firewallMode"], ["NEKO_RATE_LIMIT", "rateLimitPerMinute"],
     ["NEKO_BAN_AFTER", "banAfterViolations"], ["NEKO_BAN_MINUTES", "banMinutes"],
-    ["NEKO_TRUSTED_PROXIES", "trustedProxies"],
+    ["NEKO_TRUSTED_PROXIES", "trustedProxies"], ["NEKO_NTP_SERVERS", "ntpServers"],
+    ["NEKO_NTP_INTERVAL", "ntpSyncIntervalSeconds"],
   ];
   foreach (pair; variables) {
     auto value = (() @trusted => environment.get(pair[0], ""))();

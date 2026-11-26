@@ -3,7 +3,7 @@ description "Multi-client service platform with security domains (open, restrict
 license "Apache-2.0"
 dependency "vibe-d" version="~>0.10.5"
 dependency "dyaml" version="~>0.10.0"
-dependency "uim-framework" version="~>26.11.1"
+dependency "uim-framework" version="~>26.11.3"
 targetType "executable"
 targetPath "build"
 targetName "neko_platform"
@@ -52,3 +52,5 @@ configuration "secret" {
 	targetName "platform-secret"
 	versions "DomainSecret"
 }
+
+buildRequirements "allowWarnings"

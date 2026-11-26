@@ -82,3 +82,6 @@ build/platform-secret
 build/neko-platform-test-open
 build/platform-open
 build/platform-secret
+build/neko-platform-test-open
+build/platform-open
+build/platform-secret

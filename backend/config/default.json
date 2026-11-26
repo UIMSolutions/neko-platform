@@ -24,6 +24,8 @@
   "banAfterViolations": 20,
   "banMinutes": 15,
   "trustedProxies": "",
+  "ntpServers": "pool.ntp.org",
+  "ntpSyncIntervalSeconds": 3600,
   "domains": {
     "open": { "port": 8181 },
     "restricted": { "port": 8182 },

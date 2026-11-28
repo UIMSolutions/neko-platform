@@ -10,6 +10,8 @@ module neko.platform.ports.usecases.transferpackage;
 import neko.platform.application.dtos;
 import neko.platform.domain.entities.iprule : NetworkDecision, RequestArea;
 import neko.platform.domain.entities.landscape : Landscape, RoleCollection, ServicePlan;
+import neko.platform.application.dtos.requests;
+
 
 @safe:
 

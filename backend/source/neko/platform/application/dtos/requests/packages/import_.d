@@ -3,17 +3,14 @@
 * License: Subject to the terms of the Apache 2.0 license, as written in the included LICENSE.txt file.
 * Authors: Ozan Nurettin Süel (aka UI-Manufaktur UG *R.I.P*)
 *****************************************************************************************************************/
-module neko.platform.application.dtos.requests.updateuser;
+module neko.platform.application.dtos.requests.packages.import_;
 
 import std.typecons : Nullable;
 import vibe.data.serialization : optional;
 
 @safe:
-/// Partial update; null fields are left unchanged.
-struct UpdateUserRequest {
-  @optional Nullable!string displayName;
-  @optional Nullable!string email;
-  /// Replaces all roles of the account.
-  @optional Nullable!(string[]) roles;
-  @optional Nullable!bool active;
+
+struct ImportPackageRequest {
+  /// The transfer document (JSON text) produced by an export.
+  string document;
 }

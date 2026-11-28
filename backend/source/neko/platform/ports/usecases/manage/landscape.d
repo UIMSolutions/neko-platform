@@ -10,6 +10,7 @@ module neko.platform.ports.usecases.manage.landscape;
 import neko.platform.application.dtos;
 import neko.platform.domain.entities.iprule : NetworkDecision, RequestArea;
 import neko.platform.domain.entities.landscape : CallContext, CallRequest, Landscape, RoleCollection, ServicePlan;
+import neko.platform.application.dtos.requests;
 
 @safe:
 

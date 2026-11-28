@@ -13,6 +13,8 @@ import std.string : strip;
 import neko.platform.domain;
 import neko.platform.application.dtos;
 import neko.platform.ports;
+import neko.platform.application.dtos.requests;
+
 
 @safe:
 

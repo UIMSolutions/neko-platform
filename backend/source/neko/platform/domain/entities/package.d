@@ -15,5 +15,6 @@ public:
   import neko.platform.domain.entities.landscape;
   import neko.platform.domain.entities.billing;
   import neko.platform.domain.entities.globalaccounts;
+  import neko.platform.domain.entities.transfer;
   import neko.platform.domain.entities.recovery;
   import neko.platform.domain.entities.serviceassignments;

@@ -10,4 +10,3 @@ module neko.platform.application.dtos;
 public:
   import neko.platform.application.dtos.requests;
   import neko.platform.application.dtos.responses;
-  import neko.platform.application.dtos.transfer_document;

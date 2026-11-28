@@ -18,6 +18,8 @@ import neko.platform.domain;
 import dr = neko.platform.domain.entities.recovery;
 import neko.platform.application.dtos;
 import neko.platform.ports;
+import neko.platform.application.dtos.requests;
+
 
 @safe:
 

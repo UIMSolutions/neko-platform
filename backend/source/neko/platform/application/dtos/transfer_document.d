@@ -76,7 +76,6 @@ TransferPackage fromDocument(string text) {
   pkg.direction = TransferDirection.inbound;
   return pkg;
 }
-
 ///
 unittest {
   TransferPackage pkg;
